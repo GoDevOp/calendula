@@ -74,5 +74,5 @@ public interface PharmaciesService {
      * @return
      */
     @GET("location/{lat}/{long}/{distance}/{open}")
-    Call<List<Pharmacy>> listByLocation(@Path("lat") Float latitude, @Path("long") Float longitude, @Path("distance") Integer distance, @Path("open") String open);
+    Call<List<Pharmacy>> listByLocation(@Path("lat") Double latitude, @Path("long") Double longitude, @Path("distance") Integer distance, @Path("open") String open);
 }

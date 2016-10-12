@@ -52,6 +52,7 @@ import es.usc.citius.servando.calendula.HomePagerActivity;
 import es.usc.citius.servando.calendula.R;
 import es.usc.citius.servando.calendula.database.DB;
 import es.usc.citius.servando.calendula.persistence.Patient;
+import es.usc.citius.servando.calendula.pharmacies.activities.PharmaciesMapActivity;
 import es.usc.citius.servando.calendula.util.AvatarMgr;
 import es.usc.citius.servando.calendula.util.IconUtils;
 import es.usc.citius.servando.calendula.util.ScreenUtils;
@@ -155,7 +156,6 @@ public class LeftDrawerMgr implements Drawer.OnDrawerItemClickListener, Drawer.O
                         new PrimaryDrawerItem()
                                 .withName(R.string.home_menu_pharmacies)
                                 .withIcon(IconUtils.icon(home, CommunityMaterial.Icon.cmd_map_marker_multiple, R.color.black).alpha(38))
-                                .withEnabled(false)
                                 .withIdentifier(PHARMACIES),
                         new PrimaryDrawerItem()
                                 .withName(R.string.home_menu_plantrip)
@@ -232,6 +232,9 @@ public class LeftDrawerMgr implements Drawer.OnDrawerItemClickListener, Drawer.O
                 showAbout();
                 drawer.setSelection(HOME,false);
                 break;
+            case PHARMACIES:
+                launchActivity(new Intent(home, PharmaciesMapActivity.class));
+                drawer.setSelection(HOME,false);
             default:
                 return false;
         }
