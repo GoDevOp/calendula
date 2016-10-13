@@ -1,6 +1,7 @@
 package es.usc.citius.servando.calendula.pharmacies.activities;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -9,7 +10,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.LayoutInflaterCompat;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -23,6 +28,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.mikepenz.iconics.context.IconicsContextWrapper;
+import com.mikepenz.iconics.context.IconicsLayoutInflater;
 
 import java.util.List;
 
@@ -45,7 +52,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         Callback<List<Pharmacy>> {
 
     //Updates will never be more frequent than this value.
-    public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 30000;
+    public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
 
     private static final int PERMISSION_ACCESS_FINE_LOCATION = 1;
 
@@ -59,11 +66,26 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     private LocationRequest mLocationRequest;
     private GoogleMap map;
 
+    private boolean mapLoaded = false;
+
+    //UI Controls
+    Button btnMyPostion;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+        LayoutInflaterCompat.setFactory(getLayoutInflater(), new IconicsLayoutInflater(getDelegate()));
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pharmacies_map);
+
+        // UI events
+        btnMyPostion = (Button) findViewById(R.id.center_map_pharmacies);
+        btnMyPostion.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v){
+                updateUI();
+            }
+        });
 
         // Check permissions and create GoogleApiClient.
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -74,6 +96,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         service = RemoteServiceCreator.createService(PharmaciesService.class, "http://test.isaaccastro.eu/api/");
 
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
     }
 
     @Override
@@ -91,10 +114,15 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         super.onStop();
     }
 
+    /**
+     * API call finished
+     * @param call
+     * @param response
+     */
     @Override
     public void onResponse(Call<List<Pharmacy>> call, Response<List<Pharmacy>> response) {
         pharmacies = response.body();
-        mapFragment.getMapAsync(this);
+        updateUI();
     }
 
     @Override
@@ -106,27 +134,16 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
+        mapLoaded = true;
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            map = googleMap;
+
             googleMap.setMyLocationEnabled(true);
             googleMap.getUiSettings().setMyLocationButtonEnabled(false);
             googleMap.getUiSettings().setMapToolbarEnabled(false);
 
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            if (mLastLocation != null) {
-                LatLng latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-                googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-                googleMap.animateCamera(CameraUpdateFactory.zoomTo(16));
-            }
-
-            if (pharmacies != null) {
-                for (Pharmacy pharmacy : pharmacies) {
-                    LatLng pharmacyLocation = new LatLng(pharmacy.getGps()[1], pharmacy.getGps()[0]);
-                    MarkerOptions pharmaMarker = new MarkerOptions();
-                    pharmaMarker.position(pharmacyLocation);
-                    pharmaMarker.title(pharmacy.getName());
-                    googleMap.addMarker(pharmaMarker);
-                }
-            }
         }
     }
 
@@ -175,10 +192,32 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         mLastLocation.setLatitude(location.getLatitude());
         mLastLocation.setLongitude(location.getLongitude());
 
-        Call<List<Pharmacy>> call = service.listByLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), 100, "");
+        Call<List<Pharmacy>> call = service.listByLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), 200, "");
         call.enqueue(this);
 
-        //TODO: updateUI
+        updateUI();
+    }
+
+    private void updateUI(){
+        if (mapLoaded) {
+
+            if (mLastLocation != null) {
+                LatLng latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+                map.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+                map.animateCamera(CameraUpdateFactory.zoomTo(16));
+            }
+
+            if (pharmacies != null) {
+                for (Pharmacy pharmacy : pharmacies) {
+                    LatLng pharmacyLocation = new LatLng(pharmacy.getGps()[1], pharmacy.getGps()[0]);
+                    MarkerOptions pharmaMarker = new MarkerOptions();
+                    pharmaMarker.position(pharmacyLocation);
+                    pharmaMarker.title(pharmacy.getName());
+                    map.addMarker(pharmaMarker);
+                }
+            }
+        }
+
     }
 
     /**
