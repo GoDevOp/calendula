@@ -14,6 +14,8 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -39,15 +41,23 @@ import retrofit2.Response;
 public class PharmaciesMapActivity extends CalendulaActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
+        LocationListener,
         Callback<List<Pharmacy>> {
+
+    //Updates will never be more frequent than this value.
+    public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 30000;
 
     private static final int PERMISSION_ACCESS_FINE_LOCATION = 1;
 
     private List<Pharmacy> pharmacies = null;
+
     private PharmaciesService service;
+
     private SupportMapFragment mapFragment;
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
+    private LocationRequest mLocationRequest;
+    private GoogleMap map;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,11 +65,11 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pharmacies_map);
 
-        // Create an instance of GoogleAPIClient.
+        // Check permissions and create GoogleApiClient.
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_ACCESS_FINE_LOCATION);
         }
-        mGoogleApiClient = new GoogleApiClient.Builder(this, this, this).addApi(LocationServices.API).build();
+        buildGoogleApiClient();
 
         service = RemoteServiceCreator.createService(PharmaciesService.class, "http://test.isaaccastro.eu/api/");
 
@@ -76,6 +86,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     @Override
     protected void onStop() {
+        stopLocationUpdates();
         mGoogleApiClient.disconnect();
         super.onStop();
     }
@@ -88,7 +99,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     @Override
     public void onFailure(Call<List<Pharmacy>> call, Throwable t) {
-        Log.e("API", t.getLocalizedMessage());
+        Log.e(PharmaciesMapActivity.class.getSimpleName(), t.getLocalizedMessage());
         Toast.makeText(PharmaciesMapActivity.this, t.getLocalizedMessage(), Toast.LENGTH_LONG).show();
     }
 
@@ -96,14 +107,16 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     public void onMapReady(GoogleMap googleMap) {
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-
             googleMap.setMyLocationEnabled(true);
             googleMap.getUiSettings().setMyLocationButtonEnabled(false);
             googleMap.getUiSettings().setMapToolbarEnabled(false);
 
-            LatLng latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-            googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-            googleMap.animateCamera(CameraUpdateFactory.zoomTo(16));
+            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            if (mLastLocation != null) {
+                LatLng latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+                googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+                googleMap.animateCamera(CameraUpdateFactory.zoomTo(16));
+            }
 
             if (pharmacies != null) {
                 for (Pharmacy pharmacy : pharmacies) {
@@ -122,11 +135,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         Log.i(PharmaciesMapActivity.class.getSimpleName(), "Connected to Google Play Services!");
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            if (mLastLocation != null) {
-                Call<List<Pharmacy>> call = service.listByLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), 100, "");
-                call.enqueue(this);
-            }
+            startLocationUpdates();
         }
     }
 
@@ -149,11 +158,67 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     @Override
     public void onConnectionSuspended(int i) {
-
+        Log.i(PharmaciesMapActivity.class.getSimpleName(), "Connection suspended");
+        mGoogleApiClient.connect();
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Log.i(PharmaciesMapActivity.class.getSimpleName(), "Can't connect to Google Play Services!");
+        Toast.makeText(this, "We can't connect to Google Play Services :(", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mLastLocation = location;
+
+        mLastLocation.setLatitude(location.getLatitude());
+        mLastLocation.setLongitude(location.getLongitude());
+
+        Call<List<Pharmacy>> call = service.listByLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), 100, "");
+        call.enqueue(this);
+
+        //TODO: updateUI
+    }
+
+    /**
+     * Builds a GoogleApiClient
+     */
+    protected synchronized void buildGoogleApiClient() {
+        Log.i(PharmaciesMapActivity.class.getSimpleName(), "Building GoogleApiClient");
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+        createLocationRequest();
+    }
+
+    /**
+     * Sets up the location request.
+     */
+    protected void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+
+        mLocationRequest.setInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
+        mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
+
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    /**
+     * Requests location updates.
+     */
+    protected void startLocationUpdates() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        }
+    }
+
+    /**
+     * Removes location updates
+     */
+    protected void stopLocationUpdates() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
     }
 }
