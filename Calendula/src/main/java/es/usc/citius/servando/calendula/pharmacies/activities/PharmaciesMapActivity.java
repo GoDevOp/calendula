@@ -27,11 +27,14 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.mikepenz.iconics.context.IconicsContextWrapper;
 import com.mikepenz.iconics.context.IconicsLayoutInflater;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import es.usc.citius.servando.calendula.CalendulaActivity;
 import es.usc.citius.servando.calendula.R;
@@ -53,10 +56,13 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     //Updates will never be more frequent than this value.
     public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
 
     private static final int PERMISSION_ACCESS_FINE_LOCATION = 1;
 
     private List<Pharmacy> pharmacies = null;
+    private HashMap<Integer, Pharmacy> pharmaciesHashMap = null;
+    private HashMap<String, Integer> markers = null;
 
     private PharmaciesService service;
 
@@ -122,6 +128,10 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     @Override
     public void onResponse(Call<List<Pharmacy>> call, Response<List<Pharmacy>> response) {
         pharmacies = response.body();
+        pharmaciesHashMap = new HashMap<>();
+        for (Pharmacy pharmacy : pharmacies){
+            pharmaciesHashMap.put(pharmacy.getCodPharmacy(), pharmacy);
+        }
         updateUI();
     }
 
@@ -207,15 +217,27 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 map.animateCamera(CameraUpdateFactory.zoomTo(16));
             }
 
-            if (pharmacies != null) {
-                for (Pharmacy pharmacy : pharmacies) {
+            if (pharmaciesHashMap != null) {
+                markers = new HashMap<>();
+                for (Map.Entry<Integer, Pharmacy> entry : pharmaciesHashMap.entrySet()){
+                    Pharmacy pharmacy = entry.getValue();
                     LatLng pharmacyLocation = new LatLng(pharmacy.getGps()[1], pharmacy.getGps()[0]);
                     MarkerOptions pharmaMarker = new MarkerOptions();
                     pharmaMarker.position(pharmacyLocation);
-                    pharmaMarker.title(pharmacy.getName());
-                    map.addMarker(pharmaMarker);
+                    Marker marker = map.addMarker(pharmaMarker);
+                    markers.put(marker.getId(), pharmacy.getCodPharmacy());
                 }
             }
+
+            map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(Marker marker) {
+                    Pharmacy pharma = pharmaciesHashMap.get(markers.get(marker.getId()));
+                    Toast.makeText(getBaseContext(), "Clicked marker which corresponds to pharmacy number "+pharma.getCodPharmacy()+", with name "+pharma.getName(), Toast.LENGTH_LONG).show();
+                    return true;
+                }
+            });
+
         }
 
     }
@@ -239,7 +261,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     protected void createLocationRequest() {
         mLocationRequest = new LocationRequest();
 
-        mLocationRequest.setInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
+        mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
         mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
 
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
