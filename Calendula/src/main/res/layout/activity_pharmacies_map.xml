@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         android:id="@+id/map"
         tools:context=".MapsActivity"
-        android:name="com.google.android.gms.maps.SupportMapFragment" />
+        class="es.usc.citius.servando.calendula.pharmacies.mapfragment.CalendulaSupportMapFragment"/>
 
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
@@ -39,30 +39,49 @@
         </AutoCompleteTextView>
 
         <com.mikepenz.iconics.view.IconicsButton
+            android:id="@+id/clear_search_pharmacies"
             android:layout_alignParentRight="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="10dp"
+            android:paddingRight="2dp"
+            android:paddingLeft="2dp"
+            android:layout_marginTop="5dp"
             style="?android:attr/borderlessButtonStyle"
-            android:id="@+id/center_map_pharmacies"
-            android:text="{gmd-my_location}"
+            android:text="{gmd-close}"
             android:textSize="20dp"/>
 
     </RelativeLayout>
 
     <com.getbase.floatingactionbutton.FloatingActionButton
         xmlns:fab="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/pharmaciesList"
+        android:id="@+id/center_map_pharmacies"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/pharmacies_list"
+        android:layout_alignParentRight="true"
+        android:layout_gravity="bottom|right"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="10dp"
+        android:padding="0dp"
+        android:scaleType="center"
+        fab:fab_colorNormal="#ffffff"
+        fab:fab_colorPressed="#dedede"
+        />
+
+    <com.getbase.floatingactionbutton.FloatingActionButton
+        xmlns:fab="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/pharmacies_list"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_gravity="bottom|right"
-        android:layout_marginRight="28dp"
-        android:layout_marginBottom="38dp"
-        fab:fab_icon="@drawable/ic_list"
-        fab:fab_colorNormal="#efefef"
-        fab:fab_colorPressed="#b7b7b7"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="10dp"
+        android:padding="0dp"
+        android:scaleType="center"
+        fab:fab_colorNormal="#ffffff"
+        fab:fab_colorPressed="#dedede"
         />
 
 </RelativeLayout>

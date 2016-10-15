@@ -190,6 +190,7 @@ dependencies {
 
     // google maps
     compile 'com.google.android.gms:play-services:9.6.1'
+    compile 'com.google.maps.android:android-maps-utils:0.4+'
 
 }
 
