@@ -45,7 +45,6 @@ import java.util.Map;
 
 import es.usc.citius.servando.calendula.CalendulaActivity;
 import es.usc.citius.servando.calendula.R;
-import es.usc.citius.servando.calendula.pharmacies.mapfragment.TouchableWrapper;
 import es.usc.citius.servando.calendula.pharmacies.persistance.Pharmacy;
 import es.usc.citius.servando.calendula.pharmacies.remote.PharmaciesService;
 import es.usc.citius.servando.calendula.pharmacies.remote.RemoteServiceCreator;
@@ -59,7 +58,7 @@ import retrofit2.Response;
 public class PharmaciesMapActivity extends CalendulaActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        TouchableWrapper.UpdateMapAfterUserInteraction,
+        //TouchableWrapper.UpdateMapAfterUserInteraction,
         LocationListener,
         Callback<List<Pharmacy>> {
 
@@ -107,20 +106,17 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
         iconMyLocation = new IconicsDrawable(this, GoogleMaterial.Icon.gmd_my_location)
                 .sizeDp(24)
-                .color(Color.DKGRAY);
+                .color(Color.parseColor("#304FFE"));
         iconList = new IconicsDrawable(this, GoogleMaterial.Icon.gmd_view_list)
                 .sizeDp(24)
-                .color(Color.DKGRAY);
+                .color(Color.GRAY);
 
 
         // UI events
         btnMyPostion = (ImageButton) findViewById(R.id.center_map_pharmacies);
         btnMyPostion.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
-                Call<List<Pharmacy>> call = service.listByLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), 200, "");
-                call.enqueue(PharmaciesMapActivity.this);
-
-                updateUI(true);
+                centerMap();
             }
         });
         btnMyPostion.setImageDrawable(iconMyLocation);
@@ -197,6 +193,15 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         }
+
+        map.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
+            @Override
+            public void onCameraIdle() {
+                updateLocationDatafromAPI(getMapRadio());
+                updateUI(false);
+            }
+        });
+
     }
 
     @Override
@@ -247,16 +252,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
         if (firstTime) {
             firstTime = false;
-            updateLocationDatafromAPI(getMapRadio());
-            updateUI(true);
+            centerMap();
         }
-    }
-
-    @Override
-    public void onUpdateMapAfterUserInteraction() {
-        iconMyLocation.color(Color.BLACK);
-        updateLocationDatafromAPI(getMapRadio());
-        updateUI(false);
     }
 
     private Integer getMapRadio(){
@@ -301,56 +298,56 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     }
 
     private void updateLocationDatafromAPI(Integer radio){
-        Call<List<Pharmacy>> call = service.listByLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), radio, "");
-        call.enqueue(this);
-        Date d= new Date();
-        Log.d("DEBUG", d.getTime()+" Solicitadas farmacias");
+        if (mLastLocation != null && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            Call<List<Pharmacy>> call = service.listByLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), radio, "");
+            call.enqueue(this);
+            Date d = new Date();
+            Log.d("DEBUG", d.getTime() + " Solicitadas farmacias");
+        }
     }
 
     private void updateUI(boolean centerMap){
         if (mapLoaded) {
 
             if (mLastLocation != null && centerMap) {
-                LatLng latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-                map.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-                map.animateCamera(CameraUpdateFactory.zoomTo(16));
-                iconMyLocation.color(Color.parseColor("#304FFE"));
+                centerMap();
             }
 
             if (pharmaciesHashMap != null) {
                 markers = new HashMap<>();
-                //map.clear();
-                mClusterManager = new ClusterManager<PharmacyMarker>(this, map);
-                map.setOnCameraIdleListener(mClusterManager);
-                map.setOnMarkerClickListener(mClusterManager);
+                map.clear();
 
                 for (Map.Entry<Integer, Pharmacy> entry : pharmaciesHashMap.entrySet()){
                     Pharmacy pharmacy = entry.getValue();
                     LatLng pharmacyLocation = new LatLng(pharmacy.getGps()[1], pharmacy.getGps()[0]);
                     MarkerOptions pharmaMarker = new MarkerOptions();
                     pharmaMarker.position(pharmacyLocation);
-                    //Marker marker = map.addMarker(pharmaMarker);
-
-                    PharmacyMarker offsetItem = new PharmacyMarker(pharmacyLocation.latitude, pharmacyLocation.longitude);
-                    mClusterManager.addItem(offsetItem);
-
-                    //markers.put(marker.getId(), pharmacy.getCodPharmacy());
+                    Marker marker = map.addMarker(pharmaMarker);
+                    markers.put(marker.getId(), pharmacy.getCodPharmacy());
                 }
                 Date d= new Date();
                 Log.d("DEBUG", d.getTime()+" Mapa actualizado con farmacias= "+pharmaciesHashMap.size());
             }
 
-            /*map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(Marker marker) {
                     Pharmacy pharma = pharmaciesHashMap.get(markers.get(marker.getId()));
                     Toast.makeText(getBaseContext(), "Clicked marker which corresponds to pharmacy number "+pharma.getCodPharmacy()+", with name "+pharma.getName(), Toast.LENGTH_LONG).show();
                     return true;
                 }
-            });*/
+            });
 
         }
 
+    }
+
+    private void centerMap(){
+        LatLng latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+        map.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        map.animateCamera(CameraUpdateFactory.zoomTo(16));
+        iconMyLocation.color(Color.parseColor("#304FFE"));
     }
 
     /**
