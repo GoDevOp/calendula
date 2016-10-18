@@ -12,6 +12,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.LayoutInflaterCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -58,7 +59,6 @@ import retrofit2.Response;
 public class PharmaciesMapActivity extends CalendulaActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        //TouchableWrapper.UpdateMapAfterUserInteraction,
         LocationListener,
         Callback<List<Pharmacy>> {
 
@@ -81,8 +81,6 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     private Location mLastLocation;
     private LocationRequest mLocationRequest;
     private GoogleMap map;
-
-    private ClusterManager<PharmacyMarker> mClusterManager;
 
     private boolean mapLoaded = false;
 
@@ -197,7 +195,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         map.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
             @Override
             public void onCameraIdle() {
-                updateLocationDatafromAPI(getMapRadio());
+                updateLocationDatafromAPI(getMapRadio(), getMapCenter());
                 updateUI(false);
             }
         });
@@ -258,49 +256,41 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     private Integer getMapRadio(){
 
-        Float distance = 250f;
+        VisibleRegion vr = map.getProjection().getVisibleRegion();
+        double left = vr.latLngBounds.southwest.longitude;
 
-        VisibleRegion visibleRegion = map.getProjection().getVisibleRegion();
+        Location center = new Location("center");
+        center.setLatitude(vr.latLngBounds.getCenter().latitude);
+        center.setLongitude(vr.latLngBounds.getCenter().longitude);
 
-        LatLng farRight = visibleRegion.farRight;
-        LatLng farLeft = visibleRegion.farLeft;
-        LatLng nearRight = visibleRegion.nearRight;
-        LatLng nearLeft = visibleRegion.nearLeft;
+        Location middleLeftCornerLocation = new Location("center");
+        middleLeftCornerLocation.setLatitude(center.getLatitude());
+        middleLeftCornerLocation.setLongitude(left);
 
-        float[] distanceWidth = new float[2];
-        Location.distanceBetween(
-                (farRight.latitude+nearRight.latitude)/2,
-                (farRight.longitude+nearRight.longitude)/2,
-                (farLeft.latitude+nearLeft.latitude)/2,
-                (farLeft.longitude+nearLeft.longitude)/2,
-                distanceWidth
-        );
+        Float dis = center.distanceTo(middleLeftCornerLocation);
 
+        return dis.intValue();
 
-        float[] distanceHeight = new float[2];
-        Location.distanceBetween(
-                (farRight.latitude+nearRight.latitude)/2,
-                (farRight.longitude+nearRight.longitude)/2,
-                (farLeft.latitude+nearLeft.latitude)/2,
-                (farLeft.longitude+nearLeft.longitude)/2,
-                distanceHeight
-        );
-
-
-
-        if (distanceWidth[0]>distanceHeight[0]){
-            distance = distanceWidth[0];
-        } else {
-            distance = distanceHeight[0];
-        }
-
-        return distance.intValue();
     }
 
-    private void updateLocationDatafromAPI(Integer radio){
-        if (mLastLocation != null && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            Call<List<Pharmacy>> call = service.listByLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), radio, "");
+    private Location getMapCenter(){
+        LatLng centerLatLng = null;
+        Location center = null;
+
+        centerLatLng = map.getCameraPosition().target;
+
+        if (centerLatLng != null) {
+            center = new Location("");
+            center.setLatitude(centerLatLng.latitude);
+            center.setLongitude(centerLatLng.longitude);
+        }
+
+        return center;
+    }
+
+    private void updateLocationDatafromAPI(Integer radio, Location location) {
+        if (location != null && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            Call<List<Pharmacy>> call = service.listByLocation(location.getLatitude(), location.getLongitude(), radio, "");
             call.enqueue(this);
             Date d = new Date();
             Log.d("DEBUG", d.getTime() + " Solicitadas farmacias");
@@ -389,21 +379,5 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
      */
     protected void stopLocationUpdates() {
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-    }
-
-    /**
-     * Class to pharmacies clustering
-     */
-    public class PharmacyMarker implements ClusterItem {
-        private final LatLng mPosition;
-
-        public PharmacyMarker(double lat, double lng) {
-            mPosition = new LatLng(lat, lng);
-        }
-
-        @Override
-        public LatLng getPosition() {
-            return mPosition;
-        }
     }
 }
