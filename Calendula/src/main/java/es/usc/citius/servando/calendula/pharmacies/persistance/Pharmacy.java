@@ -1,11 +1,14 @@
 package es.usc.citius.servando.calendula.pharmacies.persistance;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.ArrayList;
 
 /**
  * Created by isaac on 19/9/16.
  */
-public class Pharmacy {
+public class Pharmacy implements Parcelable {
 
     private Integer codPharmacy;
     private String name;
@@ -93,5 +96,15 @@ public class Pharmacy {
 
     public void setGps(Float[] gps) {
         this.gps = gps;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+
     }
 }

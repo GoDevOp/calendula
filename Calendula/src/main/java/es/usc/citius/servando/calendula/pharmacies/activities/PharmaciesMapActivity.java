@@ -1,7 +1,6 @@
 package es.usc.citius.servando.calendula.pharmacies.activities;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -10,14 +9,15 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.LayoutInflaterCompat;
-import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -33,8 +33,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.VisibleRegion;
-import com.google.maps.android.clustering.ClusterItem;
-import com.google.maps.android.clustering.ClusterManager;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.iconics.context.IconicsLayoutInflater;
@@ -46,6 +44,7 @@ import java.util.Map;
 
 import es.usc.citius.servando.calendula.CalendulaActivity;
 import es.usc.citius.servando.calendula.R;
+import es.usc.citius.servando.calendula.pharmacies.fragments.PharmacyMarkerDetailsFragment;
 import es.usc.citius.servando.calendula.pharmacies.persistance.Pharmacy;
 import es.usc.citius.servando.calendula.pharmacies.remote.PharmaciesService;
 import es.usc.citius.servando.calendula.pharmacies.remote.RemoteServiceCreator;
@@ -76,6 +75,11 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     private PharmaciesService service;
 
+    private FragmentTransaction transaction;
+    private PharmacyMarkerDetailsFragment fragmentMarker;
+
+    private Bundle argsToFragment;
+
     private SupportMapFragment mapFragment;
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
@@ -99,6 +103,16 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pharmacies_map);
+
+        // Add marker info fragment
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        transaction = fragmentManager.beginTransaction();
+        fragmentMarker = new PharmacyMarkerDetailsFragment();
+        transaction.add(R.id.fragment_contenedor, fragmentMarker);
+        transaction.hide(fragmentMarker);
+        transaction.commit();
+
+        argsToFragment = new Bundle();
 
         firstTime = true;
 
@@ -195,8 +209,17 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         map.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
             @Override
             public void onCameraIdle() {
-                updateLocationDatafromAPI(getMapRadio(), getMapCenter());
-                updateUI(false);
+                if (!firstTime) {
+                    updateLocationDatafromAPI(getMapRadio(), getMapCenter());
+                    updateUI(false);
+                }
+            }
+        });
+
+        map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                hideFragment(fragmentMarker);
             }
         });
 
@@ -324,13 +347,40 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 @Override
                 public boolean onMarkerClick(Marker marker) {
                     Pharmacy pharma = pharmaciesHashMap.get(markers.get(marker.getId()));
-                    Toast.makeText(getBaseContext(), "Clicked marker which corresponds to pharmacy number "+pharma.getCodPharmacy()+", with name "+pharma.getName(), Toast.LENGTH_LONG).show();
+                    argsToFragment.putParcelable("pharmacy", pharma);
+                    fragmentMarker.getData(pharma);
+                    showFragment(fragmentMarker);
+                    fragmentMarker.updateData();
                     return true;
                 }
             });
 
         }
 
+    }
+
+    public void showFragment(final Fragment fragment){
+
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+
+        if (fragment.isHidden()) {
+            ft.show(fragment);
+        }
+
+        ft.commit();
+    }
+
+    public void hideFragment(final Fragment fragment){
+
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+
+        if (!fragment.isHidden()) {
+            ft.hide(fragment);
+        }
+
+        ft.commit();
     }
 
     private void centerMap(){
