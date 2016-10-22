@@ -29,6 +29,8 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -48,6 +50,7 @@ import es.usc.citius.servando.calendula.pharmacies.fragments.PharmacyMarkerDetai
 import es.usc.citius.servando.calendula.pharmacies.persistance.Pharmacy;
 import es.usc.citius.servando.calendula.pharmacies.remote.PharmaciesService;
 import es.usc.citius.servando.calendula.pharmacies.remote.RemoteServiceCreator;
+import es.usc.citius.servando.calendula.pharmacies.util.PharmaciesFont;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -95,14 +98,23 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     IconicsDrawable iconMyLocation;
     IconicsDrawable iconList;
+    IconicsDrawable iconMarker;
+    IconicsDrawable iconSelectedMarker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         LayoutInflaterCompat.setFactory(getLayoutInflater(), new IconicsLayoutInflater(getDelegate()));
 
+        // Check permissions
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_ACCESS_FINE_LOCATION);
+        }
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pharmacies_map);
+
+        buildGoogleApiClient();
 
         // Add marker info fragment
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -122,7 +134,12 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         iconList = new IconicsDrawable(this, GoogleMaterial.Icon.gmd_view_list)
                 .sizeDp(24)
                 .color(Color.GRAY);
-
+        iconMarker = new IconicsDrawable(this, PharmaciesFont.Icon.ic_marker)
+                .sizeDp(32)
+                .color(Color.parseColor("#82C77B"));
+        iconSelectedMarker = new IconicsDrawable(this, PharmaciesFont.Icon.ic_marker)
+                .sizeDp(32)
+                .color(Color.parseColor("#169E58"));
 
         // UI events
         btnMyPostion = (ImageButton) findViewById(R.id.center_map_pharmacies);
@@ -138,13 +155,6 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
         btnClear = (Button) findViewById(R.id.clear_search_pharmacies);
         btnClear.setVisibility(View.GONE);
-
-
-        // Check permissions and create GoogleApiClient.
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_ACCESS_FINE_LOCATION);
-        }
-        buildGoogleApiClient();
 
         service = RemoteServiceCreator.createService(PharmaciesService.class, "http://test.isaaccastro.eu/api/");
 
@@ -196,13 +206,14 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
         mapLoaded = true;
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            map = googleMap;
+        map = googleMap;
 
-            googleMap.setMyLocationEnabled(true);
-            googleMap.getUiSettings().setMyLocationButtonEnabled(false);
-            googleMap.getUiSettings().setMapToolbarEnabled(false);
 
+        map.getUiSettings().setMyLocationButtonEnabled(false);
+        map.getUiSettings().setMapToolbarEnabled(false);
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            map.setMyLocationEnabled(true);
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         }
 
@@ -221,7 +232,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             public void onMapClick(LatLng latLng) {
                 hideFragment(fragmentMarker);
             }
-        });
+         });
+
 
     }
 
@@ -229,7 +241,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     public void onConnected(@Nullable Bundle bundle) {
         Log.i(PharmaciesMapActivity.class.getSimpleName(), "Connected to Google Play Services!");
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             startLocationUpdates();
         }
     }
@@ -312,7 +324,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     }
 
     private void updateLocationDatafromAPI(Integer radio, Location location) {
-        if (location != null && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             Call<List<Pharmacy>> call = service.listByLocation(location.getLatitude(), location.getLongitude(), radio, "");
             call.enqueue(this);
             Date d = new Date();
@@ -336,6 +348,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     LatLng pharmacyLocation = new LatLng(pharmacy.getGps()[1], pharmacy.getGps()[0]);
                     MarkerOptions pharmaMarker = new MarkerOptions();
                     pharmaMarker.position(pharmacyLocation);
+                    pharmaMarker.icon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
                     Marker marker = map.addMarker(pharmaMarker);
                     markers.put(marker.getId(), pharmacy.getCodPharmacy());
                 }
@@ -346,6 +359,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(Marker marker) {
+                    // TODO: change marker color to use #169E58
                     Pharmacy pharma = pharmaciesHashMap.get(markers.get(marker.getId()));
                     argsToFragment.putParcelable("pharmacy", pharma);
                     fragmentMarker.getData(pharma);
@@ -384,10 +398,12 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     }
 
     private void centerMap(){
-        LatLng latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-        map.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        map.animateCamera(CameraUpdateFactory.zoomTo(16));
-        iconMyLocation.color(Color.parseColor("#304FFE"));
+        if (mLastLocation != null) {
+            LatLng latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+            map.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+            map.animateCamera(CameraUpdateFactory.zoomTo(16));
+            iconMyLocation.color(Color.parseColor("#304FFE"));
+        }
     }
 
     /**
@@ -419,7 +435,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
      * Requests location updates.
      */
     protected void startLocationUpdates() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
     }

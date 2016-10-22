@@ -44,6 +44,7 @@ import de.greenrobot.event.EventBus;
 import es.usc.citius.servando.calendula.database.DB;
 import es.usc.citius.servando.calendula.database.PatientDao;
 import es.usc.citius.servando.calendula.persistence.Patient;
+import es.usc.citius.servando.calendula.pharmacies.util.PharmaciesFont;
 import es.usc.citius.servando.calendula.scheduling.AlarmIntentParams;
 import es.usc.citius.servando.calendula.scheduling.AlarmReceiver;
 import es.usc.citius.servando.calendula.scheduling.AlarmScheduler;
@@ -124,6 +125,7 @@ public class CalendulaApp extends Application {
         Iconics.init(getApplicationContext());
         //register custom fonts like this (or also provide a font definition file)
         Iconics.registerFont(new PresentationsTypeface());
+        Iconics.registerFont(new PharmaciesFont());
     }
 
     public static boolean isPharmaModeEnabled(Context ctx){
