@@ -35,6 +35,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.VisibleRegion;
+import com.google.maps.android.clustering.ClusterItem;
+import com.google.maps.android.clustering.ClusterManager;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.iconics.context.IconicsLayoutInflater;
@@ -76,6 +78,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     private HashMap<Integer, Pharmacy> pharmaciesHashMap = null;
     private HashMap<String, Integer> markers = null;
 
+    private Marker previousMarker;
+
     private PharmaciesService service;
 
     private FragmentTransaction transaction;
@@ -88,6 +92,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     private Location mLastLocation;
     private LocationRequest mLocationRequest;
     private GoogleMap map;
+
+    private ClusterManager<PharmacyMarker> mClusterManager;
 
     private boolean mapLoaded = false;
 
@@ -224,6 +230,11 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     updateLocationDatafromAPI(getMapRadio(), getMapCenter());
                     updateUI(false);
                 }
+
+                // Change color last marker clicked
+                if (previousMarker != null) {
+                    previousMarker = null;
+                }
             }
         });
 
@@ -231,6 +242,12 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             @Override
             public void onMapClick(LatLng latLng) {
                 hideFragment(fragmentMarker);
+
+                // Change color last marker clicked
+                if (previousMarker != null) {
+                    previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
+                    previousMarker = null;
+                }
             }
          });
 
@@ -350,7 +367,12 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     pharmaMarker.position(pharmacyLocation);
                     pharmaMarker.icon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
                     Marker marker = map.addMarker(pharmaMarker);
+                    marker.setVisible(false);
                     markers.put(marker.getId(), pharmacy.getCodPharmacy());
+
+                    // Clustering icons
+                    PharmacyMarker pharmacyMarker = new PharmacyMarker(pharmacy.getGps()[1], pharmacy.getGps()[0]);
+                    mClusterManager.addItem(pharmacyMarker);
                 }
                 Date d= new Date();
                 Log.d("DEBUG", d.getTime()+" Mapa actualizado con farmacias= "+pharmaciesHashMap.size());
@@ -359,7 +381,13 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(Marker marker) {
-                    // TODO: change marker color to use #169E58
+                    // Change color marker
+                    if(previousMarker!=null){
+                        previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
+                    }
+                    marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
+                    previousMarker=marker;
+
                     Pharmacy pharma = pharmaciesHashMap.get(markers.get(marker.getId()));
                     argsToFragment.putParcelable("pharmacy", pharma);
                     fragmentMarker.getData(pharma);
@@ -445,5 +473,18 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
      */
     protected void stopLocationUpdates() {
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+    }
+
+    public class PharmacyMarker implements ClusterItem {
+        private final LatLng mPosition;
+
+        public PharmacyMarker(double lat, double lng) {
+            mPosition = new LatLng(lat, lng);
+        }
+
+        @Override
+        public LatLng getPosition() {
+            return mPosition;
+        }
     }
 }
