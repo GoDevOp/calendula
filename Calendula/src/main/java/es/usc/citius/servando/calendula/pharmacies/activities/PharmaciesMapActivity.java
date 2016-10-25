@@ -12,7 +12,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.LayoutInflaterCompat;
 import android.util.Log;
 import android.view.View;
@@ -29,7 +28,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -141,10 +139,10 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 .sizeDp(24)
                 .color(Color.GRAY);
         iconMarker = new IconicsDrawable(this, PharmaciesFont.Icon.ic_marker)
-                .sizeDp(32)
+                .sizeDp(34)
                 .color(Color.parseColor("#82C77B"));
         iconSelectedMarker = new IconicsDrawable(this, PharmaciesFont.Icon.ic_marker)
-                .sizeDp(32)
+                .sizeDp(34)
                 .color(Color.parseColor("#169E58"));
 
         // UI events
@@ -367,12 +365,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     pharmaMarker.position(pharmacyLocation);
                     pharmaMarker.icon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
                     Marker marker = map.addMarker(pharmaMarker);
-                    marker.setVisible(false);
                     markers.put(marker.getId(), pharmacy.getCodPharmacy());
-
-                    // Clustering icons
-                    PharmacyMarker pharmacyMarker = new PharmacyMarker(pharmacy.getGps()[1], pharmacy.getGps()[0]);
-                    mClusterManager.addItem(pharmacyMarker);
                 }
                 Date d= new Date();
                 Log.d("DEBUG", d.getTime()+" Mapa actualizado con farmacias= "+pharmaciesHashMap.size());
