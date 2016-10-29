@@ -91,17 +91,125 @@
             android:background="@android:color/darker_gray"
             android:layout_below="@id/layout_hours"/>
 
-        <TextView
+        <GridLayout
+            android:layout_marginLeft="80dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/pharmacy_time"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
-            android:layout_marginLeft="80dp"
-            android:textSize="15dp"
-            android:textColor="@color/android_blue_dark"
-            android:text="12 min"
-            android:layout_below="@id/gray_bar"/>
+            android:rowCount="1"
+            android:columnCount="4"
+            android:layout_below="@id/gray_bar">
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="15dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:id="@+id/layout_time_car">
+
+                <com.mikepenz.iconics.view.IconicsImageView
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginRight="2dp"
+                    app:iiv_color="@android:color/darker_gray"
+                    app:iiv_icon="gmd-directions_car"
+                    android:id="@+id/icon_car"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/pharmacy_time_car"
+                    android:layout_toRightOf="@id/icon_car"
+                    android:textSize="15dp"
+                    android:textColor="@color/android_blue_dark"
+                    android:text="12 min" />
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="15dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:id="@+id/layout_time_bike"
+                android:layout_toRightOf="@id/layout_time_car">
+
+                <com.mikepenz.iconics.view.IconicsImageView
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginRight="2dp"
+                    app:iiv_color="@android:color/darker_gray"
+                    app:iiv_icon="gmd-directions_bike"
+                    android:id="@+id/icon_bike"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/pharmacy_time_bike"
+                    android:layout_toRightOf="@id/icon_bike"
+                    android:textSize="15dp"
+                    android:textColor="@color/android_blue_dark"
+                    android:text="5 hours" />
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="15dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:id="@+id/layout_time_walking"
+                android:layout_toRightOf="@id/layout_time_bike">
+
+                <com.mikepenz.iconics.view.IconicsImageView
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginRight="2dp"
+                    app:iiv_color="@android:color/darker_gray"
+                    app:iiv_icon="gmd-directions_walk"
+                    android:id="@+id/icon_walking"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/pharmacy_time_walking"
+                    android:layout_toRightOf="@id/icon_walking"
+                    android:textSize="15dp"
+                    android:textColor="@color/android_blue_dark"
+                    android:text="3 days" />
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:id="@+id/layout_time_public"
+                android:layout_toRightOf="@id/layout_time_walking">
+
+                <com.mikepenz.iconics.view.IconicsImageView
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginRight="2dp"
+                    app:iiv_color="@android:color/darker_gray"
+                    app:iiv_icon="gmd-directions_subway"
+                    android:id="@+id/icon_public"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/pharmacy_time_public"
+                    android:layout_toRightOf="@id/icon_public"
+                    android:textSize="15dp"
+                    android:textColor="@color/android_blue_dark"
+                    android:text="25 min" />
+            </RelativeLayout>
+
+        </GridLayout>
 
     </RelativeLayout>
 

@@ -59,7 +59,7 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
         });
 
         IconicsDrawable iconList = new IconicsDrawable(this.getContext(), GoogleMaterial.Icon.gmd_directions)
-                .sizeDp(24)
+                .sizeDp(32)
                 .color(Color.WHITE);
 
         ImageButton btnList = (ImageButton) layout.findViewById(R.id.get_pharmacy_route);
@@ -89,56 +89,44 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
 
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e) {
-            Log.v("","onSingleTapConfirmed");
             return true;
         }
 
         @Override
         public boolean onDoubleTap(MotionEvent e) {
-            Log.v("","onDoubleTap");
             return true;
         }
 
         @Override
         public boolean onDoubleTapEvent(MotionEvent e) {
-            Log.v("","onDoubleTapEvent");
             return true;
         }
 
         @Override
         public boolean onDown(MotionEvent e) {
-            Log.v("","onDown");
             return true;
         }
 
         @Override
         public void onShowPress(MotionEvent e) {
-            Log.v("","onShowPress");
         }
 
         @Override
         public boolean onSingleTapUp(MotionEvent e) {
-            Log.v("","onSingleTapUp");
             return true;
         }
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            Log.v("","onScroll");
             return true;
         }
 
         @Override
         public void onLongPress(MotionEvent e) {
-            Log.v("","onLongPress");
         }
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-
-            if (e1.getY() < e2.getY()) {
-                ((PharmaciesMapActivity) PharmacyMarkerDetailsFragment.this.getActivity()).showFragment(PharmacyMarkerDetailsFragment.this, false);
-            }
 
             if (e1.getY() > e2.getY()) {
                 Log.d("FLING", "Show pharmacy details");
