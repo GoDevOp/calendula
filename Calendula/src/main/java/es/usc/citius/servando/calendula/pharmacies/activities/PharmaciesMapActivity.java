@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -50,6 +51,7 @@ import es.usc.citius.servando.calendula.CalendulaActivity;
 import es.usc.citius.servando.calendula.R;
 import es.usc.citius.servando.calendula.pharmacies.fragments.PharmacyMarkerDetailsFragment;
 import es.usc.citius.servando.calendula.pharmacies.persistance.Pharmacy;
+import es.usc.citius.servando.calendula.pharmacies.persistance.Query;
 import es.usc.citius.servando.calendula.pharmacies.remote.PharmaciesService;
 import es.usc.citius.servando.calendula.pharmacies.remote.RemoteServiceCreator;
 import es.usc.citius.servando.calendula.pharmacies.util.PharmaciesFont;
@@ -63,8 +65,7 @@ import retrofit2.Response;
 public class PharmaciesMapActivity extends CalendulaActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener,
-        Callback<List<Pharmacy>> {
+        LocationListener {
 
     //Updates will never be more frequent than this value.
     public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
@@ -106,6 +107,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     IconicsDrawable iconList;
     IconicsDrawable iconMarker;
     IconicsDrawable iconSelectedMarker;
+
+    GetApiDataTask apiTask = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -183,12 +186,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         super.onStop();
     }
 
-    /**
-     * API call finished
-     * @param call
-     * @param response
-     */
-    @Override
+    /*@Override
     public void onResponse(Call<List<Pharmacy>> call, Response<List<Pharmacy>> response) {
         pharmacies = response.body();
         pharmaciesHashMap = new HashMap<>();
@@ -198,13 +196,13 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         Date d= new Date();
         Log.d("DEBUG", d.getTime()+" API sends "+pharmaciesHashMap.size() + "pharmacies");
         updateUI(false);
-    }
+    }*/
 
-    @Override
+    /*@Override
     public void onFailure(Call<List<Pharmacy>> call, Throwable t) {
         Log.e(PharmaciesMapActivity.class.getSimpleName(), t.getLocalizedMessage());
         Toast.makeText(PharmaciesMapActivity.this, t.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-    }
+    }*/
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -226,13 +224,21 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             @Override
             public void onCameraIdle() {
                 if (!firstTime) {
-                    updateLocationDatafromAPI(getMapRadio(), getMapCenter());
-                    updateUI(false);
-                }
+                    Location loc = getMapCenter();
+                    Query query = new Query();
+                    query.setLatitude(loc.getLatitude());
+                    query.setLongitude(loc.getLongitude());
+                    query.setRadio(getMapRadio());
+                    if (apiTask != null && apiTask.getStatus() != AsyncTask.Status.FINISHED){
+                        apiTask.cancel(true);
+                    }
+                    apiTask = new GetApiDataTask(query);
+                    Date d = new Date();
+                    Log.d("DEBUG", d.getTime() + " New task " + apiTask.toString());
+                    apiTask.execute();
 
-                // Change color last marker clicked
-                if (previousMarker != null) {
-                    previousMarker = null;
+                    /*updateLocationDatafromAPI(getMapRadio(), getMapCenter());
+                    updateUI(false);*/
                 }
             }
         });
@@ -240,7 +246,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                showFragment(fragmentMarker, false);
+                hideFragment(fragmentMarker);
 
                 // Change color last marker clicked
                 if (previousMarker != null) {
@@ -340,15 +346,15 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     }
 
     private void updateLocationDatafromAPI(Integer radio, Location location) {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        /*if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             Call<List<Pharmacy>> call = service.listByLocation(location.getLatitude(), location.getLongitude(), radio, "");
             call.enqueue(this);
             Date d = new Date();
             Log.d("DEBUG", d.getTime() + " Pharmacies request");
-        }
+        }*/
     }
 
-    private void updateUI(boolean centerMap){
+    /*private void updateUI(boolean centerMap){
         if (mapLoaded) {
 
             if (mLastLocation != null && centerMap) {
@@ -393,19 +399,17 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
         }
 
-    }
+    }*/
 
-    public void showFragment(final Fragment fragment, boolean show){
+    public void showFragment(final Fragment fragment){
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.setCustomAnimations(R.anim.slide_up_from_bottom, R.anim.slide_out_from_bottom);
         ft.addToBackStack(null);
         ft.replace(R.id.fragment_contenedor, fragment);
 
-        if (fragment.isHidden() && show) {
+        if (fragment.isHidden()) {
             ft.show(fragment);
-        } else {
-            ft.hide(fragment);
         }
 
         ft.commit();
@@ -414,8 +418,6 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     public void hideFragment(final Fragment fragment){
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.setCustomAnimations(R.anim.slide_out_from_bottom, R.anim.slide_up_from_bottom);
-        ft.addToBackStack(null);
         ft.replace(R.id.fragment_contenedor, fragment);
 
         if (!fragment.isHidden()) {
@@ -473,6 +475,115 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
      */
     protected void stopLocationUpdates() {
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+    }
+
+    private class GetApiDataTask extends AsyncTask<Void, Void, Void> implements Callback<List<Pharmacy>> {
+
+        private Query query;
+        private Call<List<Pharmacy>> call;
+
+        private boolean finished = false;
+
+        GetApiDataTask(Query query){
+            this.query = query;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+
+            if (ActivityCompat.checkSelfPermission(PharmaciesMapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(PharmaciesMapActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                call = service.listByLocation(query.getLatitude(), query.getLongitude(), query.getRadio(), "");
+                call.enqueue(this);
+                Date d = new Date();
+                Log.d("DEBUG", d.getTime() + " Pharmacies request");
+            }
+            while(!finished){
+                 //wait for API
+            }
+            return null;
+        }
+
+        @Override
+        protected void onCancelled() {
+            Date d= new Date();
+            Log.d("DEBUG", d.getTime()+" Cancelled call at task "+apiTask.toString());
+            call.cancel();
+            super.onCancelled();
+        }
+
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            Date d= new Date();
+            Log.d("DEBUG", d.getTime()+" Called onPostExecute on task "+apiTask.toString());
+            super.onPostExecute(aVoid);
+        }
+
+        @Override
+        public void onResponse(Call<List<Pharmacy>> call, Response<List<Pharmacy>> response) {
+            pharmacies = response.body();
+            pharmaciesHashMap = new HashMap<>();
+            for (Pharmacy pharmacy : pharmacies){
+                pharmaciesHashMap.put(pharmacy.getCodPharmacy(), pharmacy);
+            }
+            Date d= new Date();
+            Log.d("DEBUG", d.getTime()+" API sends "+pharmaciesHashMap.size() + "pharmacies");
+            updateUI(false);
+            finished = true;
+        }
+
+        @Override
+        public void onFailure(Call<List<Pharmacy>> call, Throwable t) {
+            Log.e(PharmaciesMapActivity.class.getSimpleName(), t.getLocalizedMessage());
+            Toast.makeText(PharmaciesMapActivity.this, t.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+        }
+
+        private void updateUI(boolean centerMap){
+            if (mapLoaded) {
+
+                if (mLastLocation != null && centerMap) {
+                    centerMap();
+                }
+
+                if (pharmaciesHashMap != null) {
+                    markers = new HashMap<>();
+                    map.clear();
+
+                    for (Map.Entry<Integer, Pharmacy> entry : pharmaciesHashMap.entrySet()){
+                        Pharmacy pharmacy = entry.getValue();
+                        LatLng pharmacyLocation = new LatLng(pharmacy.getGps()[1], pharmacy.getGps()[0]);
+                        MarkerOptions pharmaMarker = new MarkerOptions();
+                        pharmaMarker.position(pharmacyLocation);
+                        pharmaMarker.icon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
+                        Marker marker = map.addMarker(pharmaMarker);
+                        markers.put(marker.getId(), pharmacy.getCodPharmacy());
+                    }
+                    Date d= new Date();
+                    Log.d("DEBUG", d.getTime()+" Mapa actualizado con farmacias= "+pharmaciesHashMap.size());
+                }
+
+                map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                    @Override
+                    public boolean onMarkerClick(Marker marker) {
+                        // Change color marker
+                        if(previousMarker!=null){
+                            previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
+                        }
+                        marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
+                        previousMarker=marker;
+
+                        Pharmacy pharma = pharmaciesHashMap.get(markers.get(marker.getId()));
+                        argsToFragment.putParcelable("pharmacy", pharma);
+                        fragmentMarker.getData(pharma);
+                        showFragment(fragmentMarker);
+                        fragmentMarker.updateData();
+                        return true;
+                    }
+                });
+
+            }
+
+        }
     }
 
     public class PharmacyMarker implements ClusterItem {
