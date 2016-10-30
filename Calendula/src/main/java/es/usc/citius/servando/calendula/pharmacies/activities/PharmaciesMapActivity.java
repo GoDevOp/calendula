@@ -506,8 +506,10 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         @Override
         protected void onCancelled() {
             Date d= new Date();
-            Log.d("DEBUG", d.getTime()+" Cancelled call at task "+apiTask.toString());
-            call.cancel();
+            if (call != null) {
+                Log.d("DEBUG", d.getTime()+" Cancelled call at task "+apiTask.toString());
+                call.cancel();
+            }
             super.onCancelled();
         }
 
