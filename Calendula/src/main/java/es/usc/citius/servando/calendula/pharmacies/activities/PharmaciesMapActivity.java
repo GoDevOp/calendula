@@ -16,8 +16,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.LayoutInflaterCompat;
 import android.util.Log;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -77,9 +75,10 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     private List<Pharmacy> pharmacies = null;
     private HashMap<Integer, Pharmacy> pharmaciesHashMap = null;
-    private HashMap<String, Integer> markers = null;
+    private HashMap<Marker, Integer> markersHashMap = null;
 
     private Marker previousMarker;
+    private Pharmacy previousPharmacy;
 
     private PharmaciesService service;
 
@@ -186,24 +185,6 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         super.onStop();
     }
 
-    /*@Override
-    public void onResponse(Call<List<Pharmacy>> call, Response<List<Pharmacy>> response) {
-        pharmacies = response.body();
-        pharmaciesHashMap = new HashMap<>();
-        for (Pharmacy pharmacy : pharmacies){
-            pharmaciesHashMap.put(pharmacy.getCodPharmacy(), pharmacy);
-        }
-        Date d= new Date();
-        Log.d("DEBUG", d.getTime()+" API sends "+pharmaciesHashMap.size() + "pharmacies");
-        updateUI(false);
-    }*/
-
-    /*@Override
-    public void onFailure(Call<List<Pharmacy>> call, Throwable t) {
-        Log.e(PharmaciesMapActivity.class.getSimpleName(), t.getLocalizedMessage());
-        Toast.makeText(PharmaciesMapActivity.this, t.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-    }*/
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
@@ -236,9 +217,6 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     Date d = new Date();
                     Log.d("DEBUG", d.getTime() + " New task " + apiTask.toString());
                     apiTask.execute();
-
-                    /*updateLocationDatafromAPI(getMapRadio(), getMapCenter());
-                    updateUI(false);*/
                 }
             }
         });
@@ -315,6 +293,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
         VisibleRegion vr = map.getProjection().getVisibleRegion();
         double left = vr.latLngBounds.southwest.longitude;
+        double top = vr.latLngBounds.northeast.latitude;
 
         Location center = new Location("center");
         center.setLatitude(vr.latLngBounds.getCenter().latitude);
@@ -322,11 +301,21 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
         Location middleLeftCornerLocation = new Location("center");
         middleLeftCornerLocation.setLatitude(center.getLatitude());
+
+        middleLeftCornerLocation.setLatitude(center.getLatitude());
         middleLeftCornerLocation.setLongitude(left);
+        Float disToLeft = center.distanceTo(middleLeftCornerLocation);
 
-        Float dis = center.distanceTo(middleLeftCornerLocation);
+        middleLeftCornerLocation.setLongitude(center.getLongitude());
+        middleLeftCornerLocation.setLatitude(top);
+        Float disToTop = center.distanceTo(middleLeftCornerLocation);
 
-        return dis.intValue();
+        if (disToLeft > disToTop){
+            return disToLeft.intValue();
+        }
+        else{
+            return disToTop.intValue();
+        }
 
     }
 
@@ -344,62 +333,6 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
         return center;
     }
-
-    private void updateLocationDatafromAPI(Integer radio, Location location) {
-        /*if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            Call<List<Pharmacy>> call = service.listByLocation(location.getLatitude(), location.getLongitude(), radio, "");
-            call.enqueue(this);
-            Date d = new Date();
-            Log.d("DEBUG", d.getTime() + " Pharmacies request");
-        }*/
-    }
-
-    /*private void updateUI(boolean centerMap){
-        if (mapLoaded) {
-
-            if (mLastLocation != null && centerMap) {
-                centerMap();
-            }
-
-            if (pharmaciesHashMap != null) {
-                markers = new HashMap<>();
-                map.clear();
-
-                for (Map.Entry<Integer, Pharmacy> entry : pharmaciesHashMap.entrySet()){
-                    Pharmacy pharmacy = entry.getValue();
-                    LatLng pharmacyLocation = new LatLng(pharmacy.getGps()[1], pharmacy.getGps()[0]);
-                    MarkerOptions pharmaMarker = new MarkerOptions();
-                    pharmaMarker.position(pharmacyLocation);
-                    pharmaMarker.icon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
-                    Marker marker = map.addMarker(pharmaMarker);
-                    markers.put(marker.getId(), pharmacy.getCodPharmacy());
-                }
-                Date d= new Date();
-                Log.d("DEBUG", d.getTime()+" Mapa actualizado con farmacias= "+pharmaciesHashMap.size());
-            }
-
-            map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-                @Override
-                public boolean onMarkerClick(Marker marker) {
-                    // Change color marker
-                    if(previousMarker!=null){
-                        previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
-                    }
-                    marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
-                    previousMarker=marker;
-
-                    Pharmacy pharma = pharmaciesHashMap.get(markers.get(marker.getId()));
-                    argsToFragment.putParcelable("pharmacy", pharma);
-                    fragmentMarker.getData(pharma);
-                    showFragment(fragmentMarker, true);
-                    fragmentMarker.updateData();
-                    return true;
-                }
-            });
-
-        }
-
-    }*/
 
     public void showFragment(final Fragment fragment){
 
@@ -548,7 +481,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 }
 
                 if (pharmaciesHashMap != null) {
-                    markers = new HashMap<>();
+                    markersHashMap = new HashMap<>();
                     map.clear();
 
                     for (Map.Entry<Integer, Pharmacy> entry : pharmaciesHashMap.entrySet()){
@@ -558,8 +491,17 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                         pharmaMarker.position(pharmacyLocation);
                         pharmaMarker.icon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
                         Marker marker = map.addMarker(pharmaMarker);
-                        markers.put(marker.getId(), pharmacy.getCodPharmacy());
+                        markersHashMap.put(marker, pharmacy.getCodPharmacy());
                     }
+
+                    if (previousMarker != null && !markersHashMap.containsValue(previousPharmacy.getCodPharmacy())){
+                        previousMarker = null;
+                        previousPharmacy = null;
+                    }
+                    else if (previousPharmacy != null && markersHashMap.containsValue(previousPharmacy)){
+                        previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
+                    }
+
                     Date d= new Date();
                     Log.d("DEBUG", d.getTime()+" Mapa actualizado con farmacias= "+pharmaciesHashMap.size());
                 }
@@ -574,7 +516,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                         marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
                         previousMarker=marker;
 
-                        Pharmacy pharma = pharmaciesHashMap.get(markers.get(marker.getId()));
+                        Pharmacy pharma = pharmaciesHashMap.get(markersHashMap.get(marker));
+                        previousPharmacy = pharma;
                         argsToFragment.putParcelable("pharmacy", pharma);
                         fragmentMarker.getData(pharma);
                         showFragment(fragmentMarker);
