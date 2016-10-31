@@ -462,7 +462,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 pharmaciesHashMap.put(pharmacy.getCodPharmacy(), pharmacy);
             }
             Date d= new Date();
-            Log.d("DEBUG", d.getTime()+" API sends "+pharmaciesHashMap.size() + "pharmacies");
+            Log.d("DEBUG", d.getTime()+" API sends "+pharmaciesHashMap.size() + " pharmacies");
             updateUI(false);
             finished = true;
         }
@@ -489,35 +489,36 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                         LatLng pharmacyLocation = new LatLng(pharmacy.getGps()[1], pharmacy.getGps()[0]);
                         MarkerOptions pharmaMarker = new MarkerOptions();
                         pharmaMarker.position(pharmacyLocation);
-                        pharmaMarker.icon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
                         Marker marker = map.addMarker(pharmaMarker);
+                        if (previousPharmacy != null && previousPharmacy.getCodPharmacy().intValue() == pharmacy.getCodPharmacy().intValue() &&
+                                fragmentMarker.isVisible()){
+                            marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
+                            previousMarker = marker;
+                        }
+                        else {
+                            marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
+                        }
                         markersHashMap.put(marker, pharmacy.getCodPharmacy());
                     }
 
-                    if (previousMarker != null && !markersHashMap.containsValue(previousPharmacy.getCodPharmacy())){
-                        previousMarker = null;
-                        previousPharmacy = null;
-                    }
-                    else if (previousPharmacy != null && markersHashMap.containsValue(previousPharmacy)){
-                        previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
-                    }
-
                     Date d= new Date();
-                    Log.d("DEBUG", d.getTime()+" Mapa actualizado con farmacias= "+pharmaciesHashMap.size());
+                    Log.d("DEBUG", d.getTime()+" Updated map with "+pharmaciesHashMap.size() + " pharmacies");
                 }
 
                 map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                     @Override
                     public boolean onMarkerClick(Marker marker) {
+
+                        Pharmacy pharma = pharmaciesHashMap.get(markersHashMap.get(marker));
                         // Change color marker
-                        if(previousMarker!=null){
+                        if(previousPharmacy != null && previousPharmacy.getCodPharmacy() == pharma.getCodPharmacy() &&
+                                fragmentMarker.isVisible()){
                             previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
                         }
                         marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
                         previousMarker=marker;
-
-                        Pharmacy pharma = pharmaciesHashMap.get(markersHashMap.get(marker));
                         previousPharmacy = pharma;
+
                         argsToFragment.putParcelable("pharmacy", pharma);
                         fragmentMarker.getData(pharma);
                         showFragment(fragmentMarker);
