@@ -106,6 +106,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     IconicsDrawable iconList;
     IconicsDrawable iconMarker;
     IconicsDrawable iconSelectedMarker;
+    IconicsDrawable iconClosedMarker;
+    IconicsDrawable iconClosedSelectedMarker;
 
     GetApiDataTask apiTask = null;
 
@@ -148,6 +150,12 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         iconSelectedMarker = new IconicsDrawable(this, PharmaciesFont.Icon.ic_marker)
                 .sizeDp(34)
                 .color(Color.parseColor("#169E58"));
+        iconClosedMarker = new IconicsDrawable(this, PharmaciesFont.Icon.ic_marker)
+                .sizeDp(34)
+                .color(Color.parseColor("#BCBCBC"));
+        iconClosedSelectedMarker = new IconicsDrawable(this, PharmaciesFont.Icon.ic_marker)
+                .sizeDp(34)
+                .color(Color.parseColor("#8C8C8C"));
 
         // UI events
         btnMyPostion = (ImageButton) findViewById(R.id.center_map_pharmacies);
@@ -228,7 +236,13 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
                 // Change color last marker clicked
                 if (previousMarker != null) {
-                    previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
+                    if (!previousPharmacy.isOpen()){
+                        previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedMarker.toBitmap()));
+                    }
+                    else {
+                        previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
+                    }
+                    //previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
                     previousMarker = null;
                 }
             }
@@ -410,6 +424,27 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
     }
 
+    private void setMarkerColor(Marker marker, Pharmacy pharmacy){
+        if (previousPharmacy != null && previousPharmacy.getCodPharmacy().intValue() == pharmacy.getCodPharmacy().intValue() &&
+                fragmentMarker.isVisible()){
+            if (!pharmacy.isOpen()){
+                marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedSelectedMarker.toBitmap()));
+            }
+            else {
+                marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
+            }
+            previousMarker = marker;
+        }
+        else {
+            if (!pharmacy.isOpen()){
+                marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedMarker.toBitmap()));
+            }
+            else {
+                marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
+            }
+        }
+    }
+
     private class GetApiDataTask extends AsyncTask<Void, Void, Void> implements Callback<List<Pharmacy>> {
 
         private Query query;
@@ -492,13 +527,27 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                         Marker marker = map.addMarker(pharmaMarker);
                         if (previousPharmacy != null && previousPharmacy.getCodPharmacy().intValue() == pharmacy.getCodPharmacy().intValue() &&
                                 fragmentMarker.isVisible()){
-                            marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
+                            if (!pharmacy.isOpen()){
+                                marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedSelectedMarker.toBitmap()));
+                            }
+                            else {
+                                marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
+                            }
                             previousMarker = marker;
                         }
                         else {
-                            marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
+                            if (!pharmacy.isOpen()){
+                                marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedMarker.toBitmap()));
+                            }
+                            else {
+                                marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
+                            }
                         }
                         markersHashMap.put(marker, pharmacy.getCodPharmacy());
+                    }
+                    if (!pharmaciesHashMap.containsValue(previousPharmacy)){
+                        previousMarker = null;
+                        previousPharmacy = null;
                     }
 
                     Date d= new Date();
@@ -511,11 +560,22 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
                         Pharmacy pharma = pharmaciesHashMap.get(markersHashMap.get(marker));
                         // Change color marker
-                        if(previousPharmacy != null && previousPharmacy.getCodPharmacy() == pharma.getCodPharmacy() &&
-                                fragmentMarker.isVisible()){
-                            previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
+                        if(previousPharmacy != null && previousMarker != null && fragmentMarker.isVisible()){
+                            if (!previousPharmacy.isOpen()){
+                                previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedMarker.toBitmap()));
+                            }
+                            else {
+                                previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
+                            }
+                            //previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
                         }
-                        marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
+                        if (!pharma.isOpen()){
+                            marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedSelectedMarker.toBitmap()));
+                        }
+                        else {
+                            marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
+                        }
+                        //marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
                         previousMarker=marker;
                         previousPharmacy = pharma;
 

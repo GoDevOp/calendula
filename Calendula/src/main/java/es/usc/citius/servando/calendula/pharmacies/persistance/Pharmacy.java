@@ -26,6 +26,27 @@ public class Pharmacy implements Parcelable {
         calendar = new ArrayList<Calendar>();
     }
 
+    protected Pharmacy(Parcel in) {
+        name = in.readString();
+        address = in.readString();
+        town = in.readString();
+        postCode = in.readString();
+        phone = in.readString();
+        notes = in.readString();
+    }
+
+    public static final Creator<Pharmacy> CREATOR = new Creator<Pharmacy>() {
+        @Override
+        public Pharmacy createFromParcel(Parcel in) {
+            return new Pharmacy(in);
+        }
+
+        @Override
+        public Pharmacy[] newArray(int size) {
+            return new Pharmacy[size];
+        }
+    };
+
     public Integer getCodPharmacy() {
         return codPharmacy;
     }
@@ -105,6 +126,15 @@ public class Pharmacy implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(name);
+        dest.writeString(address);
+        dest.writeString(town);
+        dest.writeString(postCode);
+        dest.writeString(phone);
+        dest.writeString(notes);
+    }
 
+    public boolean isOpen(){
+        return true;
     }
 }
