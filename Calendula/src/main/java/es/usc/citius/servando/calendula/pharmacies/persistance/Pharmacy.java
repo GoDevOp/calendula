@@ -1,9 +1,13 @@
 package es.usc.citius.servando.calendula.pharmacies.persistance;
 
+import android.icu.util.TimeZone;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 /**
  * Created by isaac on 19/9/16.
@@ -135,6 +139,70 @@ public class Pharmacy implements Parcelable {
     }
 
     public boolean isOpen(){
-        return true;
+
+        Boolean open = null;
+
+        Date date = new Date();
+        java.util.Calendar now = java.util.Calendar.getInstance();
+        GregorianCalendar cal = new GregorianCalendar();
+        cal.set(now.get(java.util.Calendar.YEAR), now.get(java.util.Calendar.MONTH), now.get(java.util.Calendar.DAY_OF_MONTH), 0, 0, 0);
+        cal.setTimeZone(java.util.TimeZone.getTimeZone("GMT"));
+        Date dateWithoutTime = cal.getTime();
+
+        cal.set(now.get(java.util.Calendar.YEAR), 0, 1, now.get(java.util.Calendar.HOUR_OF_DAY), now.get(java.util.Calendar.MINUTE), 0);
+        Date timeWidtoutDate = cal.getTime();
+
+        GregorianCalendar hour0 = new GregorianCalendar();
+        hour0.setTimeInMillis(1451602800000l); // 01/10/2016 00:00:00
+        GregorianCalendar hour2359 = new GregorianCalendar();
+        hour2359.set(now.get(java.util.Calendar.YEAR), 0, 1, 23, 59, 59);
+
+        for (Calendar calendar:this.calendar){
+            if (calendar.getGuards().contains(dateWithoutTime)){
+                Log.d("PHARMACY OPEN", "Pharmacy "+this.getName()+" open because guard");
+                open = true;
+                break;
+            }
+
+            if (this.getHolidays().contains(dateWithoutTime)){
+                Log.d("PHARMACY CLOSED", "Pharmacy "+this.getName()+" closed because holiday");
+                open = false;
+                break;
+            }
+
+            for (Season season:calendar.getSeasons()){
+                if (dateWithoutTime.after(season.getStartDate()) && dateWithoutTime.before(season.getEndDate())){
+                    for (Hours hours:season.getHours()){
+
+                        Date closeHourMorning = hours.getCloseHourMorning();
+                        Date closeHourAfternoon = hours.getCloseHourAfternoon();
+
+                        if (closeHourMorning != null && closeHourMorning.compareTo(hour0.getTime()) == 0){
+                            hours.setCloseHourMorning(hour2359.getTime());
+                        }
+                        if (closeHourAfternoon != null && closeHourAfternoon.compareTo(hour0.getTime()) == 0){
+                            hours.setCloseHourAfternoon(hour2359.getTime());
+                        }
+
+                        if (hours.getWeekDays().contains(now.get(java.util.Calendar.DAY_OF_WEEK)) &&
+                                (hours.getOpenHourMorning()!= null && timeWidtoutDate.after(hours.getOpenHourMorning()) && hours.getCloseHourMorning() != null && timeWidtoutDate.before(hours.getCloseHourMorning())) ||
+                                (hours.getOpenHourAfternoon() != null && timeWidtoutDate.after(hours.getOpenHourAfternoon()) && hours.getCloseHourAfternoon()!=null && timeWidtoutDate.before(hours.getCloseHourAfternoon()))){
+                            Log.d("PHARMACY OPEN", "Pharmacy "+this.getName()+" open because hours");
+                            open = true;
+                            break;
+                        }
+                    }
+                }
+                if (open != null){
+                    break;
+                }
+            }
+        }
+
+        if (open == null){
+            open = false;
+        }
+
+        return open;
     }
 }
