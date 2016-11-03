@@ -22,6 +22,7 @@ import com.mikepenz.iconics.IconicsDrawable;
 import es.usc.citius.servando.calendula.R;
 import es.usc.citius.servando.calendula.pharmacies.activities.PharmaciesMapActivity;
 import es.usc.citius.servando.calendula.pharmacies.persistance.Pharmacy;
+import es.usc.citius.servando.calendula.pharmacies.util.Utils;
 
 public class PharmacyMarkerDetailsFragment extends Fragment {
 
@@ -86,7 +87,7 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
             txtHours = (TextView) getView().findViewById(R.id.pharmacy_hour);
             txtState = (TextView) getView().findViewById(R.id.pharmacy_state);
 
-            txtName.setText(pharmacy.getName());
+            txtName.setText(Utils.capitalizeNames(pharmacy.getName()));
             txtHours.setText(pharmacy.getHours());
             if (pharmacy.isOpen()){
                 txtState.setText(getString(R.string.pharmacy_open));
