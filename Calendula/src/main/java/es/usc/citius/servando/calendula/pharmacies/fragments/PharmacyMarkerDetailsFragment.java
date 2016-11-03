@@ -27,6 +27,8 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
 
     Pharmacy pharmacy;
     TextView txtName;
+    TextView txtHours;
+    TextView txtState;
 
     View layout;
 
@@ -79,8 +81,21 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
 
     public void updateData(){
         if (pharmacy != null) {
+
             txtName = (TextView) getView().findViewById(R.id.pharmacy_name);
+            txtHours = (TextView) getView().findViewById(R.id.pharmacy_hour);
+            txtState = (TextView) getView().findViewById(R.id.pharmacy_state);
+
             txtName.setText(pharmacy.getName());
+            txtHours.setText(pharmacy.getHours());
+            if (pharmacy.isOpen()){
+                txtState.setText(getString(R.string.pharmacy_open));
+                txtState.setTextColor(Color.parseColor("#669900"));
+            }
+            else{
+                txtState.setText(getString(R.string.pharmacy_closed));
+                txtState.setTextColor(Color.parseColor("#BCBCBC"));
+            }
         }
     }
 

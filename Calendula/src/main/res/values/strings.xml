@@ -449,5 +449,9 @@
                             <br/><br/>
                             For this development, we use several open source libraries that are shown below:
     "]]></string>
+
+    <!-- Pharmacy strings -->
+    <string name="pharmacy_open">ABERTA</string>
+    <string name="pharmacy_closed">PECHADA</string>
 </resources>
 

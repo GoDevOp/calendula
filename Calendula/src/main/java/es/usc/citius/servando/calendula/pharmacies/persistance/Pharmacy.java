@@ -5,6 +5,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -204,5 +205,38 @@ public class Pharmacy implements Parcelable {
         }
 
         return open;
+    }
+
+    public String getHours(){
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+        GregorianCalendar cal = new GregorianCalendar();
+        java.util.Calendar now = java.util.Calendar.getInstance();
+        cal.set(now.get(java.util.Calendar.YEAR), now.get(java.util.Calendar.MONTH), now.get(java.util.Calendar.DAY_OF_MONTH), 0, 0, 0);
+        cal.setTimeZone(java.util.TimeZone.getTimeZone("GMT"));
+        Date dateWithoutTime = cal.getTime();
+        String strHours = "";
+
+        for (Calendar calendar:this.calendar){
+            for (Season season:calendar.getSeasons()){
+                if (dateWithoutTime.after(season.getStartDate()) && dateWithoutTime.before(season.getEndDate())) {
+                    for (Hours hours : season.getHours()) {
+                        if (hours.getWeekDays().contains(now.get(java.util.Calendar.DAY_OF_WEEK))){
+                            if (hours.getOpenHourMorning() != null &&  hours.getCloseHourMorning() != null) {
+                                strHours += sdf.format(hours.getOpenHourMorning()) + " - ";
+                                strHours += sdf.format(hours.getCloseHourMorning());
+                                strHours += "\n";
+                            }
+                            if (hours.getOpenHourAfternoon() != null &&  hours.getCloseHourAfternoon() != null) {
+                                strHours += sdf.format(hours.getOpenHourAfternoon()) + " - ";
+                                strHours += sdf.format(hours.getCloseHourAfternoon());
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return strHours;
     }
 }
