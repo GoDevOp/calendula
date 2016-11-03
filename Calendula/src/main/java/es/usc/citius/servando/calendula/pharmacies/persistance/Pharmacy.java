@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import es.usc.citius.servando.calendula.pharmacies.util.Utils;
+
 /**
  * Created by isaac on 19/9/16.
  */
@@ -147,7 +149,6 @@ public class Pharmacy implements Parcelable {
         java.util.Calendar now = java.util.Calendar.getInstance();
         GregorianCalendar cal = new GregorianCalendar();
         cal.set(now.get(java.util.Calendar.YEAR), now.get(java.util.Calendar.MONTH), now.get(java.util.Calendar.DAY_OF_MONTH), 0, 0, 0);
-        cal.setTimeZone(java.util.TimeZone.getTimeZone("GMT"));
         Date dateWithoutTime = cal.getTime();
 
         cal.set(now.get(java.util.Calendar.YEAR), 0, 1, now.get(java.util.Calendar.HOUR_OF_DAY), now.get(java.util.Calendar.MINUTE), 0);
@@ -175,8 +176,33 @@ public class Pharmacy implements Parcelable {
                 if (dateWithoutTime.after(season.getStartDate()) && dateWithoutTime.before(season.getEndDate())){
                     for (Hours hours:season.getHours()){
 
+                        Date openHourMorning = hours.getOpenHourMorning();
                         Date closeHourMorning = hours.getCloseHourMorning();
+                        Date openHourAfternoon = hours.getOpenHourAfternoon();
                         Date closeHourAfternoon = hours.getCloseHourAfternoon();
+
+                        if (openHourMorning != null) {
+                            openHourMorning = getDayWithOpenTime(hours.getOpenHourMorning());
+                        }
+                        if (closeHourMorning != null) {
+                            closeHourMorning = getDayWithOpenTime(hours.getCloseHourMorning());
+                        }
+                        if (openHourAfternoon != null) {
+                            openHourAfternoon = getDayWithOpenTime(hours.getOpenHourAfternoon());
+                        }
+                        if (closeHourAfternoon != null) {
+                            closeHourAfternoon = getDayWithOpenTime(hours.getCloseHourAfternoon());
+                        }
+
+                        // if close hour is before open hour it's because close after 00:00
+                        if (closeHourMorning != null && openHourMorning != null &&
+                                closeHourMorning.before(openHourMorning)){
+                            closeHourMorning = Utils.addDays(closeHourMorning, 1);
+                        }
+                        if (closeHourAfternoon != null && openHourAfternoon != null &&
+                                closeHourAfternoon.before(openHourAfternoon)){
+                            closeHourAfternoon = Utils.addDays(closeHourAfternoon, 1);
+                        }
 
                         if (closeHourMorning != null && closeHourMorning.compareTo(hour0.getTime()) == 0){
                             hours.setCloseHourMorning(hour2359.getTime());
@@ -186,8 +212,11 @@ public class Pharmacy implements Parcelable {
                         }
 
                         if (hours.getWeekDays().contains(now.get(java.util.Calendar.DAY_OF_WEEK)) &&
-                                (hours.getOpenHourMorning()!= null && timeWidtoutDate.after(hours.getOpenHourMorning()) && hours.getCloseHourMorning() != null && timeWidtoutDate.before(hours.getCloseHourMorning())) ||
-                                (hours.getOpenHourAfternoon() != null && timeWidtoutDate.after(hours.getOpenHourAfternoon()) && hours.getCloseHourAfternoon()!=null && timeWidtoutDate.before(hours.getCloseHourAfternoon()))){
+                                (openHourMorning != null && date.after(openHourMorning) &&
+                                 closeHourMorning != null && date.before(closeHourMorning)) ||
+
+                                (openHourAfternoon != null && date.after(openHourAfternoon) &&
+                                 closeHourAfternoon !=null && date.before(closeHourAfternoon))){
                             Log.d("PHARMACY OPEN", "Pharmacy "+this.getName()+" open because hours");
                             open = true;
                             break;
@@ -205,6 +234,22 @@ public class Pharmacy implements Parcelable {
         }
 
         return open;
+    }
+
+    private Date getDayWithOpenTime(Date date){
+        java.util.Calendar now = java.util.Calendar.getInstance();
+        java.util.Calendar openHour = java.util.Calendar.getInstance();
+        openHour.setTime(date);
+        GregorianCalendar cal = new GregorianCalendar();
+
+        cal.set(now.get(java.util.Calendar.YEAR),
+                now.get(java.util.Calendar.MONTH),
+                now.get(java.util.Calendar.DAY_OF_MONTH),
+                openHour.get(java.util.Calendar.HOUR_OF_DAY),
+                openHour.get(java.util.Calendar.MINUTE),
+                0);
+
+        return cal.getTime();
     }
 
     public String getHours(){

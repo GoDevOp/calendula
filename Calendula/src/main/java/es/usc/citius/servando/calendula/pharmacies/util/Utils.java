@@ -3,6 +3,8 @@ package es.usc.citius.servando.calendula.pharmacies.util;
 import com.google.zxing.common.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,6 +43,14 @@ public class Utils {
         }
 
         return capitalizedName.toString();
+    }
+
+    public static Date addDays(Date date, int days)
+    {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.add(Calendar.DATE, days);
+        return cal.getTime();
     }
 
 }
