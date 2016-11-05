@@ -14,11 +14,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.LayoutInflaterCompat;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -41,6 +43,7 @@ import com.google.maps.android.clustering.ClusterManager;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.iconics.context.IconicsLayoutInflater;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -49,12 +52,14 @@ import java.util.Map;
 
 import es.usc.citius.servando.calendula.CalendulaActivity;
 import es.usc.citius.servando.calendula.R;
+import es.usc.citius.servando.calendula.pharmacies.fragments.PharmacyFragment;
 import es.usc.citius.servando.calendula.pharmacies.fragments.PharmacyMarkerDetailsFragment;
 import es.usc.citius.servando.calendula.pharmacies.persistance.Pharmacy;
 import es.usc.citius.servando.calendula.pharmacies.persistance.Query;
 import es.usc.citius.servando.calendula.pharmacies.remote.PharmaciesService;
 import es.usc.citius.servando.calendula.pharmacies.remote.RemoteServiceCreator;
 import es.usc.citius.servando.calendula.pharmacies.util.PharmaciesFont;
+import es.usc.citius.servando.calendula.pharmacies.util.Utils;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -110,6 +115,13 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     IconicsDrawable iconSelectedMarker;
     IconicsDrawable iconClosedMarker;
     IconicsDrawable iconClosedSelectedMarker;
+
+    private SlidingUpPanelLayout slidingLayout;
+    RelativeLayout fragmentContainer;
+
+    PharmacyFragment fragmentPharmacyFull;
+
+    Integer slidingLayoutHeight;
 
     GetApiDataTask apiTask = null;
 
@@ -174,6 +186,52 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         btnClear = (Button) findViewById(R.id.clear_search_pharmacies);
         btnClear.setVisibility(View.GONE);
 
+        fragmentPharmacyFull = new PharmacyFragment();
+
+        fragmentContainer = (RelativeLayout)findViewById(R.id.fragment_contenedor);
+
+        slidingLayout = (SlidingUpPanelLayout)findViewById(R.id.sliding_layout);
+        slidingLayoutHeight = slidingLayout.getPanelHeight();
+        slidingLayout.setPanelHeight(0);
+        slidingLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
+            Date d = new Date();
+            @Override
+            public void onPanelSlide(View panel, float slideOffset) {
+                Log.v("SLINDINGPANEL", Utils.getDate(d)+" onPanelSlide "+slideOffset);
+                if (slideOffset > 0.1){
+                    FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                    ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+                    ft.replace(R.id.fragment_contenedor, fragmentPharmacyFull);
+                    fragmentContainer.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+                    ft.commit();
+                }
+                else{
+                    FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                    ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+                    ft.replace(R.id.fragment_contenedor, fragmentMarker);
+                    fragmentContainer.getLayoutParams().height = slidingLayoutHeight;
+                    ft.commit();
+                    fragmentMarker.updateData();
+                }
+            }
+
+            @Override
+            public void onPanelCollapsed(View panel) {
+                Log.v("SLINDINGPANEL", Utils.getDate(d)+" onPanelCollapsed");
+            }
+
+            @Override
+            public void onPanelExpanded(View panel) {
+                Log.v("SLINDINGPANEL", Utils.getDate(d)+" onPanelExpanded");
+            }
+
+            @Override
+            public void onPanelAnchored(View panel) {}
+
+            @Override
+            public void onPanelHidden(View panel) {}
+        });
+
         service = RemoteServiceCreator.createService(PharmaciesService.class, "http://test.isaaccastro.eu/api/");
 
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -205,7 +263,6 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
         map.getUiSettings().setMyLocationButtonEnabled(false);
         map.getUiSettings().setMapToolbarEnabled(false);
-        //map.getUiSettings().setCompassEnabled(false);
         try {
             assert mapFragment.getView() != null;
             final ViewGroup parent = (ViewGroup) mapFragment.getView().findViewWithTag("GoogleMapMyLocationButton").getParent();
@@ -253,7 +310,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     }
                     apiTask = new GetApiDataTask(query);
                     Date d = new Date();
-                    Log.d("DEBUG", d.getTime() + " New task " + apiTask.toString());
+                    Log.d("DEBUG", Utils.getDate(d) + " New task " + apiTask.toString());
                     apiTask.execute();
                 }
             }
@@ -381,9 +438,10 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     public void showFragment(final Fragment fragment){
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.setCustomAnimations(R.anim.slide_up_from_bottom, R.anim.slide_out_from_bottom);
         ft.addToBackStack(null);
         ft.replace(R.id.fragment_contenedor, fragment);
+        slidingLayout.setPanelHeight(slidingLayoutHeight);
+        slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
 
         if (fragment.isHidden()) {
             ft.show(fragment);
@@ -396,6 +454,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.fragment_contenedor, fragment);
+
+        slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
 
         if (!fragment.isHidden()) {
             ft.hide(fragment);
@@ -493,7 +553,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 call = service.listByLocation(query.getLatitude(), query.getLongitude(), query.getRadio(), "");
                 call.enqueue(this);
                 Date d = new Date();
-                Log.d("DEBUG", d.getTime() + " Pharmacies request");
+                Log.d("DEBUG", Utils.getDate(d) + " Pharmacies request");
             }
             while(!finished){
                  //wait for API
@@ -505,7 +565,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         protected void onCancelled() {
             Date d= new Date();
             if (call != null) {
-                Log.d("DEBUG", d.getTime()+" Cancelled call at task "+apiTask.toString());
+                Log.d("DEBUG", Utils.getDate(d)+" Cancelled call at task "+apiTask.toString());
                 call.cancel();
             }
             super.onCancelled();
@@ -515,7 +575,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         @Override
         protected void onPostExecute(Void aVoid) {
             Date d= new Date();
-            Log.d("DEBUG", d.getTime()+" Called onPostExecute on task "+apiTask.toString());
+            Log.d("DEBUG", Utils.getDate(d)+" Called onPostExecute on task "+apiTask.toString());
             super.onPostExecute(aVoid);
         }
 
@@ -527,7 +587,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 pharmaciesHashMap.put(pharmacy.getCodPharmacy(), pharmacy);
             }
             Date d= new Date();
-            Log.d("DEBUG", d.getTime()+" API sends "+pharmaciesHashMap.size() + " pharmacies");
+            Log.d("DEBUG", Utils.getDate(d)+" API sends "+pharmaciesHashMap.size() + " pharmacies");
             updateUI(false);
             finished = true;
         }
@@ -581,7 +641,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     }
 
                     Date d= new Date();
-                    Log.d("DEBUG", d.getTime()+" Updated map with "+pharmaciesHashMap.size() + " pharmacies");
+                    Log.d("DEBUG", Utils.getDate(d)+" Updated map with "+pharmaciesHashMap.size() + " pharmacies");
                 }
 
                 map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -612,6 +672,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                         argsToFragment.putParcelable("pharmacy", pharma);
                         fragmentMarker.getData(pharma);
                         showFragment(fragmentMarker);
+                        slidingLayout.setVisibility(View.VISIBLE);
                         fragmentMarker.updateData();
                         return true;
                     }

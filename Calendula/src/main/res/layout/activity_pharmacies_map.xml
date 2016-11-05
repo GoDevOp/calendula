@@ -7,90 +7,120 @@
     android:layout_height="match_parent"
     tools:context="es.usc.citius.servando.calendula.pharmacies.activities.PharmaciesMapActivity">
 
-    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+    <com.sothree.slidinguppanel.SlidingUpPanelLayout xmlns:sothree="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/sliding_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/map"
-        tools:context=".MapsActivity"
-        android:name="com.google.android.gms.maps.SupportMapFragment"/>
+        android:gravity="bottom"
+        sothree:umanoDragView="@+id/dragView"
+        sothree:umanoOverlay="false"
+        sothree:umanoPanelHeight="170dp"
+        sothree:umanoParalaxOffset="100dp">
 
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/pharmacies_search_bar"
-        android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="30dp"
-        android:background="@android:color/white">
-
-        <AutoCompleteTextView
-            android:id="@+id/search_pharmacies_text"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:padding="10dp"
-            android:hint="Search Pharmacies"
-            android:textColor="@android:color/black"
-            android:background="@android:color/white"
-            android:drawableLeft="@drawable/places_ic_search">
-        </AutoCompleteTextView>
-
-        <com.mikepenz.iconics.view.IconicsButton
-            android:id="@+id/clear_search_pharmacies"
-            android:layout_alignParentRight="true"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingRight="2dp"
-            android:paddingLeft="2dp"
-            android:layout_marginTop="5dp"
-            style="?android:attr/borderlessButtonStyle"
-            android:text="{gmd-close}"
-            android:textSize="20dp"/>
+            android:orientation="vertical">
 
-    </RelativeLayout>
+            <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/map"
+                tools:context=".MapsActivity"
+                android:name="com.google.android.gms.maps.SupportMapFragment"/>
 
-    <com.getbase.floatingactionbutton.FloatingActionButton
-        xmlns:fab="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/center_map_pharmacies"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/pharmacies_list"
-        android:layout_alignParentRight="true"
-        android:layout_gravity="bottom|right"
-        android:layout_marginRight="20dp"
-        android:layout_marginBottom="10dp"
-        android:padding="0dp"
-        android:scaleType="center"
-        fab:fab_colorNormal="#ffffff"
-        fab:fab_colorPressed="#dedede"
-        />
+            <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:id="@+id/pharmacies_search_bar"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginTop="30dp"
+                android:background="@android:color/white">
 
-    <com.getbase.floatingactionbutton.FloatingActionButton
-        xmlns:fab="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/pharmacies_list"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_gravity="bottom|right"
-        android:layout_marginRight="20dp"
-        android:layout_marginBottom="10dp"
-        android:padding="0dp"
-        android:scaleType="center"
-        fab:fab_colorNormal="#ffffff"
-        fab:fab_colorPressed="#dedede"
-        />
+                <AutoCompleteTextView
+                    android:id="@+id/search_pharmacies_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="55dp"
+                    android:padding="10dp"
+                    android:hint="Search Pharmacies"
+                    android:textColor="@android:color/black"
+                    android:background="@android:color/white"
+                    android:drawableLeft="@drawable/places_ic_search">
+                </AutoCompleteTextView>
 
-    <RelativeLayout
-        android:id="@+id/fragment_contenedor"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_gravity="bottom"
-        android:layout_centerHorizontal="true">
-    </RelativeLayout>
+                <com.mikepenz.iconics.view.IconicsButton
+                    android:id="@+id/clear_search_pharmacies"
+                    android:layout_alignParentRight="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingRight="2dp"
+                    android:paddingLeft="2dp"
+                    android:layout_marginTop="5dp"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:text="{gmd-close}"
+                    android:textSize="20dp"/>
+
+            </RelativeLayout>
+
+            <com.getbase.floatingactionbutton.FloatingActionButton
+                xmlns:fab="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/center_map_pharmacies"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_above="@+id/pharmacies_list"
+                android:layout_alignParentRight="true"
+                android:layout_gravity="bottom|right"
+                android:layout_marginRight="20dp"
+                android:layout_marginBottom="10dp"
+                android:padding="0dp"
+                android:scaleType="center"
+                fab:fab_colorNormal="#ffffff"
+                fab:fab_colorPressed="#dedede"
+                />
+
+            <com.getbase.floatingactionbutton.FloatingActionButton
+                xmlns:fab="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/pharmacies_list"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true"
+                android:layout_gravity="bottom|right"
+                android:layout_marginRight="20dp"
+                android:layout_marginBottom="10dp"
+                android:padding="0dp"
+                android:scaleType="center"
+                fab:fab_colorNormal="#ffffff"
+                fab:fab_colorPressed="#dedede"
+                />
+
+        </RelativeLayout>
+
+        <!-- SLIDING LAYOUT -->
+        <LinearLayout
+            android:id="@+id/dragView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#ffffff"
+            android:clickable="true"
+            android:focusable="false"
+            android:orientation="vertical">
+
+                <RelativeLayout
+                    android:id="@+id/fragment_contenedor"
+                    android:layout_width="match_parent"
+                    android:layout_height="170dp"
+                    android:layout_alignParentBottom="true"
+                    android:layout_gravity="bottom"
+                    android:layout_centerHorizontal="true">
+                </RelativeLayout>
+        </LinearLayout>
+
+    </com.sothree.slidinguppanel.SlidingUpPanelLayout>
 
 </RelativeLayout>

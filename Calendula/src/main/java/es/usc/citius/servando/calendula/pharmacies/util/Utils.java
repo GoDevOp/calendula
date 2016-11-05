@@ -2,6 +2,7 @@ package es.usc.citius.servando.calendula.pharmacies.util;
 
 import com.google.zxing.common.StringUtils;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -51,6 +52,16 @@ public class Utils {
         cal.setTime(date);
         cal.add(Calendar.DATE, days);
         return cal.getTime();
+    }
+
+    public static String getDate(Date date){
+        String strDate = "";
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSS");
+
+        strDate = sdf.format(date);
+
+        return strDate;
     }
 
 }
