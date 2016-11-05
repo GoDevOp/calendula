@@ -211,7 +211,7 @@ public class Pharmacy implements Parcelable {
                             hours.setCloseHourAfternoon(hour2359.getTime());
                         }
 
-                        if (hours.getWeekDays().contains(now.get(java.util.Calendar.DAY_OF_WEEK)) &&
+                        if (hours.getWeekDays().contains(now.get(java.util.Calendar.DAY_OF_WEEK)-1) &&
                                 (openHourMorning != null && date.after(openHourMorning) &&
                                  closeHourMorning != null && date.before(closeHourMorning)) ||
 
@@ -265,7 +265,7 @@ public class Pharmacy implements Parcelable {
             for (Season season:calendar.getSeasons()){
                 if (dateWithoutTime.after(season.getStartDate()) && dateWithoutTime.before(season.getEndDate())) {
                     for (Hours hours : season.getHours()) {
-                        if (hours.getWeekDays().contains(now.get(java.util.Calendar.DAY_OF_WEEK))){
+                        if (hours.getWeekDays().contains(now.get(java.util.Calendar.DAY_OF_WEEK)-1)){
                             if (hours.getOpenHourMorning() != null &&  hours.getCloseHourMorning() != null) {
                                 strHours += sdf.format(hours.getOpenHourMorning()) + " - ";
                                 strHours += sdf.format(hours.getCloseHourMorning());
