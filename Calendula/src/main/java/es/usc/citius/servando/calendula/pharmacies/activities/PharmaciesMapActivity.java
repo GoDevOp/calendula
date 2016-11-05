@@ -16,8 +16,10 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.LayoutInflaterCompat;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -203,6 +205,34 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
         map.getUiSettings().setMyLocationButtonEnabled(false);
         map.getUiSettings().setMapToolbarEnabled(false);
+        //map.getUiSettings().setCompassEnabled(false);
+        try {
+            assert mapFragment.getView() != null;
+            final ViewGroup parent = (ViewGroup) mapFragment.getView().findViewWithTag("GoogleMapMyLocationButton").getParent();
+            parent.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        for (int i = 0, n = parent.getChildCount(); i < n; i++) {
+                            View view = parent.getChildAt(i);
+                            RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams) view.getLayoutParams();
+                            // position on left bottom
+                            rlp.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                            rlp.addRule(RelativeLayout.ALIGN_PARENT_TOP,0);
+                            rlp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 0);
+                            rlp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                            rlp.rightMargin = rlp.leftMargin;
+                            rlp.bottomMargin = 50;
+                            view.requestLayout();
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            });
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             map.setMyLocationEnabled(true);
