@@ -322,14 +322,13 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 hideFragment(fragmentMarker);
 
                 // Change color last marker clicked
-                if (previousMarker != null) {
+                if (previousMarker != null && previousPharmacy != null && pharmaciesHashMap.containsValue(previousPharmacy)) {
                     if (!previousPharmacy.isOpen()){
                         previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedMarker.toBitmap()));
                     }
                     else {
                         previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
                     }
-                    //previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
                     previousMarker = null;
                 }
             }
@@ -635,10 +634,6 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                         }
                         markersHashMap.put(marker, pharmacy.getCodPharmacy());
                     }
-                    if (!pharmaciesHashMap.containsValue(previousPharmacy)){
-                        previousMarker = null;
-                        previousPharmacy = null;
-                    }
 
                     Date d= new Date();
                     Log.d("DEBUG", Utils.getDate(d)+" Updated map with "+pharmaciesHashMap.size() + " pharmacies");
@@ -650,14 +645,13 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
                         Pharmacy pharma = pharmaciesHashMap.get(markersHashMap.get(marker));
                         // Change color marker
-                        if(previousPharmacy != null && previousMarker != null && fragmentMarker.isVisible()){
+                        if(previousPharmacy != null && previousMarker != null && fragmentMarker.isVisible() && pharmaciesHashMap.containsValue(previousPharmacy)){
                             if (!previousPharmacy.isOpen()){
                                 previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedMarker.toBitmap()));
                             }
                             else {
                                 previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
                             }
-                            //previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
                         }
                         if (!pharma.isOpen()){
                             marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedSelectedMarker.toBitmap()));
@@ -665,7 +659,6 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                         else {
                             marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
                         }
-                        //marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
                         previousMarker=marker;
                         previousPharmacy = pharma;
 
