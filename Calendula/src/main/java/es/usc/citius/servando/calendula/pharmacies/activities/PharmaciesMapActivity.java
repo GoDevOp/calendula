@@ -14,7 +14,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.LayoutInflaterCompat;
-import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,8 +37,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.VisibleRegion;
+import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
+import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.iconics.context.IconicsLayoutInflater;
@@ -70,9 +71,11 @@ import retrofit2.Response;
 public class PharmaciesMapActivity extends CalendulaActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+        LocationListener,
+        ClusterManager.OnClusterItemClickListener<PharmaciesMapActivity.PharmacyMarker>{
 
-    //Updates will never be more frequent than this value.
+
+//Updates will never be more frequent than this value.
     public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
     public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
 
@@ -101,6 +104,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     private GoogleMap map;
 
     private ClusterManager<PharmacyMarker> mClusterManager;
+    private MarkerRenderer mMarkerRenderer;
 
     private boolean mapLoaded = false;
 
@@ -296,9 +300,18 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         }
 
+        mClusterManager = new ClusterManager<>(this, map);
+        mMarkerRenderer = new MarkerRenderer();
+        mClusterManager.setRenderer(mMarkerRenderer);
+
+        map.setOnMarkerClickListener(mClusterManager);
+        map.setOnInfoWindowClickListener(mClusterManager);
+        mClusterManager.setOnClusterItemClickListener(this);
+
         map.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
             @Override
             public void onCameraIdle() {
+                mClusterManager.onCameraIdle();
                 if (!firstTime) {
                     Location loc = getMapCenter();
                     Query query = new Query();
@@ -333,8 +346,6 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 }
             }
          });
-
-
     }
 
     @Override
@@ -389,6 +400,35 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         }
     }
 
+    @Override
+    public boolean onClusterItemClick(PharmacyMarker pharmacyMarker) {
+        Pharmacy pharma = pharmacyMarker.getPharmacy();
+        // Change color marker
+        if(previousPharmacy != null && previousMarker != null && fragmentMarker.isVisible() && pharmaciesHashMap.containsKey(previousPharmacy.getCodPharmacy())){
+            if (!previousPharmacy.isOpen()){
+                previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedMarker.toBitmap()));
+            }
+            else {
+                previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
+            }
+        }
+        Marker marker = mMarkerRenderer.getMarker(pharmacyMarker);
+        if (!pharma.isOpen()){
+            marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedSelectedMarker.toBitmap()));
+        }
+        else {
+            marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
+        }
+        previousMarker = marker;
+        previousPharmacy = pharma;
+
+        argsToFragment.putParcelable("pharmacy", pharma);
+        fragmentMarker.getData(pharma);
+        showFragment(fragmentMarker);
+        slidingLayout.setVisibility(View.VISIBLE);
+        fragmentMarker.updateData();
+        return true;
+    }
     private Integer getMapRadio(){
 
         VisibleRegion vr = map.getProjection().getVisibleRegion();
@@ -513,27 +553,6 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
     }
 
-    private void setMarkerColor(Marker marker, Pharmacy pharmacy){
-        if (previousPharmacy != null && previousPharmacy.getCodPharmacy().intValue() == pharmacy.getCodPharmacy().intValue() &&
-                fragmentMarker.isVisible()){
-            if (!pharmacy.isOpen()){
-                marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedSelectedMarker.toBitmap()));
-            }
-            else {
-                marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
-            }
-            previousMarker = marker;
-        }
-        else {
-            if (!pharmacy.isOpen()){
-                marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedMarker.toBitmap()));
-            }
-            else {
-                marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
-            }
-        }
-    }
-
     private class GetApiDataTask extends AsyncTask<Void, Void, Void> implements Callback<List<Pharmacy>> {
 
         private Query query;
@@ -606,70 +625,21 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
                 if (pharmaciesHashMap != null) {
                     markersHashMap = new HashMap<>();
-                    map.clear();
+                    mClusterManager.clearItems();
 
                     for (Map.Entry<Integer, Pharmacy> entry : pharmaciesHashMap.entrySet()){
                         Pharmacy pharmacy = entry.getValue();
                         LatLng pharmacyLocation = new LatLng(pharmacy.getGps()[1], pharmacy.getGps()[0]);
                         MarkerOptions pharmaMarker = new MarkerOptions();
                         pharmaMarker.position(pharmacyLocation);
-                        Marker marker = map.addMarker(pharmaMarker);
-                        if (previousPharmacy != null && previousPharmacy.getCodPharmacy().intValue() == pharmacy.getCodPharmacy().intValue() &&
-                                fragmentMarker.isVisible()){
-                            if (!pharmacy.isOpen()){
-                                marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedSelectedMarker.toBitmap()));
-                            }
-                            else {
-                                marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
-                            }
-                            previousMarker = marker;
-                        }
-                        else {
-                            if (!pharmacy.isOpen()){
-                                marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedMarker.toBitmap()));
-                            }
-                            else {
-                                marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
-                            }
-                        }
-                        markersHashMap.put(marker, pharmacy.getCodPharmacy());
+                        PharmacyMarker pharmacyMarker = new PharmacyMarker(pharmacy.getGps()[1], pharmacy.getGps()[0], pharmacy);
+                        mClusterManager.addItem(pharmacyMarker);
                     }
+                    mClusterManager.cluster();
 
                     Date d= new Date();
                     Log.d("DEBUG", Utils.getDate(d)+" Updated map with "+pharmaciesHashMap.size() + " pharmacies");
                 }
-
-                map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-                    @Override
-                    public boolean onMarkerClick(Marker marker) {
-
-                        Pharmacy pharma = pharmaciesHashMap.get(markersHashMap.get(marker));
-                        // Change color marker
-                        if(previousPharmacy != null && previousMarker != null && fragmentMarker.isVisible() && pharmaciesHashMap.containsValue(previousPharmacy)){
-                            if (!previousPharmacy.isOpen()){
-                                previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedMarker.toBitmap()));
-                            }
-                            else {
-                                previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
-                            }
-                        }
-                        if (!pharma.isOpen()){
-                            marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedSelectedMarker.toBitmap()));
-                        }
-                        else {
-                            marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
-                        }
-                        previousMarker=marker;
-                        previousPharmacy = pharma;
-
-                        argsToFragment.putParcelable("pharmacy", pharma);
-                        fragmentMarker.getData(pharma);
-                        showFragment(fragmentMarker);
-                        slidingLayout.setVisibility(View.VISIBLE);
-                        fragmentMarker.updateData();
-                        return true;
-                    }
-                });
 
             }
 
@@ -678,14 +648,63 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     public class PharmacyMarker implements ClusterItem {
         private final LatLng mPosition;
+        private final Pharmacy pharmacy;
 
-        public PharmacyMarker(double lat, double lng) {
+        public PharmacyMarker(double lat, double lng, Pharmacy pharmacy) {
             mPosition = new LatLng(lat, lng);
+            this.pharmacy = pharmacy;
         }
 
         @Override
         public LatLng getPosition() {
             return mPosition;
+        }
+
+        public Pharmacy getPharmacy() {
+            return pharmacy;
+        }
+    }
+
+    private class MarkerRenderer extends DefaultClusterRenderer<PharmacyMarker> {
+
+        public MarkerRenderer() {
+            super(getApplicationContext(), map, mClusterManager);
+        }
+
+        @Override
+        protected void onBeforeClusterItemRendered(PharmacyMarker marker, MarkerOptions markerOptions) {
+            Pharmacy pharmacy = marker.getPharmacy();
+            if (previousPharmacy != null && previousPharmacy.getCodPharmacy().intValue() == pharmacy.getCodPharmacy().intValue() &&
+                    fragmentMarker.isVisible()){
+                if (!pharmacy.isOpen()){
+                    markerOptions.icon(BitmapDescriptorFactory.fromBitmap(iconClosedSelectedMarker.toBitmap()));
+                }
+                else {
+                    markerOptions.icon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
+                }
+            }
+            else {
+                if (!pharmacy.isOpen()){
+                    markerOptions.icon(BitmapDescriptorFactory.fromBitmap(iconClosedMarker.toBitmap()));
+                }
+                else {
+                    markerOptions.icon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
+                }
+            }
+        }
+
+        @Override
+        protected void onClusterItemRendered(PharmacyMarker pharmacyMarker, Marker marker) {
+            super.onClusterItemRendered(pharmacyMarker, marker);
+
+            if (previousPharmacy != null && pharmaciesHashMap.containsKey(previousPharmacy.getCodPharmacy()) && previousPharmacy.getCodPharmacy().intValue() == pharmacyMarker.getPharmacy().getCodPharmacy().intValue()){
+                previousMarker = marker;
+            }
+        }
+
+        @Override
+        protected void onClusterRendered(Cluster<PharmacyMarker> cluster, Marker marker) {
+            super.onClusterRendered(cluster, marker);
         }
     }
 }
