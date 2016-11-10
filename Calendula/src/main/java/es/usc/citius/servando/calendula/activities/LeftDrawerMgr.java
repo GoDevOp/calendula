@@ -155,7 +155,7 @@ public class LeftDrawerMgr implements Drawer.OnDrawerItemClickListener, Drawer.O
                                 .withIdentifier(SCHEDULES),
                         new PrimaryDrawerItem()
                                 .withName(R.string.home_menu_pharmacies)
-                                .withIcon(IconUtils.icon(home, CommunityMaterial.Icon.cmd_map_marker_multiple, R.color.black).alpha(38))
+                                .withIcon(IconUtils.icon(home, CommunityMaterial.Icon.cmd_map_marker_multiple, R.color.black).alpha(110))
                                 .withIdentifier(PHARMACIES),
                         new PrimaryDrawerItem()
                                 .withName(R.string.home_menu_plantrip)

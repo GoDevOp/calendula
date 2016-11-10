@@ -201,17 +201,14 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             Date d = new Date();
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
-                Log.v("SLINDINGPANEL", Utils.getDate(d)+" onPanelSlide "+slideOffset);
                 if (slideOffset > 0.1){
                     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                    ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
                     ft.replace(R.id.fragment_contenedor, fragmentPharmacyFull);
                     fragmentContainer.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
                     ft.commit();
                 }
                 else{
                     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                    ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
                     ft.replace(R.id.fragment_contenedor, fragmentMarker);
                     fragmentContainer.getLayoutParams().height = slidingLayoutHeight;
                     ft.commit();
@@ -432,6 +429,28 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         fragmentMarker.updateData();
         return true;
     }
+
+    @Override
+    public void onBackPressed() {
+        if (previousMarker != null){
+            if (!previousPharmacy.isOpen()){
+                previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedMarker.toBitmap()));
+            }
+            else {
+                previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
+            }
+        }
+        previousMarker = null;
+        previousPharmacy = null;
+        previousPharmacyMarker = null;
+        if (fragmentMarker.isVisible()){
+            hideFragment(fragmentMarker);
+        }
+        else{
+            finish();
+        }
+    }
+
     private Integer getMapRadio(){
 
         VisibleRegion vr = map.getProjection().getVisibleRegion();
