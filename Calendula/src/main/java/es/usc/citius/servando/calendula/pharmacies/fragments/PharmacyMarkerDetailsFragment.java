@@ -44,12 +44,7 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
         // Inflate the layout for this fragment
         layout = inflater.inflate(R.layout.fragment_pharmacy_marker_details, container, false);
 
-        IconicsDrawable iconList = new IconicsDrawable(this.getContext(), GoogleMaterial.Icon.gmd_directions)
-                .sizeDp(24)
-                .color(Color.WHITE);
 
-        ImageButton btnList = (ImageButton) layout.findViewById(R.id.get_pharmacy_route);
-        btnList.setImageDrawable(iconList);
 
         Bundle bundle = this.getArguments();
         if (bundle != null) {

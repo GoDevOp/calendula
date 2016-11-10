@@ -176,6 +176,13 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         iconClosedSelectedMarker = new IconicsDrawable(this, PharmaciesFont.Icon.ic_marker)
                 .sizeDp(34)
                 .color(Color.parseColor("#8C8C8C"));
+        iconDirections = new IconicsDrawable(this, GoogleMaterial.Icon.gmd_directions)
+                .sizeDp(24)
+                .color(Color.WHITE);
+
+        btnDirections = (ImageButton) findViewById(R.id.get_pharmacy_route);
+        btnDirections.setImageDrawable(iconDirections);
+        btnDirections.setVisibility(View.INVISIBLE);
 
         // UI events
         btnMyPostion = (ImageButton) findViewById(R.id.center_map_pharmacies);
@@ -501,7 +508,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     }
 
     public void showFragment(final Fragment fragment){
-
+        btnDirections.setVisibility(View.VISIBLE);
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.addToBackStack(null);
         ft.replace(R.id.fragment_contenedor, fragment);
@@ -516,7 +523,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     }
 
     public void hideFragment(final Fragment fragment){
-
+        btnDirections.setVisibility(View.INVISIBLE);
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.fragment_contenedor, fragment);
 
