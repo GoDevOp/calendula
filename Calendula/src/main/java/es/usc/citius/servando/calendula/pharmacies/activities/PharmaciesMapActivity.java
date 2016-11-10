@@ -111,6 +111,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     //UI Controls
     ImageButton btnMyPostion;
     ImageButton btnList;
+    ImageButton btnDirections;
     Button btnClear;
 
     IconicsDrawable iconMyLocation;
@@ -119,6 +120,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     IconicsDrawable iconSelectedMarker;
     IconicsDrawable iconClosedMarker;
     IconicsDrawable iconClosedSelectedMarker;
+    IconicsDrawable iconDirections;
 
     private SlidingUpPanelLayout slidingLayout;
     RelativeLayout fragmentContainer;
@@ -203,12 +205,14 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             public void onPanelSlide(View panel, float slideOffset) {
                 if (slideOffset > 0.1){
                     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                    ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
                     ft.replace(R.id.fragment_contenedor, fragmentPharmacyFull);
                     fragmentContainer.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
                     ft.commit();
                 }
                 else{
                     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                    ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
                     ft.replace(R.id.fragment_contenedor, fragmentMarker);
                     fragmentContainer.getLayoutParams().height = slidingLayoutHeight;
                     ft.commit();

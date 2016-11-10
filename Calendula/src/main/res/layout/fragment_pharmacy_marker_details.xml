@@ -22,7 +22,7 @@
             android:paddingTop="3dp"
             android:scaleType="center"
             fab:fab_colorNormal="#169E58"
-            fab:fab_colorPressed="#dedede"
+            fab:fab_colorPressed="#21c671"
             />
 
         <TextView
