@@ -44,8 +44,6 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
         // Inflate the layout for this fragment
         layout = inflater.inflate(R.layout.fragment_pharmacy_marker_details, container, false);
 
-
-
         Bundle bundle = this.getArguments();
         if (bundle != null) {
             pharmacy = bundle.getParcelable("pharmacy");

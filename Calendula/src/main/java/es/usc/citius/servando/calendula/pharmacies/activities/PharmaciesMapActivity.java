@@ -210,7 +210,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             Date d = new Date();
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
-                if (slideOffset > 0.1){
+                if (slideOffset > 0.01){
+                    btnDirections.setVisibility(View.INVISIBLE);
                     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
                     ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
                     ft.replace(R.id.fragment_contenedor, fragmentPharmacyFull);
@@ -218,6 +219,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     ft.commit();
                 }
                 else{
+                    btnDirections.setVisibility(View.VISIBLE);
                     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
                     ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
                     ft.replace(R.id.fragment_contenedor, fragmentMarker);
@@ -523,8 +525,9 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     }
 
     public void hideFragment(final Fragment fragment){
-        btnDirections.setVisibility(View.INVISIBLE);
+
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        btnDirections.setVisibility(View.INVISIBLE);
         ft.replace(R.id.fragment_contenedor, fragment);
 
         slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
