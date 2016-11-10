@@ -85,10 +85,10 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     private List<Pharmacy> pharmacies = null;
     private HashMap<Integer, Pharmacy> pharmaciesHashMap = null;
-    private HashMap<Marker, Integer> markersHashMap = null;
 
     private Marker previousMarker;
     private Pharmacy previousPharmacy;
+    private PharmacyMarker previousPharmacyMarker;
 
     private PharmaciesService service;
 
@@ -343,6 +343,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                         previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
                     }
                     previousMarker = null;
+                    previousPharmacy = null;
+                    previousPharmacyMarker = null;
                 }
             }
          });
@@ -421,6 +423,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         }
         previousMarker = marker;
         previousPharmacy = pharma;
+        previousPharmacyMarker = pharmacyMarker;
 
         argsToFragment.putParcelable("pharmacy", pharma);
         fragmentMarker.getData(pharma);
@@ -624,7 +627,6 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 }
 
                 if (pharmaciesHashMap != null) {
-                    markersHashMap = new HashMap<>();
                     mClusterManager.clearItems();
 
                     for (Map.Entry<Integer, Pharmacy> entry : pharmaciesHashMap.entrySet()){
@@ -699,12 +701,21 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
             if (previousPharmacy != null && pharmaciesHashMap.containsKey(previousPharmacy.getCodPharmacy()) && previousPharmacy.getCodPharmacy().intValue() == pharmacyMarker.getPharmacy().getCodPharmacy().intValue()){
                 previousMarker = marker;
+                previousPharmacyMarker = pharmacyMarker;
+                previousPharmacy = pharmacyMarker.getPharmacy();
             }
         }
 
         @Override
         protected void onClusterRendered(Cluster<PharmacyMarker> cluster, Marker marker) {
             super.onClusterRendered(cluster, marker);
+
+            if (cluster.getItems().contains(previousPharmacyMarker)){
+                previousPharmacyMarker = null;
+                previousMarker = null;
+                previousPharmacy = null;
+            }
+
         }
     }
 }
