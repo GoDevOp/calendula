@@ -27,6 +27,10 @@ public class Pharmacy implements Parcelable {
     private String notes;
     private ArrayList<Holiday> holidays;
     private ArrayList<Calendar> calendar;
+    private String timeTravelCar;
+    private String timeTravelTransit;
+    private String timeTravelWalking;
+    private String timeTravelBicycle;
 
     public Pharmacy() {
         holidays = new ArrayList<Holiday>();
@@ -124,6 +128,38 @@ public class Pharmacy implements Parcelable {
 
     public void setGps(Float[] gps) {
         this.gps = gps;
+    }
+
+    public String getTimeTravelBicycle() {
+        return timeTravelBicycle;
+    }
+
+    public void setTimeTravelBicycle(String timeTravelBicycle) {
+        this.timeTravelBicycle = timeTravelBicycle;
+    }
+
+    public String getTimeTravelCar() {
+        return timeTravelCar;
+    }
+
+    public void setTimeTravelCar(String timeTravelCar) {
+        this.timeTravelCar = timeTravelCar;
+    }
+
+    public String getTimeTravelTransit() {
+        return timeTravelTransit;
+    }
+
+    public void setTimeTravelTransit(String timeTravelTransit) {
+        this.timeTravelTransit = timeTravelTransit;
+    }
+
+    public String getTimeTravelWalking() {
+        return timeTravelWalking;
+    }
+
+    public void setTimeTravelWalking(String timeTravelWalking) {
+        this.timeTravelWalking = timeTravelWalking;
     }
 
     @Override

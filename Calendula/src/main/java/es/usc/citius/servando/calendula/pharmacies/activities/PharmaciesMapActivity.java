@@ -445,7 +445,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         previousPharmacyMarker = pharmacyMarker;
 
         argsToFragment.putParcelable("pharmacy", pharma);
-        fragmentMarker.getData(pharma);
+        argsToFragment.putParcelable("lastLocation", mLastLocation);
+        fragmentMarker.getData(pharma, mLastLocation);
         showFragment(fragmentMarker);
         slidingLayout.setVisibility(View.VISIBLE);
         fragmentMarker.updateData();
