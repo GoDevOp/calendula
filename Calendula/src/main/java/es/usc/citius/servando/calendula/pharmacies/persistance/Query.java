@@ -10,6 +10,16 @@ public class Query {
     private Double longitude;
     private Integer radio;
 
+    public int getQueryType() {
+        return queryType;
+    }
+
+    public void setQueryType(int queryType) {
+        this.queryType = queryType;
+    }
+
+    private int queryType;
+
     public Double getLatitude() {
         return latitude;
     }

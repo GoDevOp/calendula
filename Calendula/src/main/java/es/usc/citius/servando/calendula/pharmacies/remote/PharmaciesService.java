@@ -75,4 +75,15 @@ public interface PharmaciesService {
      */
     @GET("location/{lat}/{long}/{distance}/{open}")
     Call<List<Pharmacy>> listByLocation(@Path("lat") Double latitude, @Path("long") Double longitude, @Path("distance") Integer distance, @Path("open") String open);
+
+    /**
+     * Get nearest pharmacy from a point to a certain distance
+     * @param latitude latitude part of a point
+     * @param longitude longitude part of a point
+     * @param distance meters from the point to look for pharmacies
+     * @param open if this parameter is empty, method returns all data, otherwise returns only open pharmacies
+     * @return
+     */
+    @GET("nextPharmacy/{lat}/{long}/{distance}/{open}")
+    Call<List<Pharmacy>> getNearest(@Path("lat") Double latitude, @Path("long") Double longitude, @Path("distance") Integer distance,  @Path("open") String open);
 }

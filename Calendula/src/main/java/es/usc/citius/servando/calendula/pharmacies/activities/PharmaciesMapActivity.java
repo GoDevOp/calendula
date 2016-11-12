@@ -34,6 +34,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.VisibleRegion;
@@ -78,6 +79,9 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 //Updates will never be more frequent than this value.
     public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
     public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
+
+    public static final int GET_LOCATION_PHARMACIES = 1;
+    public static final int GET_NEAREST_PHARMACIES = 2;
 
     private static final int PERMISSION_ACCESS_FINE_LOCATION = 1;
 
@@ -130,6 +134,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     Integer slidingLayoutHeight;
 
     GetApiDataTask apiTask = null;
+    GetApiDataTask apiTaskNearest = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -328,8 +333,12 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     query.setLatitude(loc.getLatitude());
                     query.setLongitude(loc.getLongitude());
                     query.setRadio(getMapRadio());
-                    if (apiTask != null && apiTask.getStatus() != AsyncTask.Status.FINISHED){
+                    query.setQueryType(GET_LOCATION_PHARMACIES);
+                    if (apiTask != null && apiTask.getStatus() != AsyncTask.Status.FINISHED) {
                         apiTask.cancel(true);
+                    }
+                    if (apiTaskNearest != null && apiTaskNearest.getStatus() != AsyncTask.Status.FINISHED) {
+                        apiTaskNearest.cancel(true);
                     }
                     apiTask = new GetApiDataTask(query);
                     Date d = new Date();
@@ -525,9 +534,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     }
 
     public void hideFragment(final Fragment fragment){
-
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        btnDirections.setVisibility(View.INVISIBLE);
         ft.replace(R.id.fragment_contenedor, fragment);
 
         slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
@@ -537,6 +544,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         }
 
         ft.commit();
+
     }
 
     private void centerMap(){
@@ -604,13 +612,22 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         protected Void doInBackground(Void... params) {
 
             if (ActivityCompat.checkSelfPermission(PharmaciesMapActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(PharmaciesMapActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                call = service.listByLocation(query.getLatitude(), query.getLongitude(), query.getRadio(), "");
+                if (query.getQueryType() == GET_LOCATION_PHARMACIES) {
+                    call = service.listByLocation(query.getLatitude(), query.getLongitude(), query.getRadio(), "");
+                    Date d = new Date();
+                    Log.d("DEBUG", Utils.getDate(d) + " Pharmacies location request");
+                }
+                else if (query.getQueryType() == GET_NEAREST_PHARMACIES){
+                    call = service.getNearest(query.getLatitude(), query.getLongitude(), 1000000, "open");
+                    Date d = new Date();
+                    Log.d("DEBUG", Utils.getDate(d) + " Pharmacies nearest request");
+                }
                 call.enqueue(this);
-                Date d = new Date();
-                Log.d("DEBUG", Utils.getDate(d) + " Pharmacies request");
             }
             while(!finished){
-                 //wait for API
+                 if (isCancelled()){
+                     break;
+                 }
             }
             return null;
         }
@@ -637,13 +654,31 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         public void onResponse(Call<List<Pharmacy>> call, Response<List<Pharmacy>> response) {
             pharmacies = response.body();
             pharmaciesHashMap = new HashMap<>();
-            for (Pharmacy pharmacy : pharmacies){
-                pharmaciesHashMap.put(pharmacy.getCodPharmacy(), pharmacy);
+
+            if (pharmacies.size() == 0) {
+                Location loc = getMapCenter();
+                Query query = new Query();
+                query.setLatitude(loc.getLatitude());
+                query.setLongitude(loc.getLongitude());
+                query.setRadio(getMapRadio());
+                query.setQueryType(GET_NEAREST_PHARMACIES);
+                apiTaskNearest = new GetApiDataTask(query);
+                Date d = new Date();
+                Log.d("DEBUG", Utils.getDate(d) + " New task " + apiTask.toString());
+                apiTaskNearest.execute();
+                if (apiTask != null && apiTask.getStatus() != AsyncTask.Status.FINISHED) {
+                    apiTask.cancel(true);
+                }
             }
-            Date d= new Date();
-            Log.d("DEBUG", Utils.getDate(d)+" API sends "+pharmaciesHashMap.size() + " pharmacies");
-            updateUI(false);
-            finished = true;
+            if (!isCancelled()) {
+                for (Pharmacy pharmacy : pharmacies) {
+                    pharmaciesHashMap.put(pharmacy.getCodPharmacy(), pharmacy);
+                }
+                Date d = new Date();
+                Log.d("DEBUG", Utils.getDate(d) + " API sends " + pharmaciesHashMap.size() + " pharmacies");
+                updateUI(false);
+                finished = true;
+            }
         }
 
         @Override
@@ -661,6 +696,17 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
                 if (pharmaciesHashMap != null) {
                     mClusterManager.clearItems();
+
+                    if (pharmacies.size() == 1 && apiTaskNearest != null && apiTaskNearest.getStatus() == Status.RUNNING){
+                        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                        LatLng latlng = new LatLng(pharmacies.get(0).getGps()[1], pharmacies.get(0).getGps()[0]);
+                        LatLng latlngLastLocation = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+                        builder.include(latlng);
+                        builder.include(latlngLastLocation);
+                        LatLngBounds bounds = builder.build();
+
+                        map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 300));
+                    }
 
                     for (Map.Entry<Integer, Pharmacy> entry : pharmaciesHashMap.entrySet()){
                         Pharmacy pharmacy = entry.getValue();
