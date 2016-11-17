@@ -460,19 +460,22 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     @Override
     public void onBackPressed() {
-        if (previousMarker != null){
-            if (!previousPharmacy.isOpen()){
-                previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedMarker.toBitmap()));
-            }
-            else {
-                previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
-            }
-        }
-        previousMarker = null;
-        previousPharmacy = null;
-        previousPharmacyMarker = null;
         if (fragmentMarker.isVisible()){
+            if (previousMarker != null){
+                if (!previousPharmacy.isOpen()){
+                    previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedMarker.toBitmap()));
+                }
+                else {
+                    previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconMarker.toBitmap()));
+                }
+            }
+            previousMarker = null;
+            previousPharmacy = null;
+            previousPharmacyMarker = null;
             hideFragment(fragmentMarker);
+        }
+        else if (slidingLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED){
+            slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
         }
         else{
             finish();
