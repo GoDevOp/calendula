@@ -4,26 +4,13 @@ import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.MotionEventCompat;
-import android.text.style.ImageSpan;
-import android.util.Log;
-import android.view.GestureDetector;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.mikepenz.google_material_typeface_library.GoogleMaterial;
-import com.mikepenz.iconics.IconicsDrawable;
-
 import es.usc.citius.servando.calendula.R;
-import es.usc.citius.servando.calendula.pharmacies.activities.PharmaciesMapActivity;
 import es.usc.citius.servando.calendula.pharmacies.persistance.Pharmacy;
 import es.usc.citius.servando.calendula.pharmacies.util.TimeTravel;
 import es.usc.citius.servando.calendula.pharmacies.util.TravelTypes;
@@ -94,17 +81,25 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
                 txtState.setTextColor(Color.parseColor("#BCBCBC"));
             }
 
-            GetTravelTimeTask carTask = new GetTravelTimeTask(TravelTypes.CAR);
-            carTask.execute();
+            if (pharmacy.getTimeTravelCar().isEmpty()) {
+                GetTravelTimeTask carTask = new GetTravelTimeTask(TravelTypes.CAR);
+                carTask.execute();
+            }
 
-            GetTravelTimeTask walkTask = new GetTravelTimeTask(TravelTypes.WALK);
-            walkTask.execute();
+            if (pharmacy.getTimeTravelWalking().isEmpty()) {
+                GetTravelTimeTask walkTask = new GetTravelTimeTask(TravelTypes.WALK);
+                walkTask.execute();
+            }
 
-            GetTravelTimeTask bikeTask = new GetTravelTimeTask(TravelTypes.BICYCLE);
-            bikeTask.execute();
+            if (pharmacy.getTimeTravelBicycle().isEmpty()) {
+                GetTravelTimeTask bikeTask = new GetTravelTimeTask(TravelTypes.BICYCLE);
+                bikeTask.execute();
+            }
 
-            GetTravelTimeTask publicTask = new GetTravelTimeTask(TravelTypes.PUBLIC);
-            publicTask.execute();
+            if (pharmacy.getTimeTravelTransit().isEmpty()) {
+                GetTravelTimeTask publicTask = new GetTravelTimeTask(TravelTypes.PUBLIC);
+                publicTask.execute();
+            }
 
         }
     }

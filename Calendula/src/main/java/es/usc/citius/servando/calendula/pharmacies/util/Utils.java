@@ -81,7 +81,10 @@ public class Utils {
         if (hours > 0){
             out += hours+"h ";
         }
-        out += mins+"min";
+        out += mins;
+        if (hours == 0) {
+            out += "min";
+        }
 
         return out;
     }
