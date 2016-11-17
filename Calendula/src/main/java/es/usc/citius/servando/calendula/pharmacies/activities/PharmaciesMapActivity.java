@@ -85,7 +85,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     private static final int PERMISSION_ACCESS_FINE_LOCATION = 1;
 
-    private boolean firstTime;
+    private boolean firstTime = true;
 
     private List<Pharmacy> pharmacies = null;
     private HashMap<Integer, Pharmacy> pharmaciesHashMap = null;
@@ -136,6 +136,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     GetApiDataTask apiTask = null;
     GetApiDataTask apiTaskNearest = null;
 
+    HashMap<String, Pharmacy> markerMap;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -150,6 +152,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         setContentView(R.layout.activity_pharmacies_map);
 
         buildGoogleApiClient();
+
+        markerMap = new HashMap<>();
 
         // Add marker info fragment
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -425,7 +429,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     public boolean onClusterItemClick(PharmacyMarker pharmacyMarker) {
         Pharmacy pharma = pharmacyMarker.getPharmacy();
         // Change color marker
-        if(previousPharmacy != null && previousMarker != null && fragmentMarker.isVisible() && pharmaciesHashMap.containsKey(previousPharmacy.getCodPharmacy())){
+        if(previousPharmacy != null && previousMarker != null && markerMap.containsKey(previousMarker.getId()) &&
+                fragmentMarker.isVisible() && pharmaciesHashMap.containsKey(previousPharmacy.getCodPharmacy())){
             if (!previousPharmacy.isOpen()){
                 previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedMarker.toBitmap()));
             }
@@ -655,6 +660,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         public void onResponse(Call<List<Pharmacy>> call, Response<List<Pharmacy>> response) {
             pharmacies = response.body();
             pharmaciesHashMap = new HashMap<>();
+            markerMap = new HashMap<>();
 
             if (pharmacies.size() == 0) {
                 Location loc = getMapCenter();
@@ -684,8 +690,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
         @Override
         public void onFailure(Call<List<Pharmacy>> call, Throwable t) {
-            Log.e(PharmaciesMapActivity.class.getSimpleName(), t.getLocalizedMessage());
-            Toast.makeText(PharmaciesMapActivity.this, t.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+            Log.e(PharmaciesMapActivity.class.getSimpleName(), t.getMessage());
         }
 
         private void updateUI(boolean centerMap){
@@ -698,7 +703,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 if (pharmaciesHashMap != null) {
                     mClusterManager.clearItems();
 
-                    if (pharmacies.size() == 1 && apiTaskNearest != null && apiTaskNearest.getStatus() == Status.RUNNING){
+                    if (firstTime && pharmacies.size() == 1 && apiTaskNearest != null && apiTaskNearest.getStatus() == Status.RUNNING){
                         LatLngBounds.Builder builder = new LatLngBounds.Builder();
                         LatLng latlng = new LatLng(pharmacies.get(0).getGps()[1], pharmacies.get(0).getGps()[0]);
                         LatLng latlngLastLocation = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
@@ -778,7 +783,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         @Override
         protected void onClusterItemRendered(PharmacyMarker pharmacyMarker, Marker marker) {
             super.onClusterItemRendered(pharmacyMarker, marker);
-
+            Log.v("CLUSTER", "onClusterItemRendered "+pharmacyMarker.getPharmacy().getName() + " pharmacyMarker = "+pharmacyMarker.getPharmacy().getName());
+            markerMap.put(marker.getId(), pharmacyMarker.getPharmacy());
             if (previousPharmacy != null && pharmaciesHashMap.containsKey(previousPharmacy.getCodPharmacy()) && previousPharmacy.getCodPharmacy().intValue() == pharmacyMarker.getPharmacy().getCodPharmacy().intValue()){
                 previousMarker = marker;
                 previousPharmacyMarker = pharmacyMarker;
@@ -789,6 +795,12 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         @Override
         protected void onClusterRendered(Cluster<PharmacyMarker> cluster, Marker marker) {
             super.onClusterRendered(cluster, marker);
+            if (previousPharmacyMarker!=null){
+                Log.v("CLUSTER", "onClusterRenderer "+previousPharmacyMarker.getPharmacy().getName()+" "+cluster.getItems().contains(previousPharmacyMarker));
+            }
+            else{
+                Log.v("CLUSTER", "onClusterRenderer null"+" "+cluster.getItems().contains(previousPharmacyMarker));
+            }
 
             if (cluster.getItems().contains(previousPharmacyMarker)){
                 previousPharmacyMarker = null;

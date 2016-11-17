@@ -64,4 +64,26 @@ public class Utils {
         return strDate;
     }
 
+    public static String secondsToFormatString(String seconds){
+
+        String out = "";
+
+        Long longVal = Long.parseLong(seconds);
+        Integer hours = Math.round(longVal / 3600);
+        Integer remainder = Math.round(longVal - hours * 3600);
+        Integer mins = remainder / 60;
+        remainder = remainder - mins * 60;
+        Integer secs = remainder;
+
+        if (secs > 60){
+            mins ++;
+        }
+        if (hours > 0){
+            out += hours+"h ";
+        }
+        out += mins+"min";
+
+        return out;
+    }
+
 }

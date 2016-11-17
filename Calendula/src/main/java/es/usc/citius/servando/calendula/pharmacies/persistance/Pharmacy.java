@@ -197,13 +197,11 @@ public class Pharmacy implements Parcelable {
 
         for (Calendar calendar:this.calendar){
             if (calendar.getGuards().contains(dateWithoutTime)){
-                Log.d("PHARMACY OPEN", "Pharmacy "+this.getName()+" open because guard");
                 open = true;
                 break;
             }
 
             if (this.getHolidays().contains(dateWithoutTime)){
-                Log.d("PHARMACY CLOSED", "Pharmacy "+this.getName()+" closed because holiday");
                 open = false;
                 break;
             }
@@ -253,7 +251,6 @@ public class Pharmacy implements Parcelable {
 
                                 (openHourAfternoon != null && date.after(openHourAfternoon) &&
                                  closeHourAfternoon !=null && date.before(closeHourAfternoon))){
-                            Log.d("PHARMACY OPEN", "Pharmacy "+this.getName()+" open because hours");
                             open = true;
                             break;
                         }

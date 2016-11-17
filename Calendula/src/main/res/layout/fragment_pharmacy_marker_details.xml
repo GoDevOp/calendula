@@ -93,30 +93,32 @@
                 android:layout_height="wrap_content"
                 android:layout_column="0"
                 android:layout_row="1"
-                android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="5dp"
                 android:layout_gravity="center|fill"
                 android:layout_columnWeight="1"
                 android:id="@+id/layout_time_car">
 
+                <TextView
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:layout_centerInParent="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/pharmacy_time_car"
+                    android:textSize="15dp"
+                    android:textColor="@color/android_blue_dark"
+                    android:text="..." />
+
                 <com.mikepenz.iconics.view.IconicsImageView
+                    android:layout_toLeftOf="@id/pharmacy_time_car"
                     android:layout_width="15dp"
                     android:layout_height="15dp"
                     android:layout_marginTop="3dp"
                     android:layout_marginRight="2dp"
+                    android:layout_marginLeft="-30dp"
                     app:iiv_color="@android:color/darker_gray"
                     app:iiv_icon="gmd-directions_car"
                     android:id="@+id/icon_car"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/pharmacy_time_car"
-                    android:layout_toRightOf="@id/icon_car"
-                    android:textSize="15dp"
-                    android:textColor="@color/android_blue_dark"
-                    android:text="12 min" />
             </RelativeLayout>
 
             <RelativeLayout
@@ -124,30 +126,33 @@
                 android:layout_height="wrap_content"
                 android:layout_column="1"
                 android:layout_row="1"
-                android:layout_marginRight="5dp"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="5dp"
                 android:id="@+id/layout_time_bike"
                 android:layout_gravity="center|fill"
                 android:layout_columnWeight="1"
                 android:layout_toRightOf="@id/layout_time_car">
 
+                <TextView
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:layout_centerInParent="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/pharmacy_time_bike"
+                    android:textSize="15dp"
+                    android:textColor="@color/android_blue_dark"
+                    android:text="..." />
+
                 <com.mikepenz.iconics.view.IconicsImageView
+                    android:layout_toLeftOf="@id/pharmacy_time_bike"
                     android:layout_width="15dp"
                     android:layout_height="15dp"
                     android:layout_marginTop="3dp"
                     android:layout_marginRight="2dp"
+                    android:layout_marginLeft="-30dp"
                     app:iiv_color="@android:color/darker_gray"
                     app:iiv_icon="gmd-directions_bike"
                     android:id="@+id/icon_bike"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/pharmacy_time_bike"
-                    android:layout_toRightOf="@id/icon_bike"
-                    android:textSize="15dp"
-                    android:textColor="@color/android_blue_dark"
-                    android:text="5 hours" />
             </RelativeLayout>
 
             <RelativeLayout
@@ -155,30 +160,33 @@
                 android:layout_height="wrap_content"
                 android:layout_column="2"
                 android:layout_row="1"
-                android:layout_marginRight="5dp"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="5dp"
                 android:id="@+id/layout_time_walking"
                 android:layout_gravity="center|fill"
                 android:layout_columnWeight="1"
                 android:layout_toRightOf="@id/layout_time_bike">
 
+                <TextView
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:layout_centerInParent="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/pharmacy_time_walking"
+                    android:textSize="15dp"
+                    android:textColor="@color/android_blue_dark"
+                    android:text="..." />
+
                 <com.mikepenz.iconics.view.IconicsImageView
+                    android:layout_toLeftOf="@id/pharmacy_time_walking"
                     android:layout_width="15dp"
                     android:layout_height="15dp"
                     android:layout_marginTop="3dp"
                     android:layout_marginRight="2dp"
+                    android:layout_marginLeft="-30dp"
                     app:iiv_color="@android:color/darker_gray"
                     app:iiv_icon="gmd-directions_walk"
                     android:id="@+id/icon_walking"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/pharmacy_time_walking"
-                    android:layout_toRightOf="@id/icon_walking"
-                    android:textSize="15dp"
-                    android:textColor="@color/android_blue_dark"
-                    android:text="3 days" />
             </RelativeLayout>
 
             <RelativeLayout
@@ -186,29 +194,33 @@
                 android:layout_height="wrap_content"
                 android:layout_column="3"
                 android:layout_row="1"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="5dp"
                 android:id="@+id/layout_time_public"
                 android:layout_gravity="center|fill"
                 android:layout_columnWeight="1"
                 android:layout_toRightOf="@id/layout_time_walking">
 
+                <TextView
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:layout_centerInParent="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/pharmacy_time_public"
+                    android:textSize="15dp"
+                    android:textColor="@color/android_blue_dark"
+                    android:text="..." />
+
                 <com.mikepenz.iconics.view.IconicsImageView
+                    android:layout_toLeftOf="@id/pharmacy_time_public"
                     android:layout_width="15dp"
                     android:layout_height="15dp"
                     android:layout_marginTop="3dp"
                     android:layout_marginRight="2dp"
+                    android:layout_marginLeft="-30dp"
                     app:iiv_color="@android:color/darker_gray"
                     app:iiv_icon="gmd-directions_subway"
                     android:id="@+id/icon_public"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/pharmacy_time_public"
-                    android:layout_toRightOf="@id/icon_public"
-                    android:textSize="15dp"
-                    android:textColor="@color/android_blue_dark"
-                    android:text="25 min" />
             </RelativeLayout>
 
         </GridLayout>

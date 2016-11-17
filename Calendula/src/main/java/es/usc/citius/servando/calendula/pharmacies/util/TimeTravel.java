@@ -53,20 +53,28 @@ public class TimeTravel {
             // Convert the InputStream into a string
             String contentAsString = readIS(is);
 
+            String duration = "";
+
             JSONObject jsonObject = new JSONObject(contentAsString);
             // routesArray contains ALL routes
             JSONArray routesArray = jsonObject.getJSONArray("routes");
             // Grab the first route
-            JSONObject route = routesArray.getJSONObject(0);
-            // Take all legs from the route
-            JSONArray legs = route.getJSONArray("legs");
-            // Grab first leg
-            JSONObject leg = legs.getJSONObject(0);
+            if (routesArray != null && routesArray.length() > 0) {
+                JSONObject route = routesArray.getJSONObject(0);
+                // Take all legs from the route
+                JSONArray legs = route.getJSONArray("legs");
+                // Grab first leg
+                JSONObject leg = legs.getJSONObject(0);
 
-            JSONObject durationObject = leg.getJSONObject("duration");
-            String duration = durationObject.getString("text");
+                JSONObject durationObject = leg.getJSONObject("duration");
+                duration = durationObject.getString("value");
+            }
 
-            return duration;
+            if (duration == ""){
+                return "--";
+            }
+
+            return Utils.secondsToFormatString(duration);
 
         } catch (MalformedURLException e) {
             e.printStackTrace();

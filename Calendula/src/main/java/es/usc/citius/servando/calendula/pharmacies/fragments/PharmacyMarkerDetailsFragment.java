@@ -78,6 +78,11 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
             txtBikeTime = (TextView) layout.findViewById(R.id.pharmacy_time_bike);
             txtPublicTime = (TextView) layout.findViewById(R.id.pharmacy_time_public);
 
+            txtCarTime.setText("...");
+            txtWalkTime.setText("...");
+            txtBikeTime.setText("...");
+            txtPublicTime.setText("...");
+
             txtName.setText(Utils.capitalizeNames(pharmacy.getName()));
             txtHours.setText(pharmacy.getHours());
             if (pharmacy.isOpen()){
