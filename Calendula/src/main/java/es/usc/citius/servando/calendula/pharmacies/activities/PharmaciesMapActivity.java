@@ -3,18 +3,22 @@ package es.usc.citius.servando.calendula.pharmacies.activities;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.LayoutInflaterCompat;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -113,9 +117,9 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     private boolean mapLoaded = false;
 
     //UI Controls
-    ImageButton btnMyPostion;
-    ImageButton btnList;
-    ImageButton btnDirections;
+    FloatingActionButton btnMyPostion;
+    FloatingActionButton btnList;
+    FloatingActionButton btnDirections;
     Button btnClear;
 
     IconicsDrawable iconMyLocation;
@@ -189,12 +193,18 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 .sizeDp(24)
                 .color(Color.WHITE);
 
-        btnDirections = (ImageButton) findViewById(R.id.get_pharmacy_route);
+        btnDirections = (FloatingActionButton) findViewById(R.id.get_pharmacy_route);
         btnDirections.setImageDrawable(iconDirections);
         btnDirections.setVisibility(View.INVISIBLE);
+        btnDirections.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
 
         // UI events
-        btnMyPostion = (ImageButton) findViewById(R.id.center_map_pharmacies);
+        btnMyPostion = (FloatingActionButton) findViewById(R.id.center_map_pharmacies);
         btnMyPostion.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 centerMap();
@@ -202,8 +212,14 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         });
         btnMyPostion.setImageDrawable(iconMyLocation);
 
-        btnList = (ImageButton) findViewById(R.id.pharmacies_list);
+        btnList = (FloatingActionButton) findViewById(R.id.pharmacies_list);
         btnList.setImageDrawable(iconList);
+        btnList.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
 
         btnClear = (Button) findViewById(R.id.clear_search_pharmacies);
         btnClear.setVisibility(View.GONE);
@@ -220,7 +236,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
                 if (slideOffset > 0.01){
-                    btnDirections.setVisibility(View.INVISIBLE);
+                    btnDirections.hide();
                     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
                     ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
                     ft.replace(R.id.fragment_contenedor, fragmentPharmacyFull);
@@ -228,7 +244,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     ft.commit();
                 }
                 else{
-                    btnDirections.setVisibility(View.VISIBLE);
+                    btnDirections.show();
                     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
                     ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
                     ft.replace(R.id.fragment_contenedor, fragmentMarker);
@@ -292,6 +308,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             parent.post(new Runnable() {
                 @Override
                 public void run() {
+                    // Place compass at bottom left
                     try {
                         for (int i = 0, n = parent.getChildCount(); i < n; i++) {
                             View view = parent.getChildAt(i);
@@ -528,7 +545,11 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     }
 
     public void showFragment(final Fragment fragment){
-        btnDirections.setVisibility(View.VISIBLE);
+
+        btnDirections.show();
+        btnList.hide();
+        btnMyPostion.hide();
+
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.addToBackStack(null);
         ft.replace(R.id.fragment_contenedor, fragment);
@@ -543,6 +564,11 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     }
 
     public void hideFragment(final Fragment fragment){
+
+        btnDirections.hide();
+        btnList.show();
+        btnMyPostion.show();
+
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.fragment_contenedor, fragment);
 

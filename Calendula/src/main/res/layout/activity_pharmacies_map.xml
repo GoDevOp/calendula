@@ -7,6 +7,19 @@
     android:layout_height="match_parent"
     tools:context="es.usc.citius.servando.calendula.pharmacies.activities.PharmaciesMapActivity">
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/get_pharmacy_route"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="135dp"
+        android:layout_marginRight="5dp"
+        android:paddingTop="3dp"
+        android:scaleType="center"
+        app:backgroundTint="#169E58"
+        />
+
     <com.sothree.slidinguppanel.SlidingUpPanelLayout xmlns:sothree="http://schemas.android.com/apk/res-auto"
         android:id="@+id/sliding_layout"
         android:layout_width="match_parent"
@@ -67,8 +80,7 @@
 
             </RelativeLayout>
 
-            <com.getbase.floatingactionbutton.FloatingActionButton
-                xmlns:fab="http://schemas.android.com/apk/res-auto"
+            <android.support.design.widget.FloatingActionButton
                 android:id="@+id/center_map_pharmacies"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -76,14 +88,13 @@
                 android:layout_alignParentRight="true"
                 android:layout_gravity="bottom|right"
                 android:layout_marginRight="5dp"
+                android:layout_marginBottom="5dp"
                 android:paddingTop="4dp"
                 android:scaleType="center"
-                fab:fab_colorNormal="#ffffff"
-                fab:fab_colorPressed="#dedede"
+                app:backgroundTint="#ffffff"
                 />
 
-            <com.getbase.floatingactionbutton.FloatingActionButton
-                xmlns:fab="http://schemas.android.com/apk/res-auto"
+            <android.support.design.widget.FloatingActionButton
                 android:id="@+id/pharmacies_list"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -91,10 +102,10 @@
                 android:layout_gravity="bottom|right"
                 android:layout_alignParentRight="true"
                 android:layout_marginRight="5dp"
+                android:layout_marginBottom="5dp"
                 android:paddingTop="3dp"
                 android:scaleType="center"
-                fab:fab_colorNormal="#ffffff"
-                fab:fab_colorPressed="#dedede"
+                app:backgroundTint="#ffffff"
                 />
 
         </RelativeLayout>
@@ -120,19 +131,5 @@
         </LinearLayout>
 
     </com.sothree.slidinguppanel.SlidingUpPanelLayout>
-
-    <com.getbase.floatingactionbutton.FloatingActionButton
-        xmlns:fab="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/get_pharmacy_route"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginBottom="135dp"
-        android:paddingTop="3dp"
-        android:scaleType="center"
-        fab:fab_colorNormal="#169E58"
-        fab:fab_colorPressed="#21c671"
-        />
 
 </RelativeLayout>
