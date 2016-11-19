@@ -81,24 +81,36 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
                 txtState.setTextColor(Color.parseColor("#BCBCBC"));
             }
 
-            if (pharmacy.getTimeTravelCar().isEmpty()) {
+            if (pharmacy.getTimeTravelCar() == null || pharmacy.getTimeTravelCar().isEmpty()) {
                 GetTravelTimeTask carTask = new GetTravelTimeTask(TravelTypes.CAR);
                 carTask.execute();
             }
+            else{
+                txtCarTime.setText(pharmacy.getTimeTravelCar());
+            }
 
-            if (pharmacy.getTimeTravelWalking().isEmpty()) {
+            if (pharmacy.getTimeTravelWalking() == null || pharmacy.getTimeTravelWalking().isEmpty()) {
                 GetTravelTimeTask walkTask = new GetTravelTimeTask(TravelTypes.WALK);
                 walkTask.execute();
             }
+            else{
+                txtWalkTime.setText(pharmacy.getTimeTravelWalking());
+            }
 
-            if (pharmacy.getTimeTravelBicycle().isEmpty()) {
+            if (pharmacy.getTimeTravelBicycle() == null || pharmacy.getTimeTravelBicycle().isEmpty()) {
                 GetTravelTimeTask bikeTask = new GetTravelTimeTask(TravelTypes.BICYCLE);
                 bikeTask.execute();
             }
+            else{
+                txtBikeTime.setText(pharmacy.getTimeTravelBicycle());
+            }
 
-            if (pharmacy.getTimeTravelTransit().isEmpty()) {
+            if (pharmacy.getTimeTravelTransit() == null || pharmacy.getTimeTravelTransit().isEmpty()) {
                 GetTravelTimeTask publicTask = new GetTravelTimeTask(TravelTypes.PUBLIC);
                 publicTask.execute();
+            }
+            else{
+                txtPublicTime.setText(pharmacy.getTimeTravelTransit());
             }
 
         }

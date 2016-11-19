@@ -90,6 +90,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     private static final int PERMISSION_ACCESS_FINE_LOCATION = 1;
 
     private boolean firstTime = true;
+    private boolean showNearest = true;
 
     private List<Pharmacy> pharmacies = null;
     private HashMap<Integer, Pharmacy> pharmaciesHashMap = null;
@@ -732,7 +733,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 if (pharmaciesHashMap != null) {
                     mClusterManager.clearItems();
 
-                    if (firstTime && pharmacies.size() == 1 && apiTaskNearest != null && apiTaskNearest.getStatus() == Status.RUNNING){
+                    if (showNearest && pharmacies.size() == 1 && apiTaskNearest != null && apiTaskNearest.getStatus() == Status.RUNNING){
+                        showNearest = false;
                         LatLngBounds.Builder builder = new LatLngBounds.Builder();
                         LatLng latlng = new LatLng(pharmacies.get(0).getGps()[1], pharmacies.get(0).getGps()[0]);
                         LatLng latlngLastLocation = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
