@@ -58,6 +58,7 @@ import java.util.Map;
 
 import es.usc.citius.servando.calendula.CalendulaActivity;
 import es.usc.citius.servando.calendula.R;
+import es.usc.citius.servando.calendula.database.DB;
 import es.usc.citius.servando.calendula.pharmacies.fragments.PharmacyFragment;
 import es.usc.citius.servando.calendula.pharmacies.fragments.PharmacyMarkerDetailsFragment;
 import es.usc.citius.servando.calendula.pharmacies.persistance.Pharmacy;
@@ -66,6 +67,7 @@ import es.usc.citius.servando.calendula.pharmacies.remote.PharmaciesService;
 import es.usc.citius.servando.calendula.pharmacies.remote.RemoteServiceCreator;
 import es.usc.citius.servando.calendula.pharmacies.util.PharmaciesFont;
 import es.usc.citius.servando.calendula.pharmacies.util.Utils;
+import es.usc.citius.servando.calendula.util.ScreenUtils;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -147,6 +149,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     protected void onCreate(Bundle savedInstanceState) {
 
         LayoutInflaterCompat.setFactory(getLayoutInflater(), new IconicsLayoutInflater(getDelegate()));
+
+        ScreenUtils.setStatusBarColor(PharmaciesMapActivity.this, Color.argb(50, 61, 63, 64));
 
         // Check permissions
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -257,6 +261,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
             @Override
             public void onPanelCollapsed(View panel) {
+                ScreenUtils.setStatusBarColor(PharmaciesMapActivity.this, Color.argb(50, 61, 63, 64));
                 Log.v("SLINDINGPANEL", Utils.getDate(d)+" onPanelCollapsed");
             }
 
