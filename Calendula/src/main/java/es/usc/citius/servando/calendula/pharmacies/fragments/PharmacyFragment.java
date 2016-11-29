@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -12,8 +13,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
+import com.mikepenz.iconics.Iconics;
 import com.mikepenz.iconics.IconicsDrawable;
 
 import es.usc.citius.servando.calendula.R;
@@ -32,12 +35,18 @@ public class PharmacyFragment extends Fragment {
     TextView txtName;
     TextView txtHours;
     TextView txtState;
+    TextView txtTel;
+    TextView txtDirection;
     TextView txtCarTime;
     TextView txtWalkTime;
     TextView txtBikeTime;
     TextView txtPublicTime;
 
     Toolbar toolbar;
+
+    IconicsDrawable iconDirections;
+
+    FloatingActionButton btnDirections;
 
     public PharmacyFragment() {
         // Required empty public constructor
@@ -66,11 +75,30 @@ public class PharmacyFragment extends Fragment {
         toolbar = (android.support.v7.widget.Toolbar) layout.findViewById(R.id.toolbar_pharmacy);
         toolbar.setNavigationIcon(icon);
         activity.getDelegate().setSupportActionBar(toolbar);
-        activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getActivity().onBackPressed();
+            }
+        });
 
         //set the back arrow in the toolbar
         activity.getSupportActionBar().setDisplayShowTitleEnabled(false);
         activity.getSupportActionBar().setHomeButtonEnabled(true);
+
+        iconDirections = new IconicsDrawable(getActivity(), GoogleMaterial.Icon.gmd_directions)
+                .sizeDp(24)
+                .color(Color.WHITE);
+        btnDirections = (FloatingActionButton) layout.findViewById(R.id.get_pharmacy_route_detail);
+        btnDirections.setImageDrawable(iconDirections);
+        btnDirections.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getActivity(), "Get directions", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        updateData();
 
         return layout;
     }
@@ -80,13 +108,15 @@ public class PharmacyFragment extends Fragment {
     }
 
     public void updateData(){
-        txtName = (TextView) layout.findViewById(R.id.pharmacy_name);
-        txtHours = (TextView) layout.findViewById(R.id.pharmacy_hour);
-        txtState = (TextView) layout.findViewById(R.id.pharmacy_state);
-        txtCarTime = (TextView) layout.findViewById(R.id.pharmacy_time_car);
-        txtWalkTime = (TextView) layout.findViewById(R.id.pharmacy_time_walking);
-        txtBikeTime = (TextView) layout.findViewById(R.id.pharmacy_time_bike);
-        txtPublicTime = (TextView) layout.findViewById(R.id.pharmacy_time_public);
+        txtName = (TextView) layout.findViewById(R.id.detail_pharmacy_name);
+        txtHours = (TextView) layout.findViewById(R.id.pharmacy_detail_hour);
+        txtState = (TextView) layout.findViewById(R.id.pharmacy_detail_state);
+        txtTel = (TextView) layout.findViewById(R.id.pharmacy_detail_tel);
+        txtDirection = (TextView) layout.findViewById(R.id.pharmacy_detail_dir);
+        txtCarTime = (TextView) layout.findViewById(R.id.detail_time_car);
+        txtWalkTime = (TextView) layout.findViewById(R.id.detail_time_walking);
+        txtBikeTime = (TextView) layout.findViewById(R.id.detail_time_bike);
+        txtPublicTime = (TextView) layout.findViewById(R.id.detail_time_public);
 
         txtName.setText(Utils.capitalizeNames(pharmacy.getName()));
         txtHours.setText(pharmacy.getHours());
@@ -98,8 +128,13 @@ public class PharmacyFragment extends Fragment {
             txtState.setText(getString(R.string.pharmacy_closed));
             txtState.setTextColor(Color.parseColor("#BCBCBC"));
         }
+        txtTel.setText(pharmacy.getPhone());
 
-        pharmacy.setTimeTravelCar(pharmacy.getTimeTravelCar());
+        String dir = pharmacy.getAddress()+"\n";
+        dir += pharmacy.getPostCode() + " " + pharmacy.getTown();
+        txtDirection.setText(dir);
+
+        txtCarTime.setText(pharmacy.getTimeTravelCar());
         txtBikeTime.setText(pharmacy.getTimeTravelBicycle());
         txtPublicTime.setText(pharmacy.getTimeTravelTransit());
         txtWalkTime.setText(pharmacy.getTimeTravelWalking());

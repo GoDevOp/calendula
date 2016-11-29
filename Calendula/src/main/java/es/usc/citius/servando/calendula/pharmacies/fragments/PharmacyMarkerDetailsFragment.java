@@ -54,6 +54,10 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
         this.lastLocation = location;
     }
 
+    public Pharmacy getPharmacy(){
+        return pharmacy;
+    }
+
     public void updateData(){
         if (pharmacy != null) {
 
