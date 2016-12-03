@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="?attr/listPreferredItemHeight"
+    android:orientation="vertical"
+    android:paddingBottom="8dp"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="8dp">
+
+    <ImageView
+        android:id="@+id/pharmacy_list_icon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_centerVertical="true" />
+
+    <TextView
+        android:id="@+id/pharmacy_list_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="56dp"
+        android:text="Name"
+        android:textAppearance="?attr/textAppearanceListItem"
+        tools:text="Name" />
+
+    <TextView
+        android:id="@+id/pharmacy_list_address"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/pharmacy_list_icon"
+        android:layout_below="@+id/pharmacy_list_icon"
+        android:text="Address"
+        tools:text="Address" />
+
+    <TextView
+        android:id="@+id/pharmacy_list_time_car"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/pharmacy_list_name"
+        android:layout_below="@+id/pharmacy_list_address"
+        android:text="TimeCar"
+        tools:text="TimeCar" />
+
+    <TextView
+        android:id="@+id/pharmacy_list_time_walking"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/pharmacy_list_time_car"
+        android:layout_below="@+id/pharmacy_list_address"
+        android:text="TimeWalking"
+        tools:text="TimeWalking" />
+
+    <TextView
+        android:id="@+id/pharmacy_list_time_bike"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/pharmacy_list_time_walking"
+        android:layout_below="@+id/pharmacy_list_address"
+        android:text="TimeBike"
+        tools:text="TimeBike" />
+
+    <TextView
+        android:id="@+id/pharmacy_list_time_transit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/pharmacy_list_time_bike"
+        android:layout_below="@+id/pharmacy_list_address"
+        android:text="TimeTransit"
+        tools:text="TimeTransit" />
+</RelativeLayout>

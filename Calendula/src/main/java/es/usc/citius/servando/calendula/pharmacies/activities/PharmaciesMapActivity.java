@@ -3,14 +3,12 @@ package es.usc.citius.servando.calendula.pharmacies.activities;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -18,11 +16,9 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.LayoutInflaterCompat;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -47,11 +43,11 @@ import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
-import com.mikepenz.iconics.Iconics;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.iconics.context.IconicsLayoutInflater;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -59,8 +55,9 @@ import java.util.Map;
 
 import es.usc.citius.servando.calendula.CalendulaActivity;
 import es.usc.citius.servando.calendula.R;
-import es.usc.citius.servando.calendula.database.DB;
+import es.usc.citius.servando.calendula.pharmacies.adapters.PharmacyListItem;
 import es.usc.citius.servando.calendula.pharmacies.fragments.PharmacyFragment;
+import es.usc.citius.servando.calendula.pharmacies.fragments.PharmacyListFragment;
 import es.usc.citius.servando.calendula.pharmacies.fragments.PharmacyMarkerDetailsFragment;
 import es.usc.citius.servando.calendula.pharmacies.persistance.Pharmacy;
 import es.usc.citius.servando.calendula.pharmacies.persistance.Query;
@@ -136,8 +133,11 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     private SlidingUpPanelLayout slidingLayout;
     RelativeLayout fragmentContainer;
+    RelativeLayout listLayout;
 
     PharmacyFragment fragmentPharmacyFull;
+
+    PharmacyListFragment pharmacyListFragment;
 
     Integer slidingLayoutHeight;
 
@@ -145,6 +145,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     GetApiDataTask apiTaskNearest = null;
 
     HashMap<String, Pharmacy> markerMap;
+
+    List<PharmacyListItem> pharmaciesListItems;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -176,6 +178,9 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         argsToFragment = new Bundle();
 
         firstTime = true;
+
+        listLayout = (RelativeLayout) findViewById(R.id.pharmacies_list);
+        pharmacyListFragment = new PharmacyListFragment();
 
         iconMyLocation = new IconicsDrawable(this, GoogleMaterial.Icon.gmd_my_location)
                 .sizeDp(24)
@@ -218,12 +223,22 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         });
         btnMyPostion.setImageDrawable(iconMyLocation);
 
-        btnList = (FloatingActionButton) findViewById(R.id.pharmacies_list);
+        btnList = (FloatingActionButton) findViewById(R.id.pharmacies_list_button);
         btnList.setImageDrawable(iconList);
         btnList.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                listLayout = (RelativeLayout) findViewById(R.id.pharmacies_list);
+                listLayout.setVisibility(View.VISIBLE);
 
+                pharmacyListFragment.setData(pharmaciesListItems);
+
+                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+                ft.replace(R.id.pharmacies_list, pharmacyListFragment);
+                ft.addToBackStack(null);
+                ft.commit();
+                pharmacyListFragment.updateData();
             }
         });
 
@@ -475,7 +490,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
         argsToFragment.putParcelable("pharmacy", pharma);
         argsToFragment.putParcelable("lastLocation", mLastLocation);
-        fragmentMarker.getData(pharma, mLastLocation);
+        fragmentMarker.setData(pharma, mLastLocation);
         showFragment(fragmentMarker);
         slidingLayout.setVisibility(View.VISIBLE);
         fragmentMarker.updateData();
@@ -694,6 +709,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         public void onResponse(Call<List<Pharmacy>> call, Response<List<Pharmacy>> response) {
             pharmacies = response.body();
             pharmaciesHashMap = new HashMap<>();
+            pharmaciesListItems = new ArrayList<>();
             markerMap = new HashMap<>();
 
             if (pharmacies.size() == 0) {
@@ -714,7 +730,14 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             if (!isCancelled()) {
                 for (Pharmacy pharmacy : pharmacies) {
                     pharmaciesHashMap.put(pharmacy.getCodPharmacy(), pharmacy);
+                    PharmacyListItem listItem = new PharmacyListItem();
+                    listItem.setName(pharmacy.getName());
+                    listItem.setAddress(pharmacy.getAddress());
+                    listItem.setOpen(pharmacy.isOpen());
+                    //TODO: Load time travel?
+                    pharmaciesListItems.add(listItem);
                 }
+                pharmacyListFragment.setData(pharmaciesListItems);
                 Date d = new Date();
                 Log.d("DEBUG", Utils.getDate(d) + " API sends " + pharmaciesHashMap.size() + " pharmacies");
                 updateUI(false);

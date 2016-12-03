@@ -49,7 +49,7 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
         return layout;
     }
 
-    public void getData(Pharmacy pharmacy, Location location){
+    public void setData(Pharmacy pharmacy, Location location){
         this.pharmacy = pharmacy;
         this.lastLocation = location;
     }
