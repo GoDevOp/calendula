@@ -47,6 +47,8 @@ public class PharmacyListFragment extends Fragment {
 
     List<PharmacyListItem> pharmacies;
 
+    Toolbar toolbar;
+
     public PharmacyListFragment() {
         // Required empty public constructor
     }
@@ -56,6 +58,25 @@ public class PharmacyListFragment extends Fragment {
 
         // Inflate the layout for this fragment
         layout =  inflater.inflate(R.layout.fragment_pharmacy_list, container, false);
+
+        ScreenUtils.setStatusBarColor(getActivity(), Color.parseColor("#148577"));
+
+        Drawable icon = new IconicsDrawable(layout.getContext(), GoogleMaterial.Icon.gmd_arrow_back)
+                .sizeDp(24)
+                .paddingDp(2)
+                .color(Color.WHITE);
+
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+
+        toolbar = (android.support.v7.widget.Toolbar) layout.findViewById(R.id.toolbar_pharmacy);
+        toolbar.setNavigationIcon(icon);
+        activity.getDelegate().setSupportActionBar(toolbar);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getActivity().onBackPressed();
+            }
+        });
 
         iconMap = new IconicsDrawable(getActivity(), PharmaciesFont.Icon.ic_marker)
                 .sizeDp(34)
@@ -91,9 +112,11 @@ public class PharmacyListFragment extends Fragment {
     }
 
     public void updateData(){
-        pharmacyItemAdapter.clear();
-        pharmacyItemAdapter.addAll(pharmacies);
-        pharmacyItemAdapter.notifyDataSetChanged();
+        if (pharmacyItemAdapter != null) {
+            pharmacyItemAdapter.clear();
+            pharmacyItemAdapter.addAll(pharmacies);
+            pharmacyItemAdapter.notifyDataSetChanged();
+        }
     }
 
 }

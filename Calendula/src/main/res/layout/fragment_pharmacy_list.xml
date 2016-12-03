@@ -3,14 +3,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/android_blue"
-    tools:context="es.usc.citius.servando.calendula.pharmacies.fragments.PharmacyFragment">
+    tools:context="es.usc.citius.servando.calendula.pharmacies.fragments.PharmacyFragment"
+    android:background="@color/white">
 
     <ListView
         android:id="@+id/pharmacies_list_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:divider="@color/grey"/>
+        android:divider="@color/grey"
+        android:layout_marginTop="76dp"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/pharmacies_map_button"
@@ -23,15 +24,16 @@
         android:layout_marginBottom="5dp"
         android:paddingTop="3dp"
         android:scaleType="center"
-        app:backgroundTint="@color/android_green_dark"
+        app:backgroundTint="#189e59"
         />
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar_pharmacy"
         android:layout_width="match_parent"
         android:layout_height="56dp"
+        android:layout_marginTop="20dp"
         android:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-        android:layout_marginTop="30dp"
+        android:background="#13988a"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
 
 </FrameLayout>

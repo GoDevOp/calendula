@@ -136,7 +136,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/pharmacies_list"
-        android:background="@color/android_blue"
         android:visibility="gone">
     </RelativeLayout>
 

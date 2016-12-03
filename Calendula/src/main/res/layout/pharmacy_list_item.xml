@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="56dp"
         android:text="Name"
-        android:textAppearance="?attr/textAppearanceListItem"
+        android:textSize="15dp"
         tools:text="Name" />
 
     <TextView
@@ -31,16 +31,20 @@
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/pharmacy_list_icon"
         android:layout_below="@+id/pharmacy_list_icon"
+        android:layout_marginLeft="56dp"
         android:text="Address"
+        android:textColor="@color/grey"
+        android:textSize="12dp"
         tools:text="Address" />
 
     <TextView
         android:id="@+id/pharmacy_list_time_car"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/pharmacy_list_name"
         android:layout_below="@+id/pharmacy_list_address"
+        android:layout_marginLeft="56dp"
         android:text="TimeCar"
+        android:textSize="12dp"
         tools:text="TimeCar" />
 
     <TextView
@@ -50,6 +54,7 @@
         android:layout_alignLeft="@+id/pharmacy_list_time_car"
         android:layout_below="@+id/pharmacy_list_address"
         android:text="TimeWalking"
+        android:textSize="12dp"
         tools:text="TimeWalking" />
 
     <TextView
@@ -59,6 +64,7 @@
         android:layout_alignLeft="@+id/pharmacy_list_time_walking"
         android:layout_below="@+id/pharmacy_list_address"
         android:text="TimeBike"
+        android:textSize="12dp"
         tools:text="TimeBike" />
 
     <TextView
@@ -68,5 +74,6 @@
         android:layout_alignLeft="@+id/pharmacy_list_time_bike"
         android:layout_below="@+id/pharmacy_list_address"
         android:text="TimeTransit"
+        android:textSize="12dp"
         tools:text="TimeTransit" />
 </RelativeLayout>
