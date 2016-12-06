@@ -47,7 +47,6 @@ import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.clustering.view.DefaultClusterRenderer;
-import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.iconics.context.IconicsLayoutInflater;
@@ -139,7 +138,6 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     IconicsDrawable iconClosedMarker;
     IconicsDrawable iconClosedSelectedMarker;
     IconicsDrawable iconDirections;
-    IconicsDrawable iconLoading;
     IconicsDrawable iconSearch;
 
     private SlidingUpPanelLayout slidingLayout;
@@ -218,9 +216,6 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         iconDirections = new IconicsDrawable(this, GoogleMaterial.Icon.gmd_directions)
                 .sizeDp(24)
                 .color(Color.WHITE);
-        iconLoading = new IconicsDrawable(this, FontAwesome.Icon.faw_spinner)
-                .sizeDp(24)
-                .color(Color.GRAY);
         iconSearch = new IconicsDrawable(this, GoogleMaterial.Icon.gmd_search)
                 .sizeDp(24)
                 .color(Color.GRAY);
