@@ -18,9 +18,14 @@ import android.support.v4.view.LayoutInflaterCompat;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -42,6 +47,7 @@ import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.clustering.view.DefaultClusterRenderer;
+import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.iconics.context.IconicsLayoutInflater;
@@ -122,6 +128,9 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     FloatingActionButton btnList;
     FloatingActionButton btnDirections;
     Button btnClear;
+    EditText searchTxt;
+    ImageView searchImg;
+    ProgressBar progressBarMap;
 
     IconicsDrawable iconMyLocation;
     IconicsDrawable iconList;
@@ -130,6 +139,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     IconicsDrawable iconClosedMarker;
     IconicsDrawable iconClosedSelectedMarker;
     IconicsDrawable iconDirections;
+    IconicsDrawable iconLoading;
+    IconicsDrawable iconSearch;
 
     private SlidingUpPanelLayout slidingLayout;
     RelativeLayout fragmentContainer;
@@ -182,6 +193,10 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         listLayout = (RelativeLayout) findViewById(R.id.pharmacies_list);
         pharmacyListFragment = new PharmacyListFragment();
 
+        searchTxt = (EditText) findViewById(R.id.search_pharmacies_text);
+        searchImg = (ImageView) findViewById(R.id.search_pharmacies_image);
+        progressBarMap = (ProgressBar) findViewById(R.id.search_pharmacies_loading);
+
         iconMyLocation = new IconicsDrawable(this, GoogleMaterial.Icon.gmd_my_location)
                 .sizeDp(24)
                 .color(Color.parseColor("#304FFE"));
@@ -203,6 +218,14 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         iconDirections = new IconicsDrawable(this, GoogleMaterial.Icon.gmd_directions)
                 .sizeDp(24)
                 .color(Color.WHITE);
+        iconLoading = new IconicsDrawable(this, FontAwesome.Icon.faw_spinner)
+                .sizeDp(24)
+                .color(Color.GRAY);
+        iconSearch = new IconicsDrawable(this, GoogleMaterial.Icon.gmd_search)
+                .sizeDp(24)
+                .color(Color.GRAY);
+
+        searchImg.setImageDrawable(iconSearch);
 
         btnDirections = (FloatingActionButton) findViewById(R.id.get_pharmacy_route);
         btnDirections.setImageDrawable(iconDirections);
@@ -391,6 +414,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     Date d = new Date();
                     Log.d("DEBUG", Utils.getDate(d) + " New task " + apiTask.toString());
                     apiTask.execute();
+                    progressBarMap.setVisibility(View.VISIBLE);
+                    searchImg.setVisibility(View.GONE);
                 }
             }
         });
@@ -734,7 +759,6 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     listItem.setName(pharmacy.getName());
                     listItem.setAddress(pharmacy.getAddress());
                     listItem.setOpen(pharmacy.isOpen());
-                    //TODO: Load time travel?
                     pharmaciesListItems.add(listItem);
                 }
                 pharmacyListFragment.setData(pharmaciesListItems);
@@ -742,6 +766,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 Log.d("DEBUG", Utils.getDate(d) + " API sends " + pharmaciesHashMap.size() + " pharmacies");
                 updateUI(false);
                 finished = true;
+                searchImg.setVisibility(View.VISIBLE);
+                progressBarMap.setVisibility(View.GONE);
             }
         }
 
