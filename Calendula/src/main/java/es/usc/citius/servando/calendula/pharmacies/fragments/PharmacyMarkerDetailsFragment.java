@@ -8,10 +8,14 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.mikepenz.iconics.IconicsDrawable;
 
 import es.usc.citius.servando.calendula.R;
 import es.usc.citius.servando.calendula.pharmacies.persistance.Pharmacy;
+import es.usc.citius.servando.calendula.pharmacies.util.PharmaciesFont;
 import es.usc.citius.servando.calendula.pharmacies.util.TimeTravel;
 import es.usc.citius.servando.calendula.pharmacies.util.TravelTypes;
 import es.usc.citius.servando.calendula.pharmacies.util.Utils;
@@ -39,6 +43,12 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
 
         // Inflate the layout for this fragment
         layout = inflater.inflate(R.layout.fragment_pharmacy_marker_details, container, false);
+
+        ImageView cross = (ImageView) layout.findViewById(R.id.pharmacy_cross_icon);
+        IconicsDrawable iconCross = new IconicsDrawable(getActivity(), PharmaciesFont.Icon.ic_cross)
+                .sizeDp(24)
+                .color(Color.parseColor("#82C77B"));
+        cross.setImageDrawable(iconCross);
 
         Bundle bundle = this.getArguments();
         if (bundle != null) {

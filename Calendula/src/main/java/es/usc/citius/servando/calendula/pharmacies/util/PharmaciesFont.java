@@ -127,8 +127,9 @@ public class PharmaciesFont implements ITypeface {
 
     public enum Icon implements IIcon {
 
-        ic_marker('\ue901'),
-        ic_list('\ue900');
+        ic_marker('\ue902'),
+        ic_list('\ue901'),
+        ic_cross('\ue900');
 
 
         char character;
