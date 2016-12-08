@@ -38,7 +38,6 @@
                     android:gravity="bottom"
                     android:layout_marginBottom="35dp"
                     android:textColor="@color/white"
-                    android:text="Nome da Farmacia Mu Largo Mu Largo Varias Liñas"
                     android:textSize="25dp"
                     android:paddingLeft="35dp"/>
 
@@ -59,7 +58,7 @@
                     <com.mikepenz.iconics.view.IconicsImageView
                         android:layout_width="80dp"
                         android:layout_height="20dp"
-                        app:iiv_color="@color/dark_grey_text"
+                        app:iiv_color="#afafaf"
                         app:iiv_icon="gmd-time"
                         android:id="@+id/detail_clock_icon"/>
 
@@ -68,7 +67,6 @@
                         android:layout_height="wrap_content"
                         android:id="@+id/pharmacy_detail_hour"
                         android:textSize="15dp"
-                        android:text="09:00 - 15:00\n16:00 - 21:00"
                         android:textColor="@color/black"
                         android:layout_alignParentTop="true"
                         android:layout_toRightOf="@+id/detail_clock_icon"
@@ -78,7 +76,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:id="@+id/pharmacy_detail_state"
-                        android:text="ABERTA"
                         android:textAppearance="@style/medium_bold"
                         android:textColor="@color/android_green_dark"
                         android:textSize="15dp"
@@ -100,15 +97,15 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingTop="20dp"
-                    android:paddingBottom="10dp"
+                    android:layout_marginTop="10dp"
+                    android:paddingBottom="20dp"
                     android:id="@+id/pharmacy_detail_layout_tel"
                     android:layout_below="@id/pharmacy_detail_layout_hours">
 
                     <com.mikepenz.iconics.view.IconicsImageView
                         android:layout_width="80dp"
                         android:layout_height="20dp"
-                        app:iiv_color="@color/dark_grey_text"
+                        app:iiv_color="#b1b2b2"
                         app:iiv_icon="gmd-phone"
                         android:id="@+id/detail_tel_icon"/>
 
@@ -117,7 +114,6 @@
                         android:layout_height="wrap_content"
                         android:id="@+id/pharmacy_detail_tel"
                         android:textSize="15dp"
-                        android:text="620504343"
                         android:textColor="@color/black"
                         android:layout_alignParentTop="true"
                         android:layout_toRightOf="@+id/detail_tel_icon"
@@ -137,7 +133,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingTop="20dp"
+                    android:layout_marginTop="10dp"
                     android:paddingBottom="10dp"
                     android:id="@+id/pharmacy_detail_layout_dir"
                     android:layout_below="@id/pharmacy_detail_layout_tel">
@@ -145,7 +141,7 @@
                     <com.mikepenz.iconics.view.IconicsImageView
                         android:layout_width="80dp"
                         android:layout_height="20dp"
-                        app:iiv_color="@color/dark_grey_text"
+                        app:iiv_color="#b1b2b2"
                         app:iiv_icon="gmd-map"
                         android:id="@+id/detail_dir_icon"/>
 
@@ -154,7 +150,6 @@
                         android:layout_height="wrap_content"
                         android:id="@+id/pharmacy_detail_dir"
                         android:textSize="15dp"
-                        android:text="Av de Santa Minia 75\n15865 Pedrouzos\nA Coruña"
                         android:textColor="@color/black"
                         android:layout_alignParentTop="true"
                         android:layout_toRightOf="@+id/detail_tel_icon"
@@ -175,7 +170,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
-                    android:layout_marginBottom="10dp"
+                    android:layout_marginBottom="15dp"
                     android:layout_gravity="center|fill"
                     android:layout_below="@id/pharmacy_detail_layout_dir"
                     android:id="@+id/layout_time_car">
@@ -183,7 +178,7 @@
                     <com.mikepenz.iconics.view.IconicsImageView
                         android:layout_width="80dp"
                         android:layout_height="20dp"
-                        app:iiv_color="@color/dark_grey_text"
+                        app:iiv_color="#b1b2b2"
                         app:iiv_icon="gmd-directions_car"
                         android:id="@+id/icon_car"/>
 
@@ -203,14 +198,14 @@
                 <RelativeLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
+                    android:layout_marginBottom="15dp"
                     android:id="@+id/layout_time_bike"
                     android:layout_below="@id/layout_time_car">
 
                     <com.mikepenz.iconics.view.IconicsImageView
                         android:layout_width="80dp"
                         android:layout_height="20dp"
-                        app:iiv_color="@color/dark_grey_text"
+                        app:iiv_color="#b1b2b2"
                         app:iiv_icon="gmd-directions_bike"
                         android:id="@+id/icon_bike"/>
 
@@ -230,14 +225,14 @@
                 <RelativeLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
+                    android:layout_marginBottom="15dp"
                     android:id="@+id/layout_time_walking"
                     android:layout_below="@id/layout_time_bike">
 
                     <com.mikepenz.iconics.view.IconicsImageView
                         android:layout_width="80dp"
                         android:layout_height="20dp"
-                        app:iiv_color="@color/dark_grey_text"
+                        app:iiv_color="#b1b2b2"
                         app:iiv_icon="gmd-directions_walk"
                         android:id="@+id/icon_walking"/>
 
@@ -263,8 +258,8 @@
                     <com.mikepenz.iconics.view.IconicsImageView
                         android:layout_width="80dp"
                         android:layout_height="20dp"
-                        app:iiv_color="@color/dark_grey_text"
                         app:iiv_icon="gmd-directions_subway"
+                        app:iiv_color="#b1b2b2"
                         android:id="@+id/icon_public"/>
 
                     <TextView
@@ -296,6 +291,19 @@
             </RelativeLayout>
         </RelativeLayout>
     </ScrollView>
+    
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/view_week_hours"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="300dp"
+        android:layout_marginRight="15dp"
+        android:paddingTop="3dp"
+        android:scaleType="center"
+        app:backgroundTint="#ebeced"
+        />
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar_pharmacy"
