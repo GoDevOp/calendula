@@ -5,6 +5,7 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -95,62 +96,57 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
                 txtState.setTextColor(Color.parseColor("#BCBCBC"));
             }
 
-            if (getTimes && (pharmacy.getTimeTravelCar() == null || pharmacy.getTimeTravelCar().isEmpty())) {
-                GetTravelTimeTask carTask = new GetTravelTimeTask(TravelTypes.CAR);
-                carTask.execute();
-            }
-            else{
-                txtCarTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelCarSec()));
-                if (pharmacy.getTimeTravelCarSec() != "" && Long.parseLong(pharmacy.getTimeTravelCarSec()) > pharmacy.getSecondsUntilNextClose()){
-                    txtCarTime.setTextColor(Color.RED);
+            try {
+                if (getTimes && (pharmacy.getTimeTravelCar() == null || pharmacy.getTimeTravelCar().isEmpty())) {
+                    GetTravelTimeTask carTask = new GetTravelTimeTask(TravelTypes.CAR);
+                    carTask.execute();
+                } else {
+                    txtCarTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelCarSec()));
+                    if (pharmacy.getTimeTravelCarSec() != "" && Long.parseLong(pharmacy.getTimeTravelCarSec()) > pharmacy.getSecondsUntilNextClose()) {
+                        txtCarTime.setTextColor(Color.RED);
+                    } else {
+                        txtCarTime.setTextColor(Color.parseColor("#0099CC"));
+                    }
                 }
-                else{
-                    txtCarTime.setTextColor(Color.parseColor("#0099CC"));
-                }
-            }
 
-            if (getTimes && (pharmacy.getTimeTravelWalking() == null || pharmacy.getTimeTravelWalking().isEmpty())) {
-                GetTravelTimeTask walkTask = new GetTravelTimeTask(TravelTypes.WALK);
-                walkTask.execute();
-            }
-            else{
-                txtWalkTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelWalkingSec()));
-                if (pharmacy.getTimeTravelWalkingSec() != "" && Long.parseLong(pharmacy.getTimeTravelWalkingSec()) > pharmacy.getSecondsUntilNextClose()){
-                    txtWalkTime.setTextColor(Color.RED);
+                if (getTimes && (pharmacy.getTimeTravelWalking() == null || pharmacy.getTimeTravelWalking().isEmpty())) {
+                    GetTravelTimeTask walkTask = new GetTravelTimeTask(TravelTypes.WALK);
+                    walkTask.execute();
+                } else {
+                    txtWalkTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelWalkingSec()));
+                    if (pharmacy.getTimeTravelWalkingSec() != "" && Long.parseLong(pharmacy.getTimeTravelWalkingSec()) > pharmacy.getSecondsUntilNextClose()) {
+                        txtWalkTime.setTextColor(Color.RED);
+                    } else {
+                        txtWalkTime.setTextColor(Color.parseColor("#0099CC"));
+                    }
                 }
-                else{
-                    txtWalkTime.setTextColor(Color.parseColor("#0099CC"));
-                }
-            }
 
-            if (getTimes && (pharmacy.getTimeTravelBicycle() == null || pharmacy.getTimeTravelBicycle().isEmpty())) {
-                GetTravelTimeTask bikeTask = new GetTravelTimeTask(TravelTypes.BICYCLE);
-                bikeTask.execute();
-            }
-            else{
-                txtBikeTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelBicycleSec()));
-                if (pharmacy.getTimeTravelBicycleSec() != "" && Long.parseLong(pharmacy.getTimeTravelBicycleSec()) > pharmacy.getSecondsUntilNextClose()){
-                    txtBikeTime.setTextColor(Color.RED);
+                if (getTimes && (pharmacy.getTimeTravelBicycle() == null || pharmacy.getTimeTravelBicycle().isEmpty())) {
+                    GetTravelTimeTask bikeTask = new GetTravelTimeTask(TravelTypes.BICYCLE);
+                    bikeTask.execute();
+                } else {
+                    txtBikeTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelBicycleSec()));
+                    if (pharmacy.getTimeTravelBicycleSec() != "" && Long.parseLong(pharmacy.getTimeTravelBicycleSec()) > pharmacy.getSecondsUntilNextClose()) {
+                        txtBikeTime.setTextColor(Color.RED);
+                    } else {
+                        txtBikeTime.setTextColor(Color.parseColor("#0099CC"));
+                    }
                 }
-                else{
-                    txtBikeTime.setTextColor(Color.parseColor("#0099CC"));
-                }
-            }
 
-            if (getTimes && (pharmacy.getTimeTravelTransit() == null || pharmacy.getTimeTravelTransit().isEmpty())) {
-                GetTravelTimeTask publicTask = new GetTravelTimeTask(TravelTypes.PUBLIC);
-                publicTask.execute();
-            }
-            else{
-                txtPublicTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelTransitSec()));
-                if (pharmacy.getTimeTravelTransitSec() != "" && Long.parseLong(pharmacy.getTimeTravelTransitSec()) > pharmacy.getSecondsUntilNextClose()){
-                    txtPublicTime.setTextColor(Color.RED);
+                if (getTimes && (pharmacy.getTimeTravelTransit() == null || pharmacy.getTimeTravelTransit().isEmpty())) {
+                    GetTravelTimeTask publicTask = new GetTravelTimeTask(TravelTypes.PUBLIC);
+                    publicTask.execute();
+                } else {
+                    txtPublicTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelTransitSec()));
+                    if (pharmacy.getTimeTravelTransitSec() != "" && Long.parseLong(pharmacy.getTimeTravelTransitSec()) > pharmacy.getSecondsUntilNextClose()) {
+                        txtPublicTime.setTextColor(Color.RED);
+                    } else {
+                        txtPublicTime.setTextColor(Color.parseColor("#0099CC"));
+                    }
                 }
-                else{
-                    txtPublicTime.setTextColor(Color.parseColor("#0099CC"));
-                }
+            } catch (NumberFormatException e){
+                Log.e("MARKERDETAIL", "PharmacyMarkerDetailsFragment.updateData "+e.getLocalizedMessage());
             }
-
         }
     }
 

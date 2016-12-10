@@ -1,5 +1,7 @@
 package es.usc.citius.servando.calendula.pharmacies.util;
 
+import android.util.Log;
+
 import com.google.zxing.common.StringUtils;
 
 import java.text.SimpleDateFormat;
@@ -69,22 +71,27 @@ public class Utils {
         String out = "";
 
         if (seconds != "") {
-            Long longVal = Long.parseLong(seconds);
-            Integer hours = Math.round(longVal / 3600);
-            Integer remainder = Math.round(longVal - hours * 3600);
-            Integer mins = remainder / 60;
-            remainder = remainder - mins * 60;
-            Integer secs = remainder;
+            try {
+                Long longVal;
+                longVal = Long.parseLong(seconds);
+                Integer hours = Math.round(longVal / 3600);
+                Integer remainder = Math.round(longVal - hours * 3600);
+                Integer mins = remainder / 60;
+                remainder = remainder - mins * 60;
+                Integer secs = remainder;
 
-            if (secs > 60) {
-                mins++;
-            }
-            if (hours > 0) {
-                out += hours + "h ";
-            }
-            out += mins;
-            if (hours == 0) {
-                out += "min";
+                if (secs > 60) {
+                    mins++;
+                }
+                if (hours > 0) {
+                    out += hours + "h ";
+                }
+                out += mins;
+                if (hours == 0) {
+                    out += "min";
+                }
+            } catch (NumberFormatException e){
+                Log.e("UTILS", "Utils.secondsToFormatString "+e.getLocalizedMessage());
             }
         }
         else{
@@ -102,28 +109,33 @@ public class Utils {
         String out = "";
 
         if (seconds != "") {
-            Long longVal = Long.parseLong(seconds);
-            Integer hours = Math.round(longVal / 3600);
-            Integer remainder = Math.round(longVal - hours * 3600);
-            Integer mins = remainder / 60;
-            remainder = remainder - mins * 60;
-            Integer secs = remainder;
+            try{
+                Long longVal = Long.parseLong(seconds);
+                Integer hours = Math.round(longVal / 3600);
+                Integer remainder = Math.round(longVal - hours * 3600);
+                Integer mins = remainder / 60;
+                remainder = remainder - mins * 60;
+                Integer secs = remainder;
 
-            if (secs > 60) {
-                mins++;
-            }
-            if (hours > 1) {
-                out += hours + " horas ";
-            } else if (hours == 1) {
-                out += hours + " hora ";
+                if (secs > 60) {
+                    mins++;
+                }
+                if (hours > 1) {
+                    out += hours + " horas ";
+                } else if (hours == 1) {
+                    out += hours + " hora ";
+                }
+
+                if (mins > 1) {
+                    out += mins + " minutos";
+                }
+                else {
+                    out += mins + " minuto";
+                }
+            } catch (NumberFormatException e){
+                Log.e("UTILS", "Utils.secondsToFormatString "+e.getLocalizedMessage());
             }
 
-            if (mins > 1) {
-                out += mins + " minutos";
-            }
-            else {
-                out += mins + " minuto";
-            }
         }
         else{
             out = "--";
