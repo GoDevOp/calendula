@@ -390,5 +390,13 @@
     <string name="patches_units">parche</string>
 
     <string name="create_schedule_select_med_before_dose">Por favor, selecciona un medicamento primeiro</string>
+
+    <!-- Pharmacy strings -->
+    <string name="pharmacy_open">ABERTA</string>
+    <string name="pharmacy_closed">PECHADA</string>
+    <string name="pharmacy_hour">hora</string>
+    <string name="pharmacy_hours">horas</string>
+    <string name="pharmacy_minute">minuto</string>
+    <string name="pharmacy_minutes">minutos</string>
 </resources>
 

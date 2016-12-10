@@ -100,7 +100,7 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
                 carTask.execute();
             }
             else{
-                txtCarTime.setText(pharmacy.getTimeTravelCar());
+                txtCarTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelCarSec()));
             }
 
             if (pharmacy.getTimeTravelWalking() == null || pharmacy.getTimeTravelWalking().isEmpty()) {
@@ -108,7 +108,7 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
                 walkTask.execute();
             }
             else{
-                txtWalkTime.setText(pharmacy.getTimeTravelWalking());
+                txtWalkTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelWalkingSec()));
             }
 
             if (pharmacy.getTimeTravelBicycle() == null || pharmacy.getTimeTravelBicycle().isEmpty()) {
@@ -116,7 +116,7 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
                 bikeTask.execute();
             }
             else{
-                txtBikeTime.setText(pharmacy.getTimeTravelBicycle());
+                txtBikeTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelBicycleSec()));
             }
 
             if (pharmacy.getTimeTravelTransit() == null || pharmacy.getTimeTravelTransit().isEmpty()) {
@@ -124,7 +124,7 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
                 publicTask.execute();
             }
             else{
-                txtPublicTime.setText(pharmacy.getTimeTravelTransit());
+                txtPublicTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelTransitSec()));
             }
 
         }
@@ -132,20 +132,20 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
 
     private void updateTime(TaskResponse time){
         if (time.getMethod().equals(TravelTypes.CAR)){
-            pharmacy.setTimeTravelCar(time.getTime());
-            txtCarTime.setText(time.getTime());
+            pharmacy.setTimeTravelCarSec(time.getTime());
+            txtCarTime.setText(Utils.secondsToFormatString(time.getTime()));
         }
         else if (time.getMethod().equals(TravelTypes.BICYCLE)){
-            pharmacy.setTimeTravelBicycle(time.getTime());
-            txtBikeTime.setText(time.getTime());
+            pharmacy.setTimeTravelBicycleSec(time.getTime());
+            txtBikeTime.setText(Utils.secondsToFormatString(time.getTime()));
         }
         else if (time.getMethod().equals(TravelTypes.PUBLIC)){
-            pharmacy.setTimeTravelTransit(time.getTime());
-            txtPublicTime.setText(time.getTime());
+            pharmacy.setTimeTravelTransitSec(time.getTime());
+            txtPublicTime.setText(Utils.secondsToFormatString(time.getTime()));
         }
         else if (time.getMethod().equals(TravelTypes.WALK)){
-            pharmacy.setTimeTravelWalking(time.getTime());
-            txtWalkTime.setText(time.getTime());
+            pharmacy.setTimeTravelWalkingSec(time.getTime());
+            txtWalkTime.setText(Utils.secondsToFormatString(time.getTime()));
         }
     }
 

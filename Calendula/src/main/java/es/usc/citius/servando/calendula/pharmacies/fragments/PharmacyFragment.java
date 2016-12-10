@@ -1,9 +1,11 @@
 package es.usc.citius.servando.calendula.pharmacies.fragments;
 
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -12,6 +14,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,6 +35,9 @@ public class PharmacyFragment extends Fragment {
 
     View layout;
 
+    LinearLayout layoutPhone;
+    RelativeLayout weekleyHours;
+
     Pharmacy pharmacy;
     TextView txtName;
     TextView txtHours;
@@ -41,12 +48,21 @@ public class PharmacyFragment extends Fragment {
     TextView txtWalkTime;
     TextView txtBikeTime;
     TextView txtPublicTime;
+    TextView txtHoursMonday;
+    TextView txtHoursTuesday;
+    TextView txtHoursWensday;
+    TextView txtHoursThursday;
+    TextView txtHoursFriday;
+    TextView txtHoursSaturday;
+    TextView txtHoursSunday;
 
     Toolbar toolbar;
 
     IconicsDrawable iconDirections;
+    IconicsDrawable iconHours;
 
     FloatingActionButton btnDirections;
+    FloatingActionButton btnHours;
 
     public PharmacyFragment() {
         // Required empty public constructor
@@ -72,6 +88,14 @@ public class PharmacyFragment extends Fragment {
 
         AppCompatActivity activity = (AppCompatActivity) getActivity();
 
+        txtHoursMonday = (TextView) layout.findViewById(R.id.pharmacy_hour_monday);
+        txtHoursTuesday = (TextView) layout.findViewById(R.id.pharmacy_hour_tuesday);
+        txtHoursWensday = (TextView) layout.findViewById(R.id.pharmacy_hour_wensday);
+        txtHoursThursday = (TextView) layout.findViewById(R.id.pharmacy_hour_thursday);
+        txtHoursFriday = (TextView) layout.findViewById(R.id.pharmacy_hour_friday);
+        txtHoursSaturday = (TextView) layout.findViewById(R.id.pharmacy_hour_saturday);
+        txtHoursSunday = (TextView) layout.findViewById(R.id.pharmacy_hour_sunday);
+
         toolbar = (android.support.v7.widget.Toolbar) layout.findViewById(R.id.toolbar_pharmacy);
         toolbar.setNavigationIcon(icon);
         activity.getDelegate().setSupportActionBar(toolbar);
@@ -94,7 +118,57 @@ public class PharmacyFragment extends Fragment {
         btnDirections.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getActivity(), "Get directions", Toast.LENGTH_SHORT).show();
+                String destination = pharmacy.getGps()[1]+","+pharmacy.getGps()[0];
+                Uri gmmIntentUri = Uri.parse("google.navigation:q="+destination);
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                mapIntent.setPackage("com.google.android.apps.maps");
+                startActivity(mapIntent);
+            }
+        });
+
+        weekleyHours = (RelativeLayout) layout.findViewById(R.id.pharmacy_weekley_hours);
+        iconHours = new IconicsDrawable(getActivity(), GoogleMaterial.Icon.gmd_time)
+                .sizeDp(24)
+                .color(Color.BLACK);
+        btnHours = (FloatingActionButton) layout.findViewById(R.id.view_week_hours_btn);
+        btnHours.setImageDrawable(iconHours);
+        btnHours.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (pharmacy.getWeekHours() == null){
+                    pharmacy.calculateWeekHours();
+                }
+                txtHoursMonday.setText(pharmacy.getWeekHours().get(1));
+                txtHoursTuesday.setText(pharmacy.getWeekHours().get(2));
+                txtHoursWensday.setText(pharmacy.getWeekHours().get(3));
+                txtHoursThursday.setText(pharmacy.getWeekHours().get(4));
+                txtHoursFriday.setText(pharmacy.getWeekHours().get(5));
+                txtHoursSaturday.setText(pharmacy.getWeekHours().get(6));
+                txtHoursSunday.setText(pharmacy.getWeekHours().get(7));
+
+                weekleyHours.setVisibility(View.VISIBLE);
+                btnHours.hide();
+            }
+        });
+
+        TextView hoursClose = (TextView) layout.findViewById(R.id.pharmacy_hours_close);
+        hoursClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                weekleyHours.setVisibility(View.GONE);
+                btnHours.show();
+            }
+        });
+
+        layoutPhone = (LinearLayout) layout.findViewById(R.id.pharmacy_detail_layout_tel);
+        layoutPhone.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TextView tel = (TextView) layout.findViewById(R.id.pharmacy_detail_tel);
+                String uri = "tel:" + tel.getText().toString().trim() ;
+                Intent intent = new Intent(Intent.ACTION_DIAL);
+                intent.setData(Uri.parse(uri));
+                startActivity(intent);
             }
         });
 
@@ -134,10 +208,10 @@ public class PharmacyFragment extends Fragment {
         dir += pharmacy.getPostCode() + " " + pharmacy.getTown();
         txtDirection.setText(dir);
 
-        txtCarTime.setText(pharmacy.getTimeTravelCar());
-        txtBikeTime.setText(pharmacy.getTimeTravelBicycle());
-        txtPublicTime.setText(pharmacy.getTimeTravelTransit());
-        txtWalkTime.setText(pharmacy.getTimeTravelWalking());
+        txtCarTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelCarSec(), true));
+        txtBikeTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelBicycleSec(), true));
+        txtPublicTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelTransitSec(), true));
+        txtWalkTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelWalkingSec(), true));
     }
 
 }

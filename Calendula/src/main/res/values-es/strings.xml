@@ -444,5 +444,12 @@
 
     <string name="title_activity_patients">Pacientes</string>
 
+    <!-- Pharmacy strings -->
+    <string name="pharmacy_open">ABIERTA</string>
+    <string name="pharmacy_closed">CERRADA</string>
+    <string name="pharmacy_hour">hora</string>
+    <string name="pharmacy_hours">horas</string>
+    <string name="pharmacy_minute">minuto</string>
+    <string name="pharmacy_minutes">minutos</string>
 </resources>
 

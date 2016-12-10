@@ -68,22 +68,65 @@ public class Utils {
 
         String out = "";
 
-        Long longVal = Long.parseLong(seconds);
-        Integer hours = Math.round(longVal / 3600);
-        Integer remainder = Math.round(longVal - hours * 3600);
-        Integer mins = remainder / 60;
-        remainder = remainder - mins * 60;
-        Integer secs = remainder;
+        if (seconds != "") {
+            Long longVal = Long.parseLong(seconds);
+            Integer hours = Math.round(longVal / 3600);
+            Integer remainder = Math.round(longVal - hours * 3600);
+            Integer mins = remainder / 60;
+            remainder = remainder - mins * 60;
+            Integer secs = remainder;
 
-        if (secs > 60){
-            mins ++;
+            if (secs > 60) {
+                mins++;
+            }
+            if (hours > 0) {
+                out += hours + "h ";
+            }
+            out += mins;
+            if (hours == 0) {
+                out += "min";
+            }
         }
-        if (hours > 0){
-            out += hours+"h ";
+        else{
+            out = "--";
         }
-        out += mins;
-        if (hours == 0) {
-            out += "min";
+
+        return out;
+    }
+
+    public static String secondsToFormatString(String seconds, boolean longFormat){
+
+        if (!longFormat){
+            return secondsToFormatString(seconds);
+        }
+        String out = "";
+
+        if (seconds != "") {
+            Long longVal = Long.parseLong(seconds);
+            Integer hours = Math.round(longVal / 3600);
+            Integer remainder = Math.round(longVal - hours * 3600);
+            Integer mins = remainder / 60;
+            remainder = remainder - mins * 60;
+            Integer secs = remainder;
+
+            if (secs > 60) {
+                mins++;
+            }
+            if (hours > 1) {
+                out += hours + " horas ";
+            } else if (hours == 1) {
+                out += hours + " hora ";
+            }
+
+            if (mins > 1) {
+                out += mins + " minutos";
+            }
+            else {
+                out += mins + " minuto";
+            }
+        }
+        else{
+            out = "--";
         }
 
         return out;

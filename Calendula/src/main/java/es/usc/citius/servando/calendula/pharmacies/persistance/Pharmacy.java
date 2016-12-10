@@ -1,14 +1,13 @@
 package es.usc.citius.servando.calendula.pharmacies.persistance;
 
-import android.icu.util.TimeZone;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 
 import es.usc.citius.servando.calendula.pharmacies.util.Utils;
 
@@ -31,6 +30,11 @@ public class Pharmacy implements Parcelable {
     private String timeTravelTransit;
     private String timeTravelWalking;
     private String timeTravelBicycle;
+    private String timeTravelCarSec;
+    private String timeTravelTransitSec;
+    private String timeTravelWalkingSec;
+    private String timeTravelBicycleSec;
+    private HashMap<Integer, String> weekHours;
 
     public Pharmacy() {
         holidays = new ArrayList<Holiday>();
@@ -162,6 +166,46 @@ public class Pharmacy implements Parcelable {
         this.timeTravelWalking = timeTravelWalking;
     }
 
+    public HashMap<Integer, String> getWeekHours() {
+        return weekHours;
+    }
+
+    public void setWeekHours(HashMap<Integer, String> weekHours) {
+        this.weekHours = weekHours;
+    }
+
+    public String getTimeTravelCarSec() {
+        return timeTravelCarSec;
+    }
+
+    public void setTimeTravelCarSec(String timeTravelCarSec) {
+        this.timeTravelCarSec = timeTravelCarSec;
+    }
+
+    public String getTimeTravelTransitSec() {
+        return timeTravelTransitSec;
+    }
+
+    public void setTimeTravelTransitSec(String timeTravelTransitSec) {
+        this.timeTravelTransitSec = timeTravelTransitSec;
+    }
+
+    public String getTimeTravelWalkingSec() {
+        return timeTravelWalkingSec;
+    }
+
+    public void setTimeTravelWalkingSec(String timeTravelWalkingSec) {
+        this.timeTravelWalkingSec = timeTravelWalkingSec;
+    }
+
+    public String getTimeTravelBicycleSec() {
+        return timeTravelBicycleSec;
+    }
+
+    public void setTimeTravelBicycleSec(String timeTravelBicycleSec) {
+        this.timeTravelBicycleSec = timeTravelBicycleSec;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -245,12 +289,12 @@ public class Pharmacy implements Parcelable {
                             hours.setCloseHourAfternoon(hour2359.getTime());
                         }
 
-                        if (hours.getWeekDays().contains(now.get(java.util.Calendar.DAY_OF_WEEK)-1) &&
-                                (openHourMorning != null && date.after(openHourMorning) &&
+                        if ((hours.getWeekDays().contains(now.get(java.util.Calendar.DAY_OF_WEEK)-1)) &&
+                                ((openHourMorning != null && date.after(openHourMorning) &&
                                  closeHourMorning != null && date.before(closeHourMorning)) ||
 
                                 (openHourAfternoon != null && date.after(openHourAfternoon) &&
-                                 closeHourAfternoon !=null && date.before(closeHourAfternoon))){
+                                 closeHourAfternoon !=null && date.before(closeHourAfternoon)))){
                             open = true;
                             break;
                         }
@@ -317,4 +361,43 @@ public class Pharmacy implements Parcelable {
 
         return strHours;
     }
+
+    public HashMap<Integer, String> calculateWeekHours(){
+        weekHours = new HashMap<>();
+
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+        GregorianCalendar cal = new GregorianCalendar();
+        java.util.Calendar now = java.util.Calendar.getInstance();
+        cal.set(now.get(java.util.Calendar.YEAR), now.get(java.util.Calendar.MONTH), now.get(java.util.Calendar.DAY_OF_MONTH), 0, 0, 0);
+        cal.setTimeZone(java.util.TimeZone.getTimeZone("GMT"));
+        Date dateWithoutTime = cal.getTime();
+        String strHours;
+
+        for (Calendar calendar:this.calendar) {
+            for (Season season : calendar.getSeasons()) {
+                if (dateWithoutTime.after(season.getStartDate()) && dateWithoutTime.before(season.getEndDate())) {
+                    for (int i=1; i <= 7; i++) {
+                        for (Hours hours : season.getHours()) {
+                            strHours = "";
+                            if (hours.getWeekDays().contains(i)) {
+                                if (hours.getOpenHourMorning() != null && hours.getCloseHourMorning() != null) {
+                                    strHours += sdf.format(hours.getOpenHourMorning()) + " - ";
+                                    strHours += sdf.format(hours.getCloseHourMorning());
+                                    strHours += "\n";
+                                }
+                                if (hours.getOpenHourAfternoon() != null && hours.getCloseHourAfternoon() != null) {
+                                    strHours += sdf.format(hours.getOpenHourAfternoon()) + " - ";
+                                    strHours += sdf.format(hours.getCloseHourAfternoon());
+                                }
+                                weekHours.put(i, strHours);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return weekHours;
+    }
+
 }

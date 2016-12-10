@@ -70,11 +70,7 @@ public class TimeTravel {
                 duration = durationObject.getString("value");
             }
 
-            if (duration == ""){
-                return "--";
-            }
-
-            return Utils.secondsToFormatString(duration);
+            return duration;
 
         } catch (MalformedURLException e) {
             e.printStackTrace();
