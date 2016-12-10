@@ -212,6 +212,34 @@ public class PharmacyFragment extends Fragment {
         txtBikeTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelBicycleSec(), true));
         txtPublicTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelTransitSec(), true));
         txtWalkTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelWalkingSec(), true));
+
+        if (pharmacy.getTimeTravelCarSec() != "" && Long.parseLong(pharmacy.getTimeTravelCarSec()) > pharmacy.getSecondsUntilNextClose()){
+            txtCarTime.setTextColor(Color.RED);
+        }
+        else{
+            txtCarTime.setTextColor(Color.parseColor("#0099CC"));
+        }
+
+        if (pharmacy.getTimeTravelBicycleSec() != "" && Long.parseLong(pharmacy.getTimeTravelBicycleSec()) > pharmacy.getSecondsUntilNextClose()){
+            txtBikeTime.setTextColor(Color.RED);
+        }
+        else{
+            txtBikeTime.setTextColor(Color.parseColor("#0099CC"));
+        }
+
+        if (pharmacy.getTimeTravelTransitSec() != "" && Long.parseLong(pharmacy.getTimeTravelTransitSec()) > pharmacy.getSecondsUntilNextClose()){
+            txtPublicTime.setTextColor(Color.RED);
+        }
+        else{
+            txtPublicTime.setTextColor(Color.parseColor("#0099CC"));
+        }
+        
+        if (pharmacy.getTimeTravelWalkingSec() != "" && Long.parseLong(pharmacy.getTimeTravelWalkingSec()) > pharmacy.getSecondsUntilNextClose()){
+            txtWalkTime.setTextColor(Color.RED);
+        }
+        else{
+            txtWalkTime.setTextColor(Color.parseColor("#0099CC"));
+        }
     }
 
 }

@@ -232,7 +232,6 @@ public class Pharmacy implements Parcelable {
         Date dateWithoutTime = cal.getTime();
 
         cal.set(now.get(java.util.Calendar.YEAR), 0, 1, now.get(java.util.Calendar.HOUR_OF_DAY), now.get(java.util.Calendar.MINUTE), 0);
-        Date timeWidtoutDate = cal.getTime();
 
         GregorianCalendar hour0 = new GregorianCalendar();
         hour0.setTimeInMillis(1451602800000l); // 01/10/2016 00:00:00
@@ -398,6 +397,62 @@ public class Pharmacy implements Parcelable {
         }
 
         return weekHours;
+    }
+
+    public Long getSecondsUntilNextClose(){
+        Long seconds = 0l;
+
+        Date date = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+        GregorianCalendar cal = new GregorianCalendar();
+        java.util.Calendar now = java.util.Calendar.getInstance();
+        cal.set(now.get(java.util.Calendar.YEAR), now.get(java.util.Calendar.MONTH), now.get(java.util.Calendar.DAY_OF_MONTH), 0, 0, 0);
+        cal.setTimeZone(java.util.TimeZone.getTimeZone("GMT"));
+        Date dateWithoutTime = cal.getTime();
+
+        for (Calendar calendar:this.calendar){
+            for (Season season:calendar.getSeasons()){
+                if (dateWithoutTime.after(season.getStartDate()) && dateWithoutTime.before(season.getEndDate())) {
+                    for (Hours hours : season.getHours()) {
+                        if (hours.getWeekDays().contains(now.get(java.util.Calendar.DAY_OF_WEEK)-1)){
+                            if (hours.getWeekDays().contains(now.get(java.util.Calendar.DAY_OF_WEEK)-1)){
+
+                                Date openHourMorning = hours.getOpenHourMorning();
+                                Date closeHourMorning = hours.getCloseHourMorning();
+                                Date openHourAfternoon = hours.getOpenHourAfternoon();
+                                Date closeHourAfternoon = hours.getCloseHourAfternoon();
+
+                                if (openHourMorning != null) {
+                                    openHourMorning = getDayWithOpenTime(hours.getOpenHourMorning());
+                                }
+                                if (closeHourMorning != null) {
+                                    closeHourMorning = getDayWithOpenTime(hours.getCloseHourMorning());
+                                }
+                                if (openHourAfternoon != null) {
+                                    openHourAfternoon = getDayWithOpenTime(hours.getOpenHourAfternoon());
+                                }
+                                if (closeHourAfternoon != null) {
+                                    closeHourAfternoon = getDayWithOpenTime(hours.getCloseHourAfternoon());
+                                }
+
+                                if(((openHourMorning != null && date.after(openHourMorning) &&
+                                        closeHourMorning != null && date.before(closeHourMorning)))){
+                                    seconds = (closeHourMorning.getTime()-date.getTime())/1000;
+                                }
+                                else if(openHourAfternoon != null && date.after(openHourAfternoon) &&
+                                        closeHourAfternoon !=null && date.before(closeHourAfternoon)){
+                                    seconds = (closeHourAfternoon.getTime()-date.getTime())/1000;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        return seconds;
     }
 
 }
