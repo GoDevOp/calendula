@@ -291,7 +291,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     ft.replace(R.id.fragment_contenedor, fragmentMarker);
                     fragmentContainer.getLayoutParams().height = slidingLayoutHeight;
                     ft.commit();
-                    fragmentMarker.updateData();
+                    fragmentMarker.updateData(false);
                 }
             }
 
@@ -513,7 +513,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         fragmentMarker.setData(pharma, mLastLocation);
         showFragment(fragmentMarker);
         slidingLayout.setVisibility(View.VISIBLE);
-        fragmentMarker.updateData();
+        fragmentMarker.updateData(true);
         return true;
     }
 

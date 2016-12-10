@@ -68,7 +68,7 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
         return pharmacy;
     }
 
-    public void updateData(){
+    public void updateData(boolean getTimes){
         if (pharmacy != null) {
 
             txtName = (TextView) layout.findViewById(R.id.pharmacy_name);
@@ -95,7 +95,7 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
                 txtState.setTextColor(Color.parseColor("#BCBCBC"));
             }
 
-            if (pharmacy.getTimeTravelCar() == null || pharmacy.getTimeTravelCar().isEmpty()) {
+            if (getTimes && (pharmacy.getTimeTravelCar() == null || pharmacy.getTimeTravelCar().isEmpty())) {
                 GetTravelTimeTask carTask = new GetTravelTimeTask(TravelTypes.CAR);
                 carTask.execute();
             }
@@ -109,7 +109,7 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
                 }
             }
 
-            if (pharmacy.getTimeTravelWalking() == null || pharmacy.getTimeTravelWalking().isEmpty()) {
+            if (getTimes && (pharmacy.getTimeTravelWalking() == null || pharmacy.getTimeTravelWalking().isEmpty())) {
                 GetTravelTimeTask walkTask = new GetTravelTimeTask(TravelTypes.WALK);
                 walkTask.execute();
             }
@@ -123,7 +123,7 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
                 }
             }
 
-            if (pharmacy.getTimeTravelBicycle() == null || pharmacy.getTimeTravelBicycle().isEmpty()) {
+            if (getTimes && (pharmacy.getTimeTravelBicycle() == null || pharmacy.getTimeTravelBicycle().isEmpty())) {
                 GetTravelTimeTask bikeTask = new GetTravelTimeTask(TravelTypes.BICYCLE);
                 bikeTask.execute();
             }
@@ -137,7 +137,7 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
                 }
             }
 
-            if (pharmacy.getTimeTravelTransit() == null || pharmacy.getTimeTravelTransit().isEmpty()) {
+            if (getTimes && (pharmacy.getTimeTravelTransit() == null || pharmacy.getTimeTravelTransit().isEmpty())) {
                 GetTravelTimeTask publicTask = new GetTravelTimeTask(TravelTypes.PUBLIC);
                 publicTask.execute();
             }
