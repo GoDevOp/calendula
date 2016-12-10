@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -228,7 +229,13 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         btnDirections.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                if (previousPharmacy != null) {
+                    String destination = previousPharmacy.getGps()[1] + "," + previousPharmacy.getGps()[0];
+                    Uri gmmIntentUri = Uri.parse("google.navigation:q=" + destination);
+                    Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                    mapIntent.setPackage("com.google.android.apps.maps");
+                    startActivity(mapIntent);
+                }
             }
         });
 
