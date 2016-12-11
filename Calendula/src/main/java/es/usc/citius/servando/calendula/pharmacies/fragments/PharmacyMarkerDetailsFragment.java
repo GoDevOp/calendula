@@ -86,7 +86,11 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
             txtPublicTime.setText("...");
 
             txtName.setText(Utils.capitalizeNames(pharmacy.getName()));
-            txtHours.setText(pharmacy.getHours());
+            String hours = pharmacy.getHours();
+            if (hours.isEmpty()){
+                hours = getString(R.string.pharmacy_not_hours_today);
+            }
+            txtHours.setText(hours);
             if (pharmacy.isOpen()){
                 txtState.setText(getString(R.string.pharmacy_open));
                 txtState.setTextColor(Color.parseColor("#669900"));

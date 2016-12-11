@@ -139,13 +139,13 @@ public class PharmacyFragment extends Fragment {
                 if (pharmacy.getWeekHours() == null){
                     pharmacy.calculateWeekHours();
                 }
-                txtHoursMonday.setText(pharmacy.getWeekHours().get(1));
-                txtHoursTuesday.setText(pharmacy.getWeekHours().get(2));
-                txtHoursWensday.setText(pharmacy.getWeekHours().get(3));
-                txtHoursThursday.setText(pharmacy.getWeekHours().get(4));
-                txtHoursFriday.setText(pharmacy.getWeekHours().get(5));
-                txtHoursSaturday.setText(pharmacy.getWeekHours().get(6));
-                txtHoursSunday.setText(pharmacy.getWeekHours().get(7));
+                txtHoursMonday.setText(pharmacy.getWeekHours().get(1) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(1));
+                txtHoursTuesday.setText(pharmacy.getWeekHours().get(2) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(2));
+                txtHoursWensday.setText(pharmacy.getWeekHours().get(3) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(3));
+                txtHoursThursday.setText(pharmacy.getWeekHours().get(4) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(4));
+                txtHoursFriday.setText(pharmacy.getWeekHours().get(5) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(5));
+                txtHoursSaturday.setText(pharmacy.getWeekHours().get(6) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(6));
+                txtHoursSunday.setText(pharmacy.getWeekHours().get(7) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(7));
 
                 weekleyHours.setVisibility(View.VISIBLE);
                 btnHours.hide();
@@ -194,7 +194,11 @@ public class PharmacyFragment extends Fragment {
         txtPublicTime = (TextView) layout.findViewById(R.id.detail_time_public);
 
         txtName.setText(Utils.capitalizeNames(pharmacy.getName()));
-        txtHours.setText(pharmacy.getHours());
+        String hours = pharmacy.getHours();
+        if (hours.isEmpty()){
+            hours = getString(R.string.pharmacy_not_hours_today);
+        }
+        txtHours.setText(hours);
         if (pharmacy.isOpen()){
             txtState.setText(getString(R.string.pharmacy_open));
             txtState.setTextColor(Color.parseColor("#669900"));

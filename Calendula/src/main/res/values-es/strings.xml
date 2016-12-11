@@ -451,5 +451,6 @@
     <string name="pharmacy_hours">horas</string>
     <string name="pharmacy_minute">minuto</string>
     <string name="pharmacy_minutes">minutos</string>
+    <string name="pharmacy_not_hours_today">Hoy no abre</string>
 </resources>
 

@@ -84,7 +84,6 @@
                         android:layout_gravity="center_vertical"
                         android:hint="Search Pharmacies"
                         android:textColor="@android:color/black"
-                        android:text="asfasfasdf"
                         android:background="@android:color/white">
                     </EditText>
                 </LinearLayout>
