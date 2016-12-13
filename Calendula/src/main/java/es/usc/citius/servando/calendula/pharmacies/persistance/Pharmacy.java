@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.TimeZone;
 
 import es.usc.citius.servando.calendula.pharmacies.util.Utils;
 
@@ -239,14 +240,26 @@ public class Pharmacy implements Parcelable {
         hour2359.set(now.get(java.util.Calendar.YEAR), 0, 1, 23, 59, 59);
 
         for (Calendar calendar:this.calendar){
-            if (calendar.getGuards().contains(dateWithoutTime)){
-                open = true;
-                break;
+            for (Guard guard : calendar.getGuards()){
+                GregorianCalendar dateGuardCal = new GregorianCalendar();
+                dateGuardCal.setTime(guard.getDate());
+                if (dateGuardCal.get(java.util.Calendar.YEAR) == now.get(java.util.Calendar.YEAR) &&
+                    dateGuardCal.get(java.util.Calendar.MONTH) == now.get(java.util.Calendar.MONTH) &&
+                    dateGuardCal.get(java.util.Calendar.DAY_OF_MONTH) == now.get(java.util.Calendar.DAY_OF_MONTH)){
+                    open = true;
+                    break;
+                }
             }
 
-            if (this.getHolidays().contains(dateWithoutTime)){
-                open = false;
-                break;
+            for (Holiday holiday : this.getHolidays()){
+                GregorianCalendar dateGuardCal = new GregorianCalendar();
+                dateGuardCal.setTime(holiday.getDate());
+                if (dateGuardCal.get(java.util.Calendar.YEAR) == now.get(java.util.Calendar.YEAR) &&
+                        dateGuardCal.get(java.util.Calendar.MONTH) == now.get(java.util.Calendar.MONTH) &&
+                        dateGuardCal.get(java.util.Calendar.DAY_OF_MONTH) == now.get(java.util.Calendar.DAY_OF_MONTH)){
+                    open = false;
+                    break;
+                }
             }
 
             for (Season season:calendar.getSeasons()){

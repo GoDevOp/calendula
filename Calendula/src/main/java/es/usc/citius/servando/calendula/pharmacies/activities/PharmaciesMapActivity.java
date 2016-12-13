@@ -1,6 +1,7 @@
 package es.usc.citius.servando.calendula.pharmacies.activities;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -16,9 +17,14 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.LayoutInflaterCompat;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -192,10 +198,6 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         listLayout = (RelativeLayout) findViewById(R.id.pharmacies_list);
         pharmacyListFragment = new PharmacyListFragment();
 
-        searchTxt = (EditText) findViewById(R.id.search_pharmacies_text);
-        searchImg = (ImageView) findViewById(R.id.search_pharmacies_image);
-        progressBarMap = (ProgressBar) findViewById(R.id.search_pharmacies_loading);
-
         iconMyLocation = new IconicsDrawable(this, GoogleMaterial.Icon.gmd_my_location)
                 .sizeDp(24)
                 .color(Color.parseColor("#304FFE"));
@@ -220,8 +222,6 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         iconSearch = new IconicsDrawable(this, GoogleMaterial.Icon.gmd_search)
                 .sizeDp(24)
                 .color(Color.GRAY);
-
-        searchImg.setImageDrawable(iconSearch);
 
         btnDirections = (FloatingActionButton) findViewById(R.id.get_pharmacy_route);
         btnDirections.setImageDrawable(iconDirections);
@@ -267,8 +267,58 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             }
         });
 
+        searchImg = (ImageView) findViewById(R.id.search_pharmacies_image);
+        searchImg.setImageDrawable(iconSearch);
+
+        progressBarMap = (ProgressBar) findViewById(R.id.search_pharmacies_loading);
+
+        searchTxt = (EditText) findViewById(R.id.search_pharmacies_text);
+        searchTxt.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    Toast.makeText(getBaseContext(), "Search '"+v.getText()+"'", Toast.LENGTH_SHORT).show();
+
+                    hideKeyboard();
+
+                    //TODO: throw search
+
+                    return true;
+                }
+                return false;
+            }
+        });
+        searchTxt.addTextChangedListener(new TextWatcher() {
+            private boolean textChanged = false;
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() > 0){
+                    btnClear.setVisibility(View.VISIBLE);
+                }
+                else{
+                    btnClear.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
         btnClear = (Button) findViewById(R.id.clear_search_pharmacies);
         btnClear.setVisibility(View.GONE);
+        btnClear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchTxt.setText("");
+                btnClear.setVisibility(View.GONE);
+            }
+        });
 
         fragmentPharmacyFull = new PharmacyFragment();
 
@@ -425,6 +475,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
+                hideKeyboard();
                 hideFragment(fragmentMarker);
 
                 // Change color last marker clicked
@@ -676,6 +727,14 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
      */
     protected void stopLocationUpdates() {
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+    }
+
+    private void hideKeyboard(){
+        View view = PharmaciesMapActivity.this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
     }
 
     private class GetApiDataTask extends AsyncTask<Void, Void, Void> implements Callback<List<Pharmacy>> {
