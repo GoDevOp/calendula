@@ -275,18 +275,24 @@
 
                 </RelativeLayout>
 
-                <android.support.design.widget.FloatingActionButton
-                    android:id="@+id/get_pharmacy_route_detail"
+                <RelativeLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentBottom="true"
-                    android:layout_alignParentRight="true"
-                    android:layout_marginBottom="15dp"
-                    android:layout_marginRight="15dp"
-                    android:paddingTop="3dp"
-                    android:scaleType="center"
-                    app:backgroundTint="#169E58"
-                    android:layout_alignParentTop="false" />
+                    android:paddingBottom="15dp">
+
+                    <android.support.design.widget.FloatingActionButton
+                        android:id="@+id/get_pharmacy_route_detail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentBottom="true"
+                        android:layout_alignParentRight="true"
+                        android:layout_marginRight="15dp"
+                        android:paddingTop="3dp"
+                        android:scaleType="center"
+                        app:backgroundTint="#169E58"
+                        android:layout_alignParentTop="false" />
+
+                </RelativeLayout>
 
             </RelativeLayout>
 

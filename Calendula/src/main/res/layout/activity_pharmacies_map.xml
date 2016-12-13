@@ -102,33 +102,39 @@
 
             </RelativeLayout>
 
-            <android.support.design.widget.FloatingActionButton
-                android:id="@+id/center_map_pharmacies"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_above="@+id/pharmacies_list_button"
-                android:layout_alignParentRight="true"
-                android:layout_gravity="bottom|right"
-                android:layout_marginRight="5dp"
-                android:layout_marginBottom="5dp"
-                android:paddingTop="4dp"
-                android:scaleType="center"
-                app:backgroundTint="#ffffff"
-                />
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingBottom="15dp">
 
-            <android.support.design.widget.FloatingActionButton
-                android:id="@+id/pharmacies_list_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_gravity="bottom|right"
-                android:layout_alignParentRight="true"
-                android:layout_marginRight="5dp"
-                android:layout_marginBottom="5dp"
-                android:paddingTop="3dp"
-                android:scaleType="center"
-                app:backgroundTint="#ffffff"
-                />
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/center_map_pharmacies"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_above="@+id/pharmacies_list_button"
+                    android:layout_alignParentRight="true"
+                    android:layout_gravity="bottom|right"
+                    android:layout_marginRight="15dp"
+                    android:layout_marginBottom="10dp"
+                    android:paddingTop="4dp"
+                    android:scaleType="center"
+                    app:backgroundTint="#ffffff"
+                    />
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/pharmacies_list_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:layout_gravity="bottom|right"
+                    android:layout_alignParentRight="true"
+                    android:layout_marginRight="15dp"
+                    android:paddingTop="3dp"
+                    android:scaleType="center"
+                    app:backgroundTint="#ffffff"
+                    />
+
+            </RelativeLayout>
 
         </RelativeLayout>
 
