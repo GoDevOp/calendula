@@ -9,6 +9,7 @@ public class Query {
     private Double latitude;
     private Double longitude;
     private Integer radio;
+    private String search;
 
     public int getQueryType() {
         return queryType;
@@ -42,5 +43,13 @@ public class Query {
 
     public void setRadio(Integer radio) {
         this.radio = radio;
+    }
+
+    public String getSearch() {
+        return search;
+    }
+
+    public void setSearch(String search) {
+        this.search = search;
     }
 }

@@ -98,6 +98,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     public static final int GET_LOCATION_PHARMACIES = 1;
     public static final int GET_NEAREST_PHARMACIES = 2;
+    public static final int GET_TEXT_QUERY_PHARMACIES = 3;
 
     private static final int PERMISSION_ACCESS_FINE_LOCATION = 1;
 
@@ -159,6 +160,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     GetApiDataTask apiTask = null;
     GetApiDataTask apiTaskNearest = null;
+    GetApiDataTask apiTaskSearch = null;
 
     HashMap<String, Pharmacy> markerMap;
 
@@ -273,15 +275,28 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         progressBarMap = (ProgressBar) findViewById(R.id.search_pharmacies_loading);
 
         searchTxt = (EditText) findViewById(R.id.search_pharmacies_text);
+        searchTxt.setCursorVisible(false);
         searchTxt.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    Toast.makeText(getBaseContext(), "Search '"+v.getText()+"'", Toast.LENGTH_SHORT).show();
-
+                    if (v.getText().toString().isEmpty()){
+                        Toast.makeText(getBaseContext(), getString(R.string.pharmacy_search_without_text), Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
                     hideKeyboard();
-
-                    //TODO: throw search
+                    searchTxt.setCursorVisible(false);
+                    if (apiTaskNearest != null && apiTaskNearest.getStatus() != AsyncTask.Status.FINISHED){
+                        apiTaskNearest.cancel(true);
+                    }
+                    if (apiTask != null && apiTask.getStatus() != AsyncTask.Status.FINISHED){
+                        apiTask.cancel(true);
+                    }
+                    Query searchQuery = new Query();
+                    searchQuery.setQueryType(GET_TEXT_QUERY_PHARMACIES);
+                    searchQuery.setSearch(v.getText().toString());
+                    apiTaskSearch = new GetApiDataTask(searchQuery);
+                    apiTaskSearch.execute();
 
                     return true;
                 }
@@ -289,7 +304,6 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             }
         });
         searchTxt.addTextChangedListener(new TextWatcher() {
-            private boolean textChanged = false;
 
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -309,13 +323,22 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             public void afterTextChanged(Editable s) {
             }
         });
+        searchTxt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchTxt.setCursorVisible(true);
+            }
+        });
 
         btnClear = (Button) findViewById(R.id.clear_search_pharmacies);
         btnClear.setVisibility(View.GONE);
         btnClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                apiTaskSearch = null;
+                centerMap();
                 searchTxt.setText("");
+                throwLocationQuery();
                 btnClear.setVisibility(View.GONE);
             }
         });
@@ -449,25 +472,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             @Override
             public void onCameraIdle() {
                 mClusterManager.onCameraIdle();
-                if (!firstTime) {
-                    Location loc = getMapCenter();
-                    Query query = new Query();
-                    query.setLatitude(loc.getLatitude());
-                    query.setLongitude(loc.getLongitude());
-                    query.setRadio(getMapRadio());
-                    query.setQueryType(GET_LOCATION_PHARMACIES);
-                    if (apiTask != null && apiTask.getStatus() != AsyncTask.Status.FINISHED) {
-                        apiTask.cancel(true);
-                    }
-                    if (apiTaskNearest != null && apiTaskNearest.getStatus() != AsyncTask.Status.FINISHED) {
-                        apiTaskNearest.cancel(true);
-                    }
-                    apiTask = new GetApiDataTask(query);
-                    Date d = new Date();
-                    Log.d("DEBUG", Utils.getDate(d) + " New task " + apiTask.toString());
-                    apiTask.execute();
-                    progressBarMap.setVisibility(View.VISIBLE);
-                    searchImg.setVisibility(View.GONE);
+                if (!firstTime && searchTxt.getText().length() == 0) {
+                    throwLocationQuery();
                 }
             }
         });
@@ -546,6 +552,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     @Override
     public boolean onClusterItemClick(PharmacyMarker pharmacyMarker) {
+        hideKeyboard();
         Pharmacy pharma = pharmacyMarker.getPharmacy();
         // Change color marker
         if (previousPharmacy != null && previousMarker != null && markerMap.containsKey(previousMarker.getId()) &&
@@ -737,6 +744,28 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         }
     }
 
+    private void throwLocationQuery(){
+        Location loc = getMapCenter();
+        Query query = new Query();
+        query.setLatitude(loc.getLatitude());
+        query.setLongitude(loc.getLongitude());
+        query.setRadio(getMapRadio());
+        query.setQueryType(GET_LOCATION_PHARMACIES);
+        if (apiTask != null && apiTask.getStatus() != AsyncTask.Status.FINISHED) {
+            apiTask.cancel(true);
+        }
+        if (apiTaskNearest != null && apiTaskNearest.getStatus() != AsyncTask.Status.FINISHED) {
+            apiTaskNearest.cancel(true);
+        }
+        if (apiTaskSearch != null && apiTaskSearch.getStatus() != AsyncTask.Status.FINISHED) {
+            apiTaskSearch.cancel(true);
+        }
+        apiTask = new GetApiDataTask(query);
+        Date d = new Date();
+        Log.d("DEBUG", Utils.getDate(d) + " New task " + apiTask.toString());
+        apiTask.execute();
+    }
+
     private class GetApiDataTask extends AsyncTask<Void, Void, Void> implements Callback<List<Pharmacy>> {
 
         private Query query;
@@ -762,6 +791,11 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     Date d = new Date();
                     Log.d("DEBUG", Utils.getDate(d) + " Pharmacies nearest request");
                 }
+                else if (query.getQueryType() == GET_TEXT_QUERY_PHARMACIES){
+                    call = service.listByUserSearch(query.getSearch());
+                    Date d = new Date();
+                    Log.d("DEBUG", Utils.getDate(d) + " Pharmacies nearest request");
+                }
                 call.enqueue(this);
             }
             while (!finished) {
@@ -782,6 +816,12 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             super.onCancelled();
         }
 
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressBarMap.setVisibility(View.VISIBLE);
+            searchImg.setVisibility(View.GONE);
+        }
 
         @Override
         protected void onPostExecute(Void aVoid) {
@@ -797,7 +837,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             pharmaciesListItems = new ArrayList<>();
             markerMap = new HashMap<>();
 
-            if (pharmacies.size() == 0) {
+            if (pharmacies != null && pharmacies.size() == 0 && apiTaskSearch == null) {
                 Location loc = getMapCenter();
                 Query query = new Query();
                 query.setLatitude(loc.getLatitude());
@@ -811,8 +851,15 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 if (apiTask != null && apiTask.getStatus() != Status.FINISHED) {
                     apiTask.cancel(true);
                 }
+                if (apiTaskSearch != null && apiTaskSearch.getStatus() != Status.FINISHED) {
+                    apiTaskSearch.cancel(true);
+                }
             }
-            if (!isCancelled()) {
+            else if (this.query.getQueryType() == GET_TEXT_QUERY_PHARMACIES){
+                Toast.makeText(getBaseContext(), getString(R.string.pharmacy_search_no_results), Toast.LENGTH_SHORT).show();
+            }
+
+            if (pharmacies != null && !isCancelled()) {
                 for (Pharmacy pharmacy : pharmacies) {
                     pharmaciesHashMap.put(pharmacy.getCodPharmacy(), pharmacy);
                     PharmacyListItem listItem = new PharmacyListItem();
@@ -826,9 +873,9 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 Log.d("DEBUG", Utils.getDate(d) + " API sends " + pharmaciesHashMap.size() + " pharmacies");
                 updateUI(false);
                 finished = true;
-                searchImg.setVisibility(View.VISIBLE);
-                progressBarMap.setVisibility(View.GONE);
             }
+            searchImg.setVisibility(View.VISIBLE);
+            progressBarMap.setVisibility(View.GONE);
         }
 
         @Override
@@ -855,6 +902,15 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                         builder.include(latlngLastLocation);
                         LatLngBounds bounds = builder.build();
 
+                        map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 300));
+                    }
+                    else if (pharmacies.size() >= 1 && apiTaskSearch != null){
+                        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                        LatLng latlng = new LatLng(pharmacies.get(0).getGps()[1], pharmacies.get(0).getGps()[0]);
+                        LatLng latlngLastLocation = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+                        builder.include(latlng);
+                        builder.include(latlngLastLocation);
+                        LatLngBounds bounds = builder.build();
                         map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 300));
                     }
 

@@ -86,4 +86,7 @@ public interface PharmaciesService {
      */
     @GET("nextPharmacy/{lat}/{long}/{distance}/{open}")
     Call<List<Pharmacy>> getNearest(@Path("lat") Double latitude, @Path("long") Double longitude, @Path("distance") Integer distance,  @Path("open") String open);
+
+    @GET("search/{query}")
+    Call<List<Pharmacy>> listByUserSearch(@Path("query") String query);
 }
