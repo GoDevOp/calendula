@@ -21,7 +21,6 @@ package es.usc.citius.servando.calendula.activities;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -173,7 +172,7 @@ public class LeftDrawerMgr implements Drawer.OnDrawerItemClickListener, AccountH
         b.addDrawerItems(
                 new PrimaryDrawerItem()
                         .withName(R.string.home_menu_pharmacies)
-                        .withIcon(IconUtils.icon(home, CommunityMaterial.Icon.cmd_map_marker_multiple, R.color.black).alpha(38))
+                        .withIcon(IconUtils.icon(home, CommunityMaterial.Icon.cmd_map_marker_multiple, R.color.black).alpha(CalendulaApp.isPharmaModeEnabled() ? 110 : 38))
                         .withEnabled(CalendulaApp.isPharmaModeEnabled())
                         .withIdentifier(PHARMACIES),
                 new PrimaryDrawerItem()
@@ -251,7 +250,7 @@ public class LeftDrawerMgr implements Drawer.OnDrawerItemClickListener, AccountH
                 drawer.setSelection(HOME, false);
                 break;
             case PHARMACIES:
-                if(ModuleManager.isEnabled(PharmacyModule.ID)) {
+                if (ModuleManager.isEnabled(PharmacyModule.ID)) {
                     launchActivity(new Intent(home, PharmaciesMapActivity.class));
                     drawer.setSelection(HOME, false);
                 }
@@ -268,11 +267,11 @@ public class LeftDrawerMgr implements Drawer.OnDrawerItemClickListener, AccountH
         BadgeStyle bs = new BadgeStyle();
         if (enabled) {
             addCalendarItem();
-            Drawable bg = new IconicsDrawable(home)
-                    .icon(GoogleMaterial.Icon.gmd_check)
-                    .color(home.getResources().getColor(R.color.dark_grey_text))
-                    .sizeDp(18);
-            bs.withBadgeBackground(bg);
+//            Drawable bg = new IconicsDrawable(home)
+//                    .icon(GoogleMaterial.Icon.gmd_check)
+//                    .color(home.getResources().getColor(R.color.dark_grey_text))
+//                    .sizeDp(18);
+//            bs.withBadgeBackground(bg);
         } else {
             drawer.removeItem(CALENDAR);
             bs.withBadgeBackground(new ColorDrawable(Color.TRANSPARENT));
