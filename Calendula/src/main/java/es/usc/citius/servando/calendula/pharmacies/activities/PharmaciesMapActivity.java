@@ -75,7 +75,10 @@ import es.usc.citius.servando.calendula.pharmacies.persistance.Pharmacy;
 import es.usc.citius.servando.calendula.pharmacies.persistance.Query;
 import es.usc.citius.servando.calendula.pharmacies.remote.PharmaciesService;
 import es.usc.citius.servando.calendula.pharmacies.remote.RemoteServiceCreator;
+import es.usc.citius.servando.calendula.pharmacies.util.MatrixDirectionsAPI;
 import es.usc.citius.servando.calendula.pharmacies.util.PharmaciesFont;
+import es.usc.citius.servando.calendula.pharmacies.util.TimeTravel;
+import es.usc.citius.servando.calendula.pharmacies.util.TravelTypes;
 import es.usc.citius.servando.calendula.pharmacies.util.Utils;
 import es.usc.citius.servando.calendula.util.ScreenUtils;
 import retrofit2.Call;
@@ -165,6 +168,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     HashMap<String, Pharmacy> markerMap;
 
     List<PharmacyListItem> pharmaciesListItems;
+
+    HashMap<Integer, String> travelTimesCar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -863,11 +868,13 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 for (Pharmacy pharmacy : pharmacies) {
                     pharmaciesHashMap.put(pharmacy.getCodPharmacy(), pharmacy);
                     PharmacyListItem listItem = new PharmacyListItem();
-                    listItem.setName(pharmacy.getName());
+                    listItem.setName(Utils.capitalizeNames(pharmacy.getName()));
                     listItem.setAddress(pharmacy.getAddress());
                     listItem.setOpen(pharmacy.isOpen());
                     pharmaciesListItems.add(listItem);
                 }
+                GetTravelTimeTask getTimesTask = new GetTravelTimeTask(TravelTypes.CAR);
+                getTimesTask.execute();
                 pharmacyListFragment.setData(pharmaciesListItems);
                 Date d = new Date();
                 Log.d("DEBUG", Utils.getDate(d) + " API sends " + pharmaciesHashMap.size() + " pharmacies");
@@ -930,6 +937,32 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
             }
 
+        }
+    }
+
+    private class GetTravelTimeTask extends AsyncTask<Void, Void, HashMap<Integer, String>> {
+
+        private TravelTypes method;
+
+        GetTravelTimeTask(TravelTypes method){
+            this.method =  method;
+        }
+
+        @Override
+        protected HashMap<Integer, String> doInBackground(Void... params) {
+
+            HashMap<Integer, String> response = new HashMap<Integer, String>();
+
+            response = MatrixDirectionsAPI.getTime(mLastLocation, pharmacies, method.getValue());
+
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(HashMap<Integer, String> result) {
+            if (method.equals(TravelTypes.CAR)) {
+                travelTimesCar = result;
+            }
         }
     }
 

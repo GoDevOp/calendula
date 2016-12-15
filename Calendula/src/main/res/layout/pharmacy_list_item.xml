@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="?attr/listPreferredItemHeight"
+    android:minHeight="80dp"
     android:orientation="vertical"
     android:paddingBottom="8dp"
     android:paddingLeft="@dimen/activity_horizontal_margin"
@@ -76,4 +76,12 @@
         android:text="TimeTransit"
         android:textSize="12dp"
         tools:text="TimeTransit" />
+
+    <View
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="3dp"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/pharmacy_list_time_transit"
+        android:background="@android:color/darker_gray"/>
 </RelativeLayout>
