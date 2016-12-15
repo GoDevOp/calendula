@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.activities;
@@ -27,15 +27,15 @@ import com.heinrichreimersoftware.materialintro.slide.SimpleSlide;
 
 import es.usc.citius.servando.calendula.R;
 
-public class MaterialIntroActivity extends IntroActivity{
+public class MaterialIntroActivity extends IntroActivity {
 
     @Override
-    protected void onCreate(Bundle savedInstanceState){
+    protected void onCreate(Bundle savedInstanceState) {
 
         setFullscreen(true);
         super.onCreate(savedInstanceState);
 
-        setSkipEnabled(false);
+        setSkipEnabled(true);
 
         addSlide(new SimpleSlide.Builder()
                 .layout(R.layout.intro_slide_1)
@@ -78,7 +78,7 @@ public class MaterialIntroActivity extends IntroActivity{
     @Override
     protected void onResume() {
         super.onResume();
-        SharedPreferences prefs =  PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        prefs.edit().putBoolean("PREFERENCE_INTRO_SHOWN", true).commit();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        prefs.edit().putBoolean("PREFERENCE_INTRO_SHOWN", true).apply();
     }
 }

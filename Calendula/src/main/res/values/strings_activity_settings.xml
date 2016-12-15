@@ -69,5 +69,38 @@
         <item>120</item>
     </string-array>
 
+    <string-array name="pref_available_databases">
+        <item>@string/database_none_display</item>
+        <item>@string/database_aemps_display</item>
+        <item>@string/database_us_display</item>
+        <!--<item>@string/database_uk_display</item>-->
+    </string-array>
+
+    <string-array name="pref_available_databases_values">
+        <item>@string/database_none_id</item>
+        <item>@string/database_aemps_id</item>
+        <item>@string/database_us_id</item>
+        <!--<item>@string/database_uk_id</item>-->
+    </string-array>
+
+    <string name="pref_enable_databases_title">Enable medicine search</string>
+    <string name="pref_available_databases_title">Selected database</string>
+
+    <string name="pref_header_stock">Stock control</string>
+
+    <string-array name="pref_stock">
+        <item>Do not warn me</item>
+        <item>In less than 1 week</item>
+        <item>In less than 2 weeks</item>
+        <item>In less than 3 weeks</item>
+    </string-array>
+
+    <string-array name="pref_stock_values">
+        <item>-1</item>
+        <item>7</item>
+        <item>14</item>
+        <item>21</item>
+    </string-array>
+
 
 </resources>

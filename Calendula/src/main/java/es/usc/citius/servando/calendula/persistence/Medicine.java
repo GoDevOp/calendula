@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.persistence;
@@ -29,6 +29,8 @@ import java.util.Collection;
 import java.util.List;
 
 import es.usc.citius.servando.calendula.database.DB;
+import es.usc.citius.servando.calendula.drugdb.DBRegistry;
+import es.usc.citius.servando.calendula.drugdb.model.persistence.Prescription;
 
 import static java.util.Collections.sort;
 
@@ -44,7 +46,9 @@ public class Medicine implements Comparable<Medicine> {
     public static final String COLUMN_PRESENTATION = "Presentation";
     public static final String COLUMN_CN = "cn";
     public static final String COLUMN_HG = "hg";
+    public static final String COLUMN_STOCK = "Stock";
     public static final String COLUMN_PATIENT = "Patient";
+    public static final String COLUMN_DATABASE = "Database";
 
     @DatabaseField(columnName = COLUMN_ID, generatedId = true)
     private Long id;
@@ -58,11 +62,17 @@ public class Medicine implements Comparable<Medicine> {
     @DatabaseField(columnName = COLUMN_CN)
     private String cn;
 
+    @DatabaseField(columnName = COLUMN_STOCK)
+    private Float stock;
+
     @DatabaseField(columnName = COLUMN_HG)
     private Long homogeneousGroup;
 
     @DatabaseField(columnName = COLUMN_PATIENT, foreign = true, foreignAutoRefresh = true)
     private Patient patient;
+
+    @DatabaseField(columnName = COLUMN_DATABASE)
+    private String database;
 
     public Medicine() {
     }
@@ -74,6 +84,28 @@ public class Medicine implements Comparable<Medicine> {
     public Medicine(String name, Presentation presentation) {
         this.name = name;
         this.presentation = presentation;
+    }
+
+    public static List<Medicine> findAll() {
+        return DB.medicines().findAll();
+    }
+
+    public static Medicine findById(long id) {
+        return DB.medicines().findById(id);
+    }
+
+    public static Medicine findByName(String name) {
+        return DB.medicines().findOneBy(COLUMN_NAME, name);
+    }
+
+    public static Medicine fromPrescription(Prescription p) {
+        Medicine m = new Medicine();
+        m.setCn(String.valueOf(p.getCode()));
+        m.setName(p.shortName());
+        Presentation pre = DBRegistry.instance().current().expected(p);
+        m.setPresentation(pre != null ? pre : Presentation.PILLS);
+        m.setDatabase(DBRegistry.instance().current().id());
+        return m;
     }
 
     public String cn() {
@@ -124,8 +156,20 @@ public class Medicine implements Comparable<Medicine> {
         return patient;
     }
 
+    // *************************************
+    // DB queries
+    // *************************************
+
     public void setPatient(Patient patient) {
         this.patient = patient;
+    }
+
+    public String getDatabase() {
+        return database;
+    }
+
+    public void setDatabase(String database) {
+        this.database = database;
     }
 
     @Override
@@ -133,38 +177,12 @@ public class Medicine implements Comparable<Medicine> {
         return name.compareTo(another.name);
     }
 
-    // *************************************
-    // DB queries
-    // *************************************
-
-    public static List<Medicine> findAll() {
-        return DB.medicines().findAll();
-    }
-
-    public static Medicine findById(long id) {
-        return DB.medicines().findById(id);
-    }
-
-    public static Medicine findByName(String name) {
-        return DB.medicines().findOneBy(COLUMN_NAME, name);
-    }
-
-
     public void deleteCascade() {
         DB.medicines().deleteCascade(this, false);
     }
 
     public void save() {
         DB.medicines().save(this);
-    }
-
-    public static Medicine fromPrescription(Prescription p) {
-        Medicine m = new Medicine();
-        m.setCn(p.cn);
-        m.setName(p.shortName());
-        Presentation pre = p.expectedPresentation();
-        m.setPresentation(pre != null ? pre : Presentation.PILLS);
-        return m;
     }
 
     public LocalDate nextPickupDate() {
@@ -186,5 +204,34 @@ public class Medicine implements Comparable<Medicine> {
     public String nextPickup() {
         LocalDate np = nextPickupDate();
         return np != null ? np.toString("dd MMMM") : null;
+    }
+
+    public boolean isBoundToPrescription() {
+        return cn != null && database != null && database.equals(DBRegistry.instance().current().id());
+    }
+
+    public Float stock() {
+        return stock;
+    }
+
+    public void setStock(Float stock) {
+        this.stock = stock;
+    }
+
+    public boolean stockManagementEnabled() {
+        return stock != -1;
+    }
+
+    @Override
+    public String toString() {
+        return "Medicine{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", presentation=" + presentation +
+                ", cn='" + cn + '\'' +
+                ", homogeneousGroup=" + homogeneousGroup +
+                ", patient=" + patient +
+                ", database='" + database + '\'' +
+                '}';
     }
 }

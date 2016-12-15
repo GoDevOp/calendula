@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.util.view;
@@ -41,18 +41,18 @@ public class FABBehavior extends FloatingActionButton.Behavior {
     }
 
     public boolean onDependentViewChanged(CoordinatorLayout parent, FloatingActionButton child, View dependency) {
-        if(dependency instanceof Snackbar.SnackbarLayout) {
+        if (dependency instanceof Snackbar.SnackbarLayout) {
             return super.onDependentViewChanged(parent, child, dependency);
-        } else if(dependency instanceof AppBarLayout) {
-            this.updateFabVisibility(parent, (AppBarLayout)dependency, child);
+        } else if (dependency instanceof AppBarLayout) {
+            this.updateFabVisibility(parent, (AppBarLayout) dependency, child);
         }
 
         return false;
     }
 
     private boolean updateFabVisibility(CoordinatorLayout parent, AppBarLayout appBarLayout, FloatingActionButton child) {
-        CoordinatorLayout.LayoutParams lp = (CoordinatorLayout.LayoutParams)child.getLayoutParams();
-        if(lp.getAnchorId() != appBarLayout.getId()) {
+        CoordinatorLayout.LayoutParams lp = (CoordinatorLayout.LayoutParams) child.getLayoutParams();
+        if (lp.getAnchorId() != appBarLayout.getId()) {
             return false;
         } else {
 
@@ -61,7 +61,7 @@ public class FABBehavior extends FloatingActionButton.Behavior {
             try {
                 Method method = AppBarLayout.class.getDeclaredMethod("getMinimumHeightForVisibleOverlappingContent");
                 method.setAccessible(true);
-                if(point <= (int) method.invoke(appBarLayout)) {
+                if (point <= (int) method.invoke(appBarLayout)) {
                     child.hide();
                 } else {
                     child.show();

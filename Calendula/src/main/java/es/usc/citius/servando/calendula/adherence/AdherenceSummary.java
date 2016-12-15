@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.adherence;
@@ -30,11 +30,11 @@ public class AdherenceSummary {
 
     public List<AdherenceSummaryItem> items;
 
-    public AdherenceSummary(){
+    public AdherenceSummary() {
         items = new ArrayList<>();
     }
 
-    public AdherenceSummary with(List<DailyScheduleItem> ditems){
+    public AdherenceSummary with(List<DailyScheduleItem> ditems) {
         for (DailyScheduleItem i : ditems) {
             items.add(new AdherenceSummaryItem(i));
         }

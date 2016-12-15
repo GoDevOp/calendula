@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.util;
@@ -219,7 +219,7 @@ public class ScreenUtils {
         return ctx.getResources().getDimensionPixelSize(R.dimen.status_bar_height);
     }
 
-    public static int dpToPx(Resources r, float dp){
+    public static int dpToPx(Resources r, float dp) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics());
     }
 

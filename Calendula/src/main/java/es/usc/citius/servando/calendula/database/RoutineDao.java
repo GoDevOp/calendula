@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.database;
@@ -22,6 +22,8 @@ import android.content.Context;
 import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.QueryBuilder;
+import com.j256.ormlite.stmt.Where;
 
 import org.joda.time.LocalTime;
 
@@ -65,7 +67,7 @@ public class RoutineDao extends GenericDao<Routine, Long> {
     @Override
     public List<Routine> findAll() {
         try {
-            return dao.queryBuilder().orderBy(Routine.COLUMN_TIME,true).query();
+            return dao.queryBuilder().orderBy(Routine.COLUMN_TIME, true).query();
         } catch (SQLException e) {
             throw new RuntimeException("Error finding models", e);
         }
@@ -91,6 +93,19 @@ public class RoutineDao extends GenericDao<Routine, Long> {
             throw new RuntimeException("Error finding models", e);
         }
     }
+
+    public Routine findByPatientAndName(String name, Patient p) {
+        try {
+            QueryBuilder<Routine, Long> qb = dao.queryBuilder();
+            Where w = qb.where();
+            w.and(w.eq(Routine.COLUMN_NAME, name), w.eq(Routine.COLUMN_PATIENT, p));
+            qb.setWhere(w);
+            return qb.queryForFirst();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding routine", e);
+        }
+    }
+
 
     public List<Routine> findInHour(int hour) {
         try {
@@ -129,6 +144,4 @@ public class RoutineDao extends GenericDao<Routine, Long> {
             fireEvent();
         }
     }
-
-
 }

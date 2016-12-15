@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.persistence;
@@ -55,61 +55,9 @@ public enum Presentation {
         this.unitsString = unitsString;
     }
 
-    public int getDrawable() {
-        return drawable;
-    }
+    public static IIcon iconFor(Presentation p) {
 
-    public String getName(Resources r) {
-        return r.getString(nameString);
-    }
-
-    public String units(Resources r) {
-        return r.getString(unitsString);
-    }
-
-
-    public static Presentation expected(String name, String content) {
-        String n = name.toLowerCase() + " " + content.toLowerCase();
-        if (n.contains("comprimidos")) {
-            return Presentation.PILLS;
-        } else if (n.contains("capsulas") || n.contains("cápsulas")) {
-            return Presentation.CAPSULES;
-        } else if (n.contains("inhala")) {
-            return Presentation.INHALER;
-        } else if (n.contains("viales") || n.contains("jeringa") || n.contains("perfusi") || n.contains("inyectable")) {
-            return Presentation.INJECTIONS;
-        } else if (n.contains("gotas") || n.contains("colirio")) {
-            return Presentation.DROPS;
-        } else if (n.contains("sobres")) {
-            return Presentation.EFFERVESCENT;
-        } else if (n.contains("tubo") || n.contains("crema") || n.contains("pomada")) {
-            return Presentation.POMADE;
-        } else if (n.contains("pulverizacion nasal") || n.contains("pulverización nasal") || n.contains("spray")) {
-            return Presentation.SPRAY;
-        } else if (n.contains("jarabe")) {
-            return Presentation.SYRUP;
-        }else if (n.contains("parche")) {
-                return Presentation.PATCHES;
-        } else if (n.contains("suspension oral")) {
-            if (!n.contains("polvo") && !n.contains("granulado")) {
-                return Presentation.SYRUP;
-            } else if (!n.contains("polvo")) {
-                // granulado
-            } else {
-                // sobres
-            }
-        }
-
-        return null;
-    }
-
-    public IIcon icon(){
-        return iconFor(this);
-    }
-
-    public static IIcon iconFor(Presentation p){
-
-        switch (p){
+        switch (p) {
             case CAPSULES:
                 return PresentationsTypeface.Icon.ic_capsule;
             case DROPS:
@@ -136,5 +84,57 @@ public enum Presentation {
         }
 
 
+    }
+
+    public int getDrawable() {
+        return drawable;
+    }
+
+    public String getName(Resources r) {
+        return r.getString(nameString);
+    }
+
+//
+//    public static Presentation expected(String name, String content) {
+//        String n = name.toLowerCase() + " " + content.toLowerCase();
+//        if (n.contains("comprimidos")) {
+//            return Presentation.PILLS;
+//        } else if (n.contains("capsulas") || n.contains("cápsulas")) {
+//            return Presentation.CAPSULES;
+//        } else if (n.contains("inhala")) {
+//            return Presentation.INHALER;
+//        } else if (n.contains("viales") || n.contains("jeringa") || n.contains("perfusi") || n.contains("inyectable")) {
+//            return Presentation.INJECTIONS;
+//        } else if (n.contains("gotas") || n.contains("colirio")) {
+//            return Presentation.DROPS;
+//        } else if (n.contains("sobres")) {
+//            return Presentation.EFFERVESCENT;
+//        } else if (n.contains("tubo") || n.contains("crema") || n.contains("pomada")) {
+//            return Presentation.POMADE;
+//        } else if (n.contains("pulverizacion nasal") || n.contains("pulverización nasal") || n.contains("spray")) {
+//            return Presentation.SPRAY;
+//        } else if (n.contains("jarabe")) {
+//            return Presentation.SYRUP;
+//        }else if (n.contains("parche")) {
+//                return Presentation.PATCHES;
+//        } else if (n.contains("suspension oral")) {
+//            if (!n.contains("polvo") && !n.contains("granulado")) {
+//                return Presentation.SYRUP;
+//            } else if (!n.contains("polvo")) {
+//                // granulado
+//            } else {
+//                // sobres
+//            }
+//        }
+//
+//        return null;
+//    }
+
+    public String units(Resources r) {
+        return r.getString(unitsString);
+    }
+
+    public IIcon icon() {
+        return iconFor(this);
     }
 }

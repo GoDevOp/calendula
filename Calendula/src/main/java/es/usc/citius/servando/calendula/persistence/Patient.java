@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.persistence;
@@ -91,7 +91,7 @@ public class Patient {
         this.color = color;
     }
 
-    public int color(){
+    public int color() {
         return color;
     }
 
@@ -104,5 +104,21 @@ public class Patient {
                 ", avatar='" + avatar + '\'' +
                 ", color=" + color +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Patient patient = (Patient) o;
+
+        return id != null ? id.equals(patient.id) : patient.id == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }

@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.activities;
@@ -56,16 +56,17 @@ import es.usc.citius.servando.calendula.activities.qrWrappers.PickupWrapper;
 import es.usc.citius.servando.calendula.activities.qrWrappers.PrescriptionListWrapper;
 import es.usc.citius.servando.calendula.activities.qrWrappers.PrescriptionWrapper;
 import es.usc.citius.servando.calendula.database.DB;
+import es.usc.citius.servando.calendula.drugdb.DBRegistry;
+import es.usc.citius.servando.calendula.drugdb.model.persistence.HomogeneousGroup;
+import es.usc.citius.servando.calendula.drugdb.model.persistence.Prescription;
 import es.usc.citius.servando.calendula.events.PersistenceEvents;
 import es.usc.citius.servando.calendula.fragments.ScheduleConfirmationEndFragment;
 import es.usc.citius.servando.calendula.fragments.ScheduleConfirmationStartFragment;
 import es.usc.citius.servando.calendula.fragments.ScheduleImportFragment;
 import es.usc.citius.servando.calendula.persistence.DailyScheduleItem;
-import es.usc.citius.servando.calendula.persistence.HomogeneousGroup;
 import es.usc.citius.servando.calendula.persistence.Medicine;
 import es.usc.citius.servando.calendula.persistence.Patient;
 import es.usc.citius.servando.calendula.persistence.PickupInfo;
-import es.usc.citius.servando.calendula.persistence.Prescription;
 import es.usc.citius.servando.calendula.persistence.Presentation;
 import es.usc.citius.servando.calendula.persistence.Schedule;
 import es.usc.citius.servando.calendula.persistence.ScheduleItem;
@@ -110,113 +111,15 @@ public class ConfirmSchedulesActivity extends CalendulaActivity implements ViewP
     View readingQrBox;
 
     DateTimeFormatter df = DateTimeFormat.forPattern("yyMMdd");
+    int color;
     private String qrData;
     private Patient patient;
-    int color;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_confirm_schedules);
-        patient = DB.patients().getActive(this);
-        color = patient.color();
-        int dark = ScreenUtils.equivalentNoAlpha(color, Color.BLACK, 0.85f);
-
-        findViewById(R.id.activity_layout).setBackgroundColor(dark);
-        setupToolbar(null, color);
-        setupStatusBar(color);
-
-        title = (TextView) findViewById(R.id.textView);
-        medName = (TextView) findViewById(R.id.textView2);
-        fab = (FloatingActionButton) findViewById(R.id.add_button);
-        scheduleTypeSelector = findViewById(R.id.schedule_type_selector);
-        readingQrBox = findViewById(R.id.reading_qr_box);
-
-        medName.setBackgroundColor(color);
-        scheduleTypeSelector.setBackgroundColor(dark);
-
-        routinesItem = (ImageButton) findViewById(R.id.schedule_type_routines);
-        hourlyItem = (ImageButton) findViewById(R.id.schedule_type_hourly);
-        cycleItem = (ImageButton) findViewById(R.id.schedule_type_period);
-
-        View.OnClickListener l = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onClickScheduleTypeButton(v.getId());
-            }
-        };
-
-        routinesItem.setOnClickListener(l);
-        hourlyItem.setOnClickListener(l);
-        cycleItem.setOnClickListener(l);
-
-        qrData = getIntent().getStringExtra("qr_data");
-        try {
-            new ProcessQRTask().execute(qrData);
-        }catch (Exception e){
-            Log.e(TAG, "Error processing QR",e);
-            Toast.makeText(this,"Error inesperado actualizando!", Toast.LENGTH_LONG).show();
-            finish();
-        }
-    }
-
-    private List<PrescriptionWrapper> filterValidPrescriptions(PrescriptionListWrapper prescriptionListWrapper) {
-        List<PrescriptionWrapper> p = new ArrayList<>();
-
-        for (PrescriptionWrapper pw : prescriptionListWrapper.p) {
-            if (pw.cn != null) {
-                Prescription pr = Prescription.findByCn(pw.cn);
-                boolean prescriptionExists = pr != null;
-                boolean medExists = DB.medicines().findOneBy(Medicine.COLUMN_CN, pw.cn) != null;
-
-                if (prescriptionExists) {
-                    pw.exists = medExists;
-                    pw.prescription = pr;
-                    p.add(pw);
-                }
-            } else if (pw.g != null) {
-
-                HomogeneousGroup group = findGroup(pw.g);
-                if (group != null) {
-                    Log.d("ConfirmSchedulesAct", "Found group: " + group.name);
-                    pw.exists = true;
-                    pw.isGroup = true;
-                    pw.group = group;
-                    p.add(pw);
-                }
-            }
-
-            if (pw.pk != null) {
-                for (PickupWrapper pkw : pw.pk) {
-                    Log.d("ConfirmSchedulesAct", "Pickup : " + df.parseDateTime(pkw.f).toString("dd/MM/yyyy"));
-                    Log.d("ConfirmSchedulesAct", "Pickup : " + df.parseDateTime(pkw.t).toString("dd/MM/yyyy"));
-                    Log.d("ConfirmSchedulesAct", "Pickup : " + pkw.tk);
-                }
-            }
-        }
-        return p;
-    }
-
-    private HomogeneousGroup findGroup(String g) {
-        return DB.groups().findOneBy(HomogeneousGroup.COLUMN_GROUP, g);
-    }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.confirm_schedules, menu);
         return true;
-    }
-
-    private void hideScheduleTypeSelector() {
-        scheduleTypeSelector.setVisibility(View.INVISIBLE);
-    }
-
-    private void showScheduleTypeSelector() {
-        if (scheduleTypeSelector.getVisibility() != View.VISIBLE) {
-            scheduleTypeSelector.setVisibility(View.VISIBLE);
-        }
     }
 
     @Override
@@ -227,7 +130,6 @@ public class ConfirmSchedulesActivity extends CalendulaActivity implements ViewP
                 return true;
         }
     }
-
 
     public void onClickScheduleTypeButton(int id) {
         Fragment f = getViewPagerFragment(mViewPager.getCurrentItem());
@@ -250,7 +152,7 @@ public class ConfirmSchedulesActivity extends CalendulaActivity implements ViewP
         }
     }
 
-    public Map<Schedule, PrescriptionWrapper> getScheduleInfo(){
+    public Map<Schedule, PrescriptionWrapper> getScheduleInfo() {
         Map<Schedule, PrescriptionWrapper> schedules = new HashMap<>();
         for (int i = 0; i < scheduleCount; i++) {
             Fragment f = getViewPagerFragment(i + 1);
@@ -262,8 +164,7 @@ public class ConfirmSchedulesActivity extends CalendulaActivity implements ViewP
         return schedules;
     }
 
-
-    public List<Schedule> getSchedules(){
+    public List<Schedule> getSchedules() {
         List<Schedule> schedules = new ArrayList<>();
         for (int i = 0; i < scheduleCount; i++) {
             Fragment f = getViewPagerFragment(i + 1);
@@ -272,119 +173,6 @@ public class ConfirmSchedulesActivity extends CalendulaActivity implements ViewP
             }
         }
         return schedules;
-    }
-
-    private void saveSchedules() {
-
-        final ProgressDialog progress = ProgressDialog.show(this,"Calendula","Actualizando pautas...", true);
-
-        AsyncTask<Void, Void, Boolean> task = new AsyncTask<Void, Void, Boolean>() {
-            @Override
-            protected Boolean doInBackground(Void... arg0) {
-                try {
-                    TransactionManager.callInTransaction(DB.helper().getConnectionSource(), new Callable<Object>() {
-                        @Override
-                        public Object call() throws Exception {
-
-                            for (int i = 0; i < scheduleCount; i++) {
-
-                                Log.d("PRESCRIPTION", "Item " + i);
-
-                                Fragment f = getViewPagerFragment(i + 1);
-
-                                if (f instanceof ScheduleImportFragment) {
-
-                                    Log.d("PRESCRIPTION", "Fragment " + i);
-
-                                    ScheduleImportFragment c = (ScheduleImportFragment) f;
-
-                                    if (c.validate()) {
-                                        PrescriptionWrapper w = prescriptionList.get(i);
-                                        Log.d("PRESCRIPTION", "Validate!");
-                                        String cn = w.cn;
-                                        Medicine m = null;
-                                        if (cn != null) {
-                                            m = DB.medicines().findByCnAndPatient(cn,patient);
-                                            if (m == null) {
-                                                Log.d("PRESCRIPTION", "Saving medicine!");
-                                                m = Medicine.fromPrescription(Prescription.findByCn(cn));
-                                                m.setPatient(patient);
-                                                m.save();
-                                            }
-                                        } else if (w.isGroup) {
-                                            m = DB.medicines().findByGroupAndPatient(w.group.getId(),patient);
-                                            if (m == null) {
-                                                m = new Medicine(Strings.firstPart(w.group.name));
-                                                m.setHomogeneousGroup(w.group.getId());
-                                                Presentation pres = Presentation.expected(w.group.name, w.group.name);
-                                                m.setPresentation(pres != null ? pres : Presentation.PILLS);
-                                                m.setPatient(patient);
-                                                m.save();
-                                            }
-                                        } else {
-                                            throw new RuntimeException(" Prescription must have a cn or group reference");
-                                        }
-
-                                        Schedule s = c.getSchedule();
-                                        Schedule prev = DB.schedules().findByMedicineAndPatient(m, patient);
-                                        // TODO: find by med and patient
-                                        if (prev != null) {
-                                            Log.d("PRESCRIPTION", "Found previous schedule for med " + m.getId());
-                                            updateSchedule(prev, s, c.getScheduleItems());
-                                        } else {
-                                            Log.d("PRESCRIPTION", "Not found previous schedule for med " + m.getId());
-                                            createSchedule(s, c.getScheduleItems(), m);
-                                        }
-
-                                        if(m!=null){
-                                            // remove old pickups before inserting the new ones
-                                            DB.pickups().removeByMed(m);
-                                        }
-
-                                        if (m != null && w.pk != null && w.pk.size() > 0) {
-
-
-                                            for (PickupWrapper pkw : w.pk) {
-                                                PickupInfo pickupInfo = new PickupInfo();
-                                                pickupInfo.setTo(df.parseLocalDate(pkw.t).plusMonths(19));
-                                                pickupInfo.setFrom(df.parseLocalDate(pkw.f).plusMonths(19));
-                                                pickupInfo.taken(pkw.tk == 1 ? true : false);
-                                                pickupInfo.setMedicine(m);
-                                                DB.pickups().save(pickupInfo);
-                                            }
-                                        }
-                                    } else {
-                                        mViewPager.setCurrentItem(i + 1);
-                                        Snack.show("Hmmmmmm....", ConfirmSchedulesActivity.this);
-                                    }
-                                }
-                            }
-                            CalendulaApp.eventBus().post(PersistenceEvents.SCHEDULE_EVENT);
-                            AlarmScheduler.instance().updateAllAlarms(ConfirmSchedulesActivity.this);
-                            return null;
-                        }
-                    });
-
-                    return true;
-
-                } catch (Exception e){
-                    Log.e("ConfirmSchedulesAct", "Error saving prescriptions", e);
-                    return false;
-                }
-            }
-
-            @Override
-            protected void onPostExecute(Boolean result) {
-                if(progress!=null) {
-                    progress.dismiss();
-                }
-                if(result){
-                    finish();
-                }
-            }
-        };
-
-        task.execute((Void[])null);
     }
 
     public void createSchedule(final Schedule s, List<ScheduleItem> items, Medicine m) {
@@ -425,13 +213,13 @@ public class ConfirmSchedulesActivity extends CalendulaActivity implements ViewP
         s.setCycle(current.getCycleDays(), current.getCycleRest());
         s.setStartTime(current.startTime());
 
-        List<Long> routinesTaken = new ArrayList<Long>();
+        List<Long> routinesTaken = new ArrayList<>();
 
         if (!s.repeatsHourly()) {
             for (ScheduleItem item : s.items()) {
                 DailyScheduleItem d = DailyScheduleItem.findByScheduleItem(item);
                 // if taken today, add to the list
-                if (d!=null && d.takenToday()) {
+                if (d != null && d.takenToday()) {
                     routinesTaken.add(item.routine().getId());
                 }
                 item.deleteCascade();
@@ -468,28 +256,6 @@ public class ConfirmSchedulesActivity extends CalendulaActivity implements ViewP
         // save and fire event
         DB.schedules().saveAndFireEvent(s);
         AlarmScheduler.instance().onCreateOrUpdateSchedule(s, ConfirmSchedulesActivity.this);
-    }
-
-    private void updatePageTitle(int i) {
-        if (i == 0) {
-            title.setText(scheduleCount + " " + getString(R.string.scan_prescriptions));
-            medName.setText(getString(R.string.scan_review_title));
-        } else if (i == scheduleCount + 1) {
-            title.setText(scheduleCount + " " + getString(R.string.scan_prescriptions));
-            medName.setText(getString(R.string.confirm));
-        } else {
-            PrescriptionWrapper pw = prescriptionList.get(i - 1);
-            if (pw.cn != null) {
-                if (pw.prescription == null) {
-                    pw.prescription = Prescription.findByCn(pw.cn);
-                }
-                medName.setText(Strings.toProperCase(pw.prescription.name));
-
-            } else if (pw.isGroup) {
-                medName.setText(pw.group.name);
-            }
-            title.setText(getResources().getString(R.string.confirm_prescription_x_of_y, i, scheduleCount));
-        }
     }
 
     @Override
@@ -547,6 +313,255 @@ public class ConfirmSchedulesActivity extends CalendulaActivity implements ViewP
         return prescriptionList;
     }
 
+    public PrescriptionListWrapper parseQRData(String data) {
+        Log.d(TAG, "QRDATA: " + data);
+        return new Gson().fromJson(data, PrescriptionListWrapper.class);
+    }
+
+    public void next() {
+        int next = mViewPager.getCurrentItem() + 1;
+        int size = mSectionsPagerAdapter.getCount();
+        if (next < size) {
+            mViewPager.setCurrentItem(next);
+        }
+    }
+
+    Fragment getViewPagerFragment(int position) {
+        return getSupportFragmentManager().findFragmentByTag(FragmentUtils.makeViewPagerFragmentName(R.id.pager, position));
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_confirm_schedules);
+        patient = DB.patients().getActive(this);
+        color = patient.color();
+        int dark = ScreenUtils.equivalentNoAlpha(color, Color.BLACK, 0.85f);
+
+        findViewById(R.id.activity_layout).setBackgroundColor(dark);
+        setupToolbar(null, color);
+        setupStatusBar(color);
+
+        title = (TextView) findViewById(R.id.textView);
+        medName = (TextView) findViewById(R.id.textView2);
+        fab = (FloatingActionButton) findViewById(R.id.add_button);
+        scheduleTypeSelector = findViewById(R.id.schedule_type_selector);
+        readingQrBox = findViewById(R.id.reading_qr_box);
+
+        medName.setBackgroundColor(color);
+        scheduleTypeSelector.setBackgroundColor(dark);
+
+        routinesItem = (ImageButton) findViewById(R.id.schedule_type_routines);
+        hourlyItem = (ImageButton) findViewById(R.id.schedule_type_hourly);
+        cycleItem = (ImageButton) findViewById(R.id.schedule_type_period);
+
+        View.OnClickListener l = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickScheduleTypeButton(v.getId());
+            }
+        };
+
+        routinesItem.setOnClickListener(l);
+        hourlyItem.setOnClickListener(l);
+        cycleItem.setOnClickListener(l);
+
+        qrData = getIntent().getStringExtra("qr_data");
+        try {
+            new ProcessQRTask().execute(qrData);
+        } catch (Exception e) {
+            Log.e(TAG, "Error processing QR", e);
+            Toast.makeText(this, "Error inesperado actualizando!", Toast.LENGTH_LONG).show();
+            finish();
+        }
+    }
+
+    private List<PrescriptionWrapper> filterValidPrescriptions(PrescriptionListWrapper prescriptionListWrapper) {
+        List<PrescriptionWrapper> p = new ArrayList<>();
+
+        for (PrescriptionWrapper pw : prescriptionListWrapper.p) {
+            if (pw.cn != null) {
+                Prescription pr = DB.drugDB().prescriptions().findByCn(pw.cn);
+                boolean prescriptionExists = pr != null;
+                boolean medExists = DB.medicines().findOneBy(Medicine.COLUMN_CN, pw.cn) != null;
+
+                if (prescriptionExists) {
+                    pw.exists = medExists;
+                    pw.prescription = pr;
+                    p.add(pw);
+                }
+            } else if (pw.g != null) {
+
+                HomogeneousGroup group = findGroup(pw.g);
+                if (group != null) {
+                    Log.d("ConfirmSchedulesAct", "Found group: " + group.getName());
+                    pw.exists = true;
+                    pw.isGroup = true;
+                    pw.group = group;
+                    p.add(pw);
+                }
+            }
+
+            if (pw.pk != null) {
+                for (PickupWrapper pkw : pw.pk) {
+                    Log.d("ConfirmSchedulesAct", "Pickup : " + df.parseDateTime(pkw.f).toString("dd/MM/yyyy"));
+                    Log.d("ConfirmSchedulesAct", "Pickup : " + df.parseDateTime(pkw.t).toString("dd/MM/yyyy"));
+                    Log.d("ConfirmSchedulesAct", "Pickup : " + pkw.tk);
+                }
+            }
+        }
+        return p;
+    }
+
+    private HomogeneousGroup findGroup(String g) {
+        return DB.drugDB().homogeneousGroups().findOneBy(HomogeneousGroup.COLUMN_HOMOGENEOUS_GROUP_ID, g);
+    }
+
+    private void hideScheduleTypeSelector() {
+        scheduleTypeSelector.setVisibility(View.INVISIBLE);
+    }
+
+    private void showScheduleTypeSelector() {
+        if (scheduleTypeSelector.getVisibility() != View.VISIBLE) {
+            scheduleTypeSelector.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void saveSchedules() {
+
+        final ProgressDialog progress = ProgressDialog.show(this, "Calendula", "Actualizando pautas...", true);
+
+        AsyncTask<Void, Void, Boolean> task = new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... arg0) {
+                try {
+                    TransactionManager.callInTransaction(DB.helper().getConnectionSource(), new Callable<Object>() {
+                        @Override
+                        public Object call() throws Exception {
+
+                            for (int i = 0; i < scheduleCount; i++) {
+
+                                Log.d("PRESCRIPTION", "Item " + i);
+
+                                Fragment f = getViewPagerFragment(i + 1);
+
+                                if (f instanceof ScheduleImportFragment) {
+
+                                    Log.d("PRESCRIPTION", "Fragment " + i);
+
+                                    ScheduleImportFragment c = (ScheduleImportFragment) f;
+
+                                    if (c.validate()) {
+                                        PrescriptionWrapper w = prescriptionList.get(i);
+                                        Log.d("PRESCRIPTION", "Validate!");
+                                        String cn = w.cn;
+                                        Medicine m = null;
+                                        if (cn != null) {
+                                            m = DB.medicines().findByCnAndPatient(cn, patient);
+                                            if (m == null) {
+                                                Log.d("PRESCRIPTION", "Saving medicine!");
+                                                m = Medicine.fromPrescription(DB.drugDB().prescriptions().findByCn(cn));
+                                                m.setPatient(patient);
+                                                m.save();
+                                            }
+                                        } else if (w.isGroup) {
+                                            m = DB.medicines().findByGroupAndPatient(w.group.getId(), patient);
+                                            if (m == null) {
+                                                m = new Medicine(Strings.firstPart(w.group.getName()));
+                                                m.setHomogeneousGroup(w.group.getId());
+                                                Presentation pres = DBRegistry.instance().current().expected(w.group.getName(), w.group.getName());
+                                                m.setPresentation(pres != null ? pres : Presentation.PILLS);
+                                                m.setPatient(patient);
+                                                m.setDatabase(DBRegistry.instance().current().id());
+                                                m.save();
+                                            }
+                                        } else {
+                                            throw new RuntimeException(" Prescription must have a cn or group reference");
+                                        }
+
+                                        Schedule s = c.getSchedule();
+                                        Schedule prev = DB.schedules().findByMedicineAndPatient(m, patient);
+                                        // TODO: find by med and patient
+                                        if (prev != null) {
+                                            Log.d("PRESCRIPTION", "Found previous schedule for med " + m.getId());
+                                            updateSchedule(prev, s, c.getScheduleItems());
+                                        } else {
+                                            Log.d("PRESCRIPTION", "Not found previous schedule for med " + m.getId());
+                                            createSchedule(s, c.getScheduleItems(), m);
+                                        }
+
+                                        if (m != null) {
+                                            // remove old pickups before inserting the new ones
+                                            DB.pickups().removeByMed(m);
+                                        }
+
+                                        if (m != null && w.pk != null && w.pk.size() > 0) {
+
+
+                                            for (PickupWrapper pkw : w.pk) {
+                                                PickupInfo pickupInfo = new PickupInfo();
+                                                pickupInfo.setTo(df.parseLocalDate(pkw.t));//.plusMonths(19));
+                                                pickupInfo.setFrom(df.parseLocalDate(pkw.f));//.plusMonths(19));
+                                                pickupInfo.taken(pkw.tk == 1);
+                                                pickupInfo.setMedicine(m);
+                                                DB.pickups().save(pickupInfo);
+                                            }
+                                        }
+                                    } else {
+                                        mViewPager.setCurrentItem(i + 1);
+                                        Snack.show("Hmmmmmm....", ConfirmSchedulesActivity.this);
+                                    }
+                                }
+                            }
+                            CalendulaApp.eventBus().post(PersistenceEvents.SCHEDULE_EVENT);
+                            AlarmScheduler.instance().updateAllAlarms(ConfirmSchedulesActivity.this);
+                            return null;
+                        }
+                    });
+
+                    return true;
+
+                } catch (Exception e) {
+                    Log.e("ConfirmSchedulesAct", "Error saving prescriptions", e);
+                    return false;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Boolean result) {
+                if (progress != null) {
+                    progress.dismiss();
+                }
+                if (result) {
+                    finish();
+                }
+            }
+        };
+
+        task.execute((Void[]) null);
+    }
+
+    private void updatePageTitle(int i) {
+        if (i == 0) {
+            title.setText(scheduleCount + " " + getString(R.string.scan_prescriptions));
+            medName.setText(getString(R.string.scan_review_title));
+        } else if (i == scheduleCount + 1) {
+            title.setText(scheduleCount + " " + getString(R.string.scan_prescriptions));
+            medName.setText(getString(R.string.confirm));
+        } else {
+            PrescriptionWrapper pw = prescriptionList.get(i - 1);
+            if (pw.cn != null) {
+                if (pw.prescription == null) {
+                    pw.prescription = DB.drugDB().prescriptions().findByCn(pw.cn);
+                }
+                medName.setText(Strings.toProperCase(pw.prescription.getName()));
+
+            } else if (pw.isGroup) {
+                medName.setText(pw.group.getName());
+            }
+            title.setText(getResources().getString(R.string.confirm_prescription_x_of_y, i, scheduleCount));
+        }
+    }
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
@@ -572,7 +587,7 @@ public class ConfirmSchedulesActivity extends CalendulaActivity implements ViewP
                 return ScheduleConfirmationEndFragment.newInstance();
             } else {
                 // getItem is called to instantiate the fragment for the given page.
-                // Return a PlaceholderFragment (defined as a static inner class below).            
+                // Return a PlaceholderFragment (defined as a static inner class below).
                 PrescriptionWrapper pw = prescriptionList.get(position - 1);
                 return ScheduleImportFragment.newInstance(pw);
             }
@@ -588,26 +603,6 @@ public class ConfirmSchedulesActivity extends CalendulaActivity implements ViewP
             return "";
         }
     }
-
-
-    public PrescriptionListWrapper parseQRData(String data) {
-        Log.d(TAG,"QRDATA: " + data);
-        return new Gson().fromJson(data, PrescriptionListWrapper.class);
-    }
-
-    public void next() {
-        int next = mViewPager.getCurrentItem() + 1;
-        int size = mSectionsPagerAdapter.getCount();
-        if (next < size) {
-            mViewPager.setCurrentItem(next);
-        }
-    }
-
-
-    Fragment getViewPagerFragment(int position) {
-        return getSupportFragmentManager().findFragmentByTag(FragmentUtils.makeViewPagerFragmentName(R.id.pager, position));
-    }
-
 
     private class ProcessQRTask extends AsyncTask<String, Integer, Long> {
 
@@ -630,14 +625,14 @@ public class ConfirmSchedulesActivity extends CalendulaActivity implements ViewP
                     if (sCount > 0) {
                         return sCount;
                     } else {
-                        return 0l;
+                        return 0L;
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                     Log.e(TAG, "Error processing QR", e);
-                    return -1l;
+                    return -1L;
                 }
             } else {
-                return -1l;
+                return -1L;
             }
         }
 

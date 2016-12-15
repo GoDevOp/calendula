@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.fragments.dosePickers;
@@ -51,9 +51,9 @@ public class DefaultDosePickerFragment extends DosePickerFragment {
     protected void setInitialValue(double initialDose) {
         Bundle args = getArguments();
         Presentation p = (Presentation) args.getSerializable("presentation");
-        p = p!=null ? p : Presentation.UNKNOWN;
+        p = p != null ? p : Presentation.UNKNOWN;
         unitsText.setText(p.units(getResources()));
-        text.setText(""+initialDose);
+        text.setText("" + initialDose);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class DefaultDosePickerFragment extends DosePickerFragment {
     @Override
     protected void onCancel() {
         super.onCancel();
-        closeKeyboard(getActivity(),text.getWindowToken());
+        closeKeyboard(getActivity(), text.getWindowToken());
     }
 
     @Override

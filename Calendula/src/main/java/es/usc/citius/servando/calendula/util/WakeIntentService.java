@@ -13,10 +13,11 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.util;
+
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
@@ -91,7 +92,7 @@ public abstract class WakeIntentService extends IntentService {
                 PowerManager.WakeLock wakeLock = getLock(this);
                 if (wakeLock.isHeld())
                     wakeLock.release();
-            }catch (Exception e){
+            } catch (Exception e) {
                 // do nothing
             }
         }

@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.scheduling;
@@ -48,14 +48,6 @@ public class PickupReminderMgr {
         return instance;
     }
 
-
-    private PendingIntent alarmPendingIntent(Context ctx) {
-        Intent intent = new Intent(ctx, PickupAlarmReceiver.class);
-        intent.putExtra(CalendulaApp.INTENT_EXTRA_ACTION, CalendulaApp.ACTION_CHECK_PICKUPS_ALARM);
-        int intent_id = "ACTION_CHECK_PICKUPS_ALARM".hashCode();
-        return PendingIntent.getBroadcast(ctx, intent_id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-    }
-
     public void setCheckPickupsAlarm(Context ctx, LocalDate date) {
 
         DateTime d = date.toDateTimeAtStartOfDay().withHourOfDay(12).withMinuteOfHour(0).withSecondOfMinute(0);
@@ -66,6 +58,13 @@ public class PickupReminderMgr {
             alarmManager.set(AlarmManager.RTC_WAKEUP, d.getMillis(), calendarReminderPendingIntent);
             Log.d(TAG, "Pickup check alarm scheduled!");
         }
+    }
+
+    private PendingIntent alarmPendingIntent(Context ctx) {
+        Intent intent = new Intent(ctx, PickupAlarmReceiver.class);
+        intent.putExtra(CalendulaApp.INTENT_EXTRA_ACTION, CalendulaApp.ACTION_CHECK_PICKUPS_ALARM);
+        int intent_id = "ACTION_CHECK_PICKUPS_ALARM".hashCode();
+        return PendingIntent.getBroadcast(ctx, intent_id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
 

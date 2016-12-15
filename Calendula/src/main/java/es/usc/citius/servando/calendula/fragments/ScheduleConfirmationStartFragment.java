@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.fragments;
@@ -49,7 +49,7 @@ public class ScheduleConfirmationStartFragment extends Fragment {
         rootView.findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((ConfirmSchedulesActivity)getActivity()).next();
+                ((ConfirmSchedulesActivity) getActivity()).next();
             }
         });
         return rootView;

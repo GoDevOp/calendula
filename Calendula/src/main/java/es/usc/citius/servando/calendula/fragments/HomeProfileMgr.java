@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.fragments;
@@ -38,7 +38,6 @@ import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.makeramen.RoundedImageView;
 import com.squareup.picasso.Picasso;
@@ -61,6 +60,7 @@ public class HomeProfileMgr {
 
 
     public static final int BG_COUNT = 8;
+    private static HashMap<String, Integer> cache = new HashMap<>();
     int[] moodRes = new int[]{
             R.drawable.mood_1,
             R.drawable.mood_2,
@@ -75,7 +75,6 @@ public class HomeProfileMgr {
             R.color.android_blue,
             R.color.android_green
     };
-
     ImageView background;
     View profileImageContainer;
     TextView profileUsername;
@@ -89,15 +88,51 @@ public class HomeProfileMgr {
     ImageView bottomShadow;
     String[] moods;
     int currentBgFileIdx = 0;
+    View profileInfo;
     private Activity context;
     private View rootView;
-    View profileInfo;
 
     public HomeProfileMgr() {
 
     }
 
-    public void init(View view, final Activity ctx){
+    public static int colorForCurrent(Context ctx) {
+
+        String path = getBackgroundPath(ctx);
+        int color = Color.BLACK;
+        if (!cache.containsKey(path)) {
+            Bitmap bm = getBitmapFromAsset(ctx, path);
+            if (bm != null) {
+                Palette p = Palette.generate(bm);
+                color = p.getVibrantColor(color);
+            }
+            cache.put(path, color);
+        }
+        return cache.get(path);
+    }
+
+    public static Bitmap getBitmapFromAsset(Context context, String filePath) {
+        AssetManager assetManager = context.getAssets();
+
+        InputStream istr;
+        Bitmap bitmap = null;
+        try {
+            istr = assetManager.open(filePath);
+            bitmap = BitmapFactory.decodeStream(istr);
+        } catch (IOException e) {
+            // handle exception
+        }
+
+        return bitmap;
+    }
+
+    static String getBackgroundPath(Context ctx) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(ctx);
+        Integer idx = preferences.getInt("profile_background_idx", 1);
+        return "home_bg_" + idx + ".jpg";
+    }
+
+    public void init(View view, final Activity ctx) {
         this.context = ctx;
         this.rootView = view;
 
@@ -139,8 +174,8 @@ public class HomeProfileMgr {
         bottomShadow.setVisibility(View.INVISIBLE);
 
         Picasso.with(context)
-            .load("file:///android_asset/" + getBackgroundPath(ctx))
-            .into(background);
+                .load("file:///android_asset/" + getBackgroundPath(ctx))
+                .into(background);
 
         background.post(new Runnable() {
             @Override
@@ -158,10 +193,9 @@ public class HomeProfileMgr {
                 profileInfo.setAlpha(0);
                 profileInfo.animate().alpha(1).setDuration(400);
             }
-        },300);
+        }, 300);
 
     }
-
 
     public void updateModButton() {
         int mood = PreferenceManager.getDefaultSharedPreferences(context).getInt("last_mood", 2);
@@ -169,40 +203,6 @@ public class HomeProfileMgr {
         int res = moodRes[mood];
         modFabButton.setImageResource(color);
         moodImg.setImageResource(res);
-    }
-
-
-    public void updateBackground() {
-        Picasso.with(context)
-            .load("file:///android_asset/" + getRandomBackgroundPath())
-            .centerCrop()
-            .resize(background.getWidth(), background.getHeight())
-            .placeholder(background.getDrawable())
-            .into(background);
-
-        CalendulaApp.eventBus().post(new BackgroundUpdatedEvent());
-    }
-
-    void updateProfileInfo() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        String displayName = preferences.getString("display_name", "Calendula");
-        profileUsername.setText(displayName);
-        updateDate();
-    }
-
-    public void updateDate() {
-        DateTime dt = DateTime.now();
-        String dayStr = dt.dayOfMonth().getAsShortText();
-        String monthStr = dt.monthOfYear().getAsShortText().toUpperCase();
-        dayTv.setText(dayStr);
-        monthTv.setText(monthStr);
-    }
-
-
-    static String getBackgroundPath(Context ctx){
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(ctx);
-        Integer idx = preferences.getInt("profile_background_idx", 1);
-        return "home_bg_" + idx + ".jpg";
     }
 
 //    Bitmap getBackgroundBitmap() {
@@ -217,6 +217,25 @@ public class HomeProfileMgr {
 //        return ScreenUtils.getResizedBitmap(context, getRandomBackgroundPath(), width, height);
 //    }
 
+    public void updateBackground() {
+        Picasso.with(context)
+                .load("file:///android_asset/" + getRandomBackgroundPath())
+                .centerCrop()
+                .resize(background.getWidth(), background.getHeight())
+                .placeholder(background.getDrawable())
+                .into(background);
+
+        CalendulaApp.eventBus().post(new BackgroundUpdatedEvent());
+    }
+
+    public void updateDate() {
+        DateTime dt = DateTime.now();
+        String dayStr = dt.dayOfMonth().getAsShortText();
+        String monthStr = dt.monthOfYear().getAsShortText().toUpperCase();
+        dayTv.setText(dayStr);
+        monthTv.setText(monthStr);
+    }
+
     public String getRandomBackgroundPath() {
         int rand = (((int) (Math.random() * 1000)) % BG_COUNT) + 1;
         if (rand == currentBgFileIdx) {
@@ -224,7 +243,7 @@ public class HomeProfileMgr {
         }
         currentBgFileIdx = rand;
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        preferences.edit().putInt("profile_background_idx", rand).commit();
+        preferences.edit().putInt("profile_background_idx", rand).apply();
         return "home_bg_" + rand + ".jpg";
 
     }
@@ -241,7 +260,7 @@ public class HomeProfileMgr {
                     public void onClick(DialogInterface dialog, int which) {
                         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
                         Snack.show("Mood saved!", context);
-                        preferences.edit().putInt("last_mood", which).commit();
+                        preferences.edit().putInt("last_mood", which).apply();
                         updateModButton();
                     }
                 }).show();
@@ -253,6 +272,13 @@ public class HomeProfileMgr {
 
     public void onExpand() {
         profileInfo.animate().alpha(1);
+    }
+
+    void updateProfileInfo() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String displayName = preferences.getString("display_name", "Calendula");
+        profileUsername.setText(displayName);
+        updateDate();
     }
 
     public class MoodListAdapter extends ArrayAdapter<String> {
@@ -283,39 +309,6 @@ public class HomeProfileMgr {
         }
     }
 
-
-    private static HashMap<String, Integer> cache = new HashMap<>();
-
-    public static int colorForCurrent(Context ctx){
-
-        String path = getBackgroundPath(ctx);
-        int color = Color.BLACK;
-        if(!cache.containsKey(path)) {
-            Bitmap bm = getBitmapFromAsset(ctx, path);
-            if(bm != null) {
-                Palette p = Palette.generate(bm);
-                color = p.getVibrantColor(color);
-            }
-            cache.put(path, color);
-        }
-        return cache.get(path);
+    public class BackgroundUpdatedEvent {
     }
-
-    public static Bitmap getBitmapFromAsset(Context context, String filePath) {
-        AssetManager assetManager = context.getAssets();
-
-        InputStream istr;
-        Bitmap bitmap = null;
-        try {
-            istr = assetManager.open(filePath);
-            bitmap = BitmapFactory.decodeStream(istr);
-        } catch (IOException e) {
-            // handle exception
-        }
-
-        return bitmap;
-    }
-
-
-    public class BackgroundUpdatedEvent {}
 }

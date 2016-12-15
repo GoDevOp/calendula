@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingTop="@dimen/status_bar_height">
+
+    <android.support.v7.widget.Toolbar xmlns:app="http://schemas.android.com/apk/res-auto"
+                                       android:id="@+id/toolbar"
+                                       android:layout_width="match_parent"
+                                       android:layout_height="56dp"
+                                       android:background="@color/dark_grey_home"
+                                       app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+                                       app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
+
+    <ImageView
+        android:id="@+id/tabs_shadow"
+        android:layout_width="fill_parent"
+        android:layout_height="5dp"
+        android:layout_below="@+id/toolbar"
+        android:alpha="0.7"
+        android:scaleType="fitXY"
+        android:src="@drawable/daily_view_list_item_tab_shadow_top"/>
+
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/allergies_recycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/toolbar"
+        android:background="@drawable/touchable_white"
+        android:clipToPadding="false"
+        android:paddingBottom="96dp"/>
+
+    <TextView
+        android:id="@+id/textview_no_allergies_placeholder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/toolbar"
+        android:gravity="center"
+        android:text="@string/allergies_placeholder"
+        android:visibility="gone"/>
+
+    <com.getbase.floatingactionbutton.AddFloatingActionButton xmlns:fab="http://schemas.android.com/apk/res-auto"
+                                                              android:id="@+id/add_button"
+                                                              android:layout_width="wrap_content"
+                                                              android:layout_height="wrap_content"
+                                                              android:layout_alignParentBottom="true"
+                                                              android:layout_alignParentRight="true"
+                                                              android:layout_margin="10dp"
+                                                              fab:fab_colorNormal="#efefef"
+                                                              fab:fab_colorPressed="#b7b7b7"
+                                                              fab:fab_icon="@drawable/ic_done_black_48dp"
+                                                              fab:fab_labelStyle="@style/menu_labels_style"
+                                                              fab:fab_plusIconColor="@color/black"/>
+
+    <ProgressBar
+        android:id="@+id/main_progress_bar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone"/>
+
+
+</RelativeLayout>

@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.fragments;
@@ -73,13 +73,6 @@ public class ScheduleSummaryFragment extends Fragment {
         }
     }
 
-    IconicsDrawable iconFor(Presentation p){
-        return new IconicsDrawable(getContext())
-                .icon(Presentation.iconFor(p))
-                .colorRes(R.color.agenda_item_title)
-                .sizeDp(60);
-    }
-
     public void updateSummary() {
 
         int color = DB.patients().getActive(getActivity()).color();
@@ -91,7 +84,7 @@ public class ScheduleSummaryFragment extends Fragment {
         Schedule s = ScheduleHelper.instance().getSchedule();
         List<ScheduleItem> items = ScheduleHelper.instance().getScheduleItems();
 
-        final TextView summaryTitle= (TextView) rootView.findViewById(R.id.summaryTitle);
+        final TextView summaryTitle = (TextView) rootView.findViewById(R.id.summaryTitle);
         final TextView medNameTv = (TextView) rootView.findViewById(R.id.sched_summary_medname);
         final TextView medDaysTv = (TextView) rootView.findViewById(R.id.sched_summary_medi_days);
         final TextView medDailyFreqTv = (TextView) rootView.findViewById(R.id.sched_summary_medi_dailyfreq);
@@ -148,6 +141,13 @@ public class ScheduleSummaryFragment extends Fragment {
         medIconImage.setVisibility(View.VISIBLE);
 
 
+    }
+
+    IconicsDrawable iconFor(Presentation p) {
+        return new IconicsDrawable(getContext())
+                .icon(Presentation.iconFor(p))
+                .colorRes(R.color.agenda_item_title)
+                .sizeDp(60);
     }
 
 

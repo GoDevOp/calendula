@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.scheduling;
@@ -66,7 +66,7 @@ public class NotificationEventReceiver extends BroadcastReceiver {
             case CalendulaApp.ACTION_CANCEL_ROUTINE:
                 routineId = intent.getLongExtra(CalendulaApp.INTENT_EXTRA_ROUTINE_ID, -1);
                 if (routineId != -1) {
-                    AlarmScheduler.instance().cancelStatusBarNotification(Routine.findById(routineId), date, context);
+                    AlarmScheduler.instance().onIntakeCancelled(Routine.findById(routineId), date, context);
                     Toast.makeText(context, context.getString(R.string.reminder_cancelled_message), Toast.LENGTH_SHORT).show();
                 }
                 break;
@@ -76,8 +76,26 @@ public class NotificationEventReceiver extends BroadcastReceiver {
                 scheduleTime = intent.getStringExtra(CalendulaApp.INTENT_EXTRA_SCHEDULE_TIME);
                 if (scheduleId != -1 && scheduleTime != null) {
                     LocalTime t = DateTimeFormat.forPattern("kk:mm").parseLocalTime(scheduleTime);
-                    AlarmScheduler.instance().cancelStatusBarNotification(Schedule.findById(scheduleId), t, date, context);
-                    Toast.makeText(context,context.getString(R.string.reminder_cancelled_message),Toast.LENGTH_SHORT).show();
+                    AlarmScheduler.instance().onIntakeCancelled(Schedule.findById(scheduleId), t, date, context);
+                    Toast.makeText(context, context.getString(R.string.reminder_cancelled_message), Toast.LENGTH_SHORT).show();
+                }
+                break;
+
+            case CalendulaApp.ACTION_CONFIRM_ALL_ROUTINE:
+                routineId = intent.getLongExtra(CalendulaApp.INTENT_EXTRA_ROUTINE_ID, -1);
+                if (routineId != -1) {
+                    AlarmScheduler.instance().onIntakeConfirmAll(Routine.findById(routineId), date, context);
+                    Toast.makeText(context, context.getString(R.string.all_meds_taken), Toast.LENGTH_SHORT).show();
+                }
+                break;
+
+            case CalendulaApp.ACTION_CONFIRM_ALL_SCHEDULE:
+                scheduleId = intent.getLongExtra(CalendulaApp.INTENT_EXTRA_SCHEDULE_ID, -1);
+                scheduleTime = intent.getStringExtra(CalendulaApp.INTENT_EXTRA_SCHEDULE_TIME);
+                if (scheduleId != -1 && scheduleTime != null) {
+                    LocalTime t = DateTimeFormat.forPattern("kk:mm").parseLocalTime(scheduleTime);
+                    AlarmScheduler.instance().onIntakeConfirmAll(Schedule.findById(scheduleId), t, date, context);
+                    Toast.makeText(context, context.getString(R.string.all_meds_taken), Toast.LENGTH_SHORT).show();
                 }
                 break;
 
@@ -89,27 +107,3 @@ public class NotificationEventReceiver extends BroadcastReceiver {
     }
 
 }
-
-
-//case CalendulaApp.ACTION_DELAY_HOURLY_SCHEDULE:
-//        scheduleId = intent.getLongExtra(CalendulaApp.INTENT_EXTRA_SCHEDULE_ID, -1);
-//        scheduleTime = intent.getStringExtra(CalendulaApp.INTENT_EXTRA_SCHEDULE_TIME);
-//        if (scheduleId != -1 && scheduleTime != null)
-//        {
-//        SharedPreferences prefs =
-//        PreferenceManager.getDefaultSharedPreferences(context);
-//        String delayMinutesStr = prefs.getString("alarm_repeat_frequency", "15");
-//        long delay = Long.parseLong(delayMinutesStr);
-//        if (delay < 0)
-//        {
-//        delay = 15;
-//        }
-//        Schedule s = Schedule.findById(scheduleId);
-//        LocalTime t =
-//        DateTimeFormat.forPattern("kk:mm").parseLocalTime(scheduleTime);
-//        AlarmScheduler.instance().onDelayHourlySchedule(s, t, date, context, (int) delay);
-//        Toast.makeText(context,
-//        context.getString(R.string.reminder_delayed_message),
-//        Toast.LENGTH_SHORT).show();
-//        }
-//        break;

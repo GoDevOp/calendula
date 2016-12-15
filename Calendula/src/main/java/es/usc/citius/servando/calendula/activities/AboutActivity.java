@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.activities;
@@ -33,13 +33,13 @@ public class AboutActivity extends CalendulaActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
-        setupToolbar("About", getResources().getColor(R.color.dark_grey_home));
+        setupToolbar(getString(R.string.title_about), getResources().getColor(R.color.dark_grey_home));
         setupStatusBar(getResources().getColor(R.color.dark_grey_home));
 
         if (savedInstanceState == null) {
 
             Fragment fragment = new LibsBuilder()
-                    .withAboutAppName("Calendula")
+                    .withAboutAppName(getString(R.string.app_name))
                     .withAboutIconShown(true)
                     .withAboutVersionShown(true)
                     .withLicenseShown(true)

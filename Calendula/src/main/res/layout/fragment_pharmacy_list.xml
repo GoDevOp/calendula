@@ -10,7 +10,7 @@
         android:id="@+id/pharmacies_list_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:divider="@color/grey"
+        android:divider="#777"
         android:layout_marginTop="76dp"/>
 
     <RelativeLayout

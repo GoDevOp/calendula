@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.database;
@@ -24,6 +24,8 @@ import android.util.Log;
 import com.j256.ormlite.misc.TransactionManager;
 
 import java.util.concurrent.Callable;
+
+import es.usc.citius.servando.calendula.drugdb.model.database.DrugDBModule;
 
 
 public class DB {
@@ -51,14 +53,18 @@ public class DB {
     private static ScheduleItemDao ScheduleItems;
     // DailyScheduleItem DAO
     private static DailyScheduleItemDao DailyScheduleItems;
-    // Prescriptions DAO
-    private static PrescriptionDao Prescriptions;
-    // HomogeneousGroups DAO
-    private static HomogeneousGroupDao Groups;
     // Pickups DAO
     private static PickupInfoDao Pickups;
     // Patients DAO
     private static PatientDao Patients;
+    // Drug DB module
+    private static DrugDBModule DrugDB;
+    // Alerts DAO
+    private static PatientAlertDao PatientAlerts;
+    // Allergens DAO
+    private static PatientAllergenDao PatientAllergens;
+    // Allergy group DAO
+    private static AllergyGroupDao AllergyGroups;
 
     /**
      * Initialize database and DAOs
@@ -77,10 +83,12 @@ public class DB {
             Schedules = new ScheduleDao(db);
             ScheduleItems = new ScheduleItemDao(db);
             DailyScheduleItems = new DailyScheduleItemDao(db);
-            Prescriptions = new PrescriptionDao(db);
-            Groups = new HomogeneousGroupDao(db);
             Pickups = new PickupInfoDao(db);
             Patients = new PatientDao(db);
+            DrugDB = DrugDBModule.getInstance();
+            PatientAlerts = new PatientAlertDao(db);
+            PatientAllergens = new PatientAllergenDao(db);
+            AllergyGroups = new AllergyGroupDao(db);
             Log.v(TAG, "DB initialized " + DB.DB_NAME);
         }
 
@@ -100,9 +108,9 @@ public class DB {
         return db;
     }
 
-    public static void transaction(Callable<?> callable) {
+    public static Object transaction(Callable<?> callable) {
         try {
-            TransactionManager.callInTransaction(db.getConnectionSource(), callable);
+            return TransactionManager.callInTransaction(db.getConnectionSource(), callable);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -129,20 +137,28 @@ public class DB {
         return DailyScheduleItems;
     }
 
-    public static PrescriptionDao prescriptions() {
-        return Prescriptions;
-    }
-
-    public static HomogeneousGroupDao groups() {
-        return Groups;
-    }
-
     public static PickupInfoDao pickups() {
         return Pickups;
     }
 
     public static PatientDao patients() {
         return Patients;
+    }
+
+    public static DrugDBModule drugDB() {
+        return DrugDB;
+    }
+
+    public static PatientAlertDao alerts() {
+        return PatientAlerts;
+    }
+
+    public static PatientAllergenDao patientAllergens() {
+        return PatientAllergens;
+    }
+
+    public static AllergyGroupDao allergyGroups() {
+        return AllergyGroups;
     }
 
     public static void dropAndCreateDatabase() {

@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.persistence.typeSerializers;
@@ -33,10 +33,15 @@ import java.sql.SQLException;
  */
 public class LocalDatePersister extends BaseDataType {
 
-    String format = "ddMMYYYY";
+    private static final LocalDatePersister singleton = new LocalDatePersister();
+    String format = "YYYYMMdd";
 
     public LocalDatePersister() {
         super(SqlType.STRING, new Class<?>[]{LocalDate.class});
+    }
+
+    public static LocalDatePersister getSingleton() {
+        return singleton;
     }
 
     @Override
@@ -57,12 +62,5 @@ public class LocalDatePersister extends BaseDataType {
     @Override
     public Object javaToSqlArg(FieldType fieldType, Object javaObject) throws SQLException {
         return ((LocalDate) javaObject).toString(format);
-    }
-
-
-    private static final LocalDatePersister singleton = new LocalDatePersister();
-
-    public static LocalDatePersister getSingleton() {
-        return singleton;
     }
 }

@@ -33,7 +33,7 @@
         android:layout_below="@+id/pharmacy_list_icon"
         android:layout_marginLeft="56dp"
         android:text="Address"
-        android:textColor="@color/grey"
+        android:textColor="#777"
         android:textSize="12dp"
         tools:text="Address" />
 

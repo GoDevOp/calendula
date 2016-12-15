@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.activities;
@@ -58,42 +58,11 @@ public class RoutinesActivity extends CalendulaActivity implements RoutineCreate
     long mRoutineId;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_routines);
-        int color = DB.patients().getActive(this).color();
-        setupToolbar(null, color);
-        setupStatusBar(color);
-
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-        mViewPager = (ViewPager) findViewById(R.id.pager);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
-
-        processIntent();
-
-        TextView title = ((TextView) findViewById(R.id.textView2));
-        title.setBackgroundColor(color);
-        title.setText(getString(mRoutineId != -1 ?R.string.title_edit_routine_activity: R.string.create_routine_button_text));
-
-        findViewById(R.id.add_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ((RoutineCreateOrEditFragment) getViewPagerFragment(0)).onEdit();
-            }
-        });
-    }
-
-
-    private void processIntent() {
-        mRoutineId = getIntent().getLongExtra(CalendulaApp.INTENT_EXTRA_ROUTINE_ID, -1);
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.telt
         getMenuInflater().inflate(R.menu.routines, menu);
         removeItem = menu.findItem(R.id.action_remove);
-        removeItem.setVisible(mRoutineId != -1 ? true : false);
+        removeItem.setVisible(mRoutineId != -1);
         return true;
     }
 
@@ -131,14 +100,44 @@ public class RoutinesActivity extends CalendulaActivity implements RoutineCreate
         finish();
     }
 
+    Fragment getViewPagerFragment(int position) {
+        return getSupportFragmentManager().findFragmentByTag(FragmentUtils.makeViewPagerFragmentName(R.id.pager, position));
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_routines);
+        int color = DB.patients().getActive(this).color();
+        setupToolbar(null, color);
+        setupStatusBar(color);
+
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        mViewPager = (ViewPager) findViewById(R.id.pager);
+        mViewPager.setAdapter(mSectionsPagerAdapter);
+
+        processIntent();
+
+        TextView title = ((TextView) findViewById(R.id.textView2));
+        title.setBackgroundColor(color);
+        title.setText(getString(mRoutineId != -1 ? R.string.title_edit_routine_activity : R.string.create_routine_button_text));
+
+        findViewById(R.id.add_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((RoutineCreateOrEditFragment) getViewPagerFragment(0)).onEdit();
+            }
+        });
+    }
+
     @Override
     protected void onPause() {
         super.onPause();
         overridePendingTransition(0, 0);
     }
 
-    Fragment getViewPagerFragment(int position) {
-        return getSupportFragmentManager().findFragmentByTag(FragmentUtils.makeViewPagerFragmentName(R.id.pager, position));
+    private void processIntent() {
+        mRoutineId = getIntent().getLongExtra(CalendulaApp.INTENT_EXTRA_ROUTINE_ID, -1);
     }
 
     /**

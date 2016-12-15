@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.activities;
@@ -60,7 +60,6 @@ public class CaldroidSampleCustomAdapter extends CaldroidGridAdapter {
         super(context, month, year, caldroidData, extraData);
         this.pkUtils = pkUtils;
     }
-
 
 
     @Override
@@ -141,34 +140,34 @@ public class CaldroidSampleCustomAdapter extends CaldroidGridAdapter {
 
         List<PickupInfo> pk = pkUtils.pickupsMap().get(new LocalDate(dateTime.getMilliseconds(TimeZone.getDefault())));
 
-        if(pk!=null && pk.size() > 0){
+        if (pk != null && pk.size() > 0) {
             LocalDate today = LocalDate.now();
 
             HashMap<Integer, String> colors = new HashMap<>();
-            for(int i = 0; i < pk.size(); i++){
+            for (int i = 0; i < pk.size(); i++) {
                 PickupInfo pki = pk.get(i);
                 Integer color = pkUtils.getPatient(pki).color();
-                if(!colors.containsKey(color)) {
+                if (!colors.containsKey(color)) {
                     colors.put(color, pki.taken() ? takenSymbol : notTakenSymbol);
-                }else if (!pki.taken()) {
+                } else if (!pki.taken()) {
                     colors.put(color, pki.to().isAfter(today) ? notTakenSymbol : lostSymbol);
                 }
             }
 
             String text = "";
-            for(Integer c: colors.keySet()){
-                text+= colors.get(c);
+            for (Integer c : colors.keySet()) {
+                text += colors.get(c);
             }
 
             Spannable span = new SpannableString(text);
             int i = 0;
-            for(int color : colors.keySet()){
+            for (int color : colors.keySet()) {
                 span.setSpan(new ForegroundColorSpan(color), i, i + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                span.setSpan(new RelativeSizeSpan(1.2f), i, i+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                span.setSpan(new RelativeSizeSpan(1.2f), i, i + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 i++;
             }
             tv2.setText(span);
-        }else{
+        } else {
             tv2.setText("");
         }
 

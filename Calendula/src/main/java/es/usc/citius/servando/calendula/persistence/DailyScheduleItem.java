@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.persistence;
@@ -81,6 +81,18 @@ public class DailyScheduleItem {
         this.schedule = schedule;
         this.time = time;
         this.date = LocalDate.now();
+    }
+
+    public static DailyScheduleItem findById(long id) {
+        return DB.dailyScheduleItems().findById(id);
+    }
+
+    public static List<DailyScheduleItem> findAll() {
+        return DB.dailyScheduleItems().findAll();
+    }
+
+    public static DailyScheduleItem findByScheduleItem(ScheduleItem item) {
+        return DB.dailyScheduleItems().findByScheduleItem(item);
     }
 
     public Long getId() {
@@ -158,19 +170,6 @@ public class DailyScheduleItem {
                 ", time=" + time +
                 ", date=" + date +
                 '}';
-    }
-
-    public static DailyScheduleItem findById(long id) {
-        return DB.dailyScheduleItems().findById(id);
-    }
-
-
-    public static List<DailyScheduleItem> findAll() {
-        return DB.dailyScheduleItems().findAll();
-    }
-
-    public static DailyScheduleItem findByScheduleItem(ScheduleItem item) {
-        return DB.dailyScheduleItems().findByScheduleItem(item);
     }
 
     public void save() {

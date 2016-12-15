@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.util.view;
@@ -43,11 +43,11 @@ public class CustomDigitalClock extends TextView {
     private final static String m24sec = "kk:mm:ss";
     Calendar mCalendar;
     String mFormat;
+    boolean showSeconds = false;
     private FormatChangeObserver mFormatChangeObserver = new FormatChangeObserver();
     private Runnable mTicker;
     private Handler mHandler;
     private boolean mTickerStopped = false;
-    boolean showSeconds = false;
 
     public CustomDigitalClock(Context context) {
         super(context);
@@ -59,15 +59,8 @@ public class CustomDigitalClock extends TextView {
         initClock(context);
     }
 
-    private void initClock(Context context) {
-        Resources r = context.getResources();
-
-        if (mCalendar == null) {
-            mCalendar = Calendar.getInstance();
-        }
-
-        getContext().getContentResolver().registerContentObserver(Settings.System.CONTENT_URI, true, mFormatChangeObserver);
-
+    public void setShowSeconds(boolean showSeconds) {
+        this.showSeconds = showSeconds;
         setFormat();
     }
 
@@ -94,7 +87,7 @@ public class CustomDigitalClock extends TextView {
                 //
                 // String text = Html.fromHtml("<b>" + hour + "</b>:" + min).toString();
                 // setText(text);
-                if(showSeconds)
+                if (showSeconds)
                     setText("Ahora - " + DateFormat.format(mFormat, mCalendar));
                 else
                     setText(DateFormat.format(mFormat, mCalendar));
@@ -113,6 +106,18 @@ public class CustomDigitalClock extends TextView {
         mTickerStopped = true;
     }
 
+    private void initClock(Context context) {
+        Resources r = context.getResources();
+
+        if (mCalendar == null) {
+            mCalendar = Calendar.getInstance();
+        }
+
+        getContext().getContentResolver().registerContentObserver(Settings.System.CONTENT_URI, true, mFormatChangeObserver);
+
+        setFormat();
+    }
+
     /**
      * Pulls 12/24 mode from system settings
      */
@@ -124,7 +129,7 @@ public class CustomDigitalClock extends TextView {
         if (get24HourMode()) {
             mFormat = showSeconds ? m24sec : m24;
         } else {
-            mFormat = showSeconds ? m12sec: m12;
+            mFormat = showSeconds ? m12sec : m12;
         }
     }
 
@@ -137,10 +142,5 @@ public class CustomDigitalClock extends TextView {
         public void onChange(boolean selfChange) {
             setFormat();
         }
-    }
-
-    public void setShowSeconds(boolean showSeconds) {
-        this.showSeconds = showSeconds;
-        setFormat();
     }
 }

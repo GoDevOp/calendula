@@ -1,3 +1,6 @@
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
 /*
  *    Calendula - An assistant for personal medication management.
  *    Copyright (C) 2016 CITIUS - USC
@@ -46,6 +49,30 @@ def keystorePropertiesFile = rootProject.file("keystore.properties")
 def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
+def getCurrentFlavor() {
+    Gradle gradle = getGradle()
+    String  tskReqStr = gradle.getStartParameter().getTaskRequests().toString()
+
+    Pattern pattern;
+
+    if( tskReqStr.contains( "assemble" ) )
+        pattern = Pattern.compile("assemble(\\w+)(Release|Debug)")
+    else
+        pattern = Pattern.compile("generate(\\w+)(Release|Debug)")
+
+    Matcher matcher = pattern.matcher( tskReqStr )
+
+    if( matcher.find() )
+        return matcher.group(1).toLowerCase()
+    else
+    {
+        println "NO MATCH FOUND"
+        return "";
+    }
+}
+
+def currentFlavor = getCurrentFlavor()
+print currentFlavor
 
 def getDate() {
     def date = new Date()
@@ -55,13 +82,14 @@ def getDate() {
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.1"
+    buildToolsVersion '25'
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 26
-        versionName "2.4-beta.2"
+        versionCode 29
+        versionName "2.5-SNAPSHOT"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
 
     packagingOptions {
@@ -89,6 +117,7 @@ android {
             signingConfig signingConfigs.release
         }
         debug {
+            debuggable true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.txt'
         }
@@ -98,7 +127,23 @@ android {
             versionNameSuffix "-build" + getDate()
         }
     }
-    productFlavors {}
+
+    productFlavors.all {
+        ext.gsp = false
+    }
+
+    productFlavors {
+        develop {
+            applicationId "es.usc.citius.servando.calenduladev"
+        }
+        product {
+            applicationId "es.usc.citius.servando.calendula"
+        }
+        pharma {
+            gsp = true
+            applicationId "es.usc.citius.servando.calendula"
+        }
+    }
 
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
@@ -124,6 +169,10 @@ dependencies {
     compile 'com.android.support:palette-v7:24.2.1'
     compile 'com.android.support:support-v4:24.2.1'
     compile 'com.android.support:design:24.2.1'
+
+    // view/resource binding
+    compile 'com.jakewharton:butterknife:8.4.0'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
 
     // round image view
     compile 'com.makeramen:roundedimageview:1.5.0'
@@ -170,7 +219,7 @@ dependencies {
     compile('com.mikepenz:materialdrawer:4.4.1@aar') {
         transitive = true
     }
-    compile 'com.mikepenz:iconics-core:2.8.1@aar'
+    compile 'com.mikepenz:iconics-core:2.7.1@aar'
     compile 'com.mikepenz:google-material-typeface:2.1.2.1@aar'
     compile 'com.mikepenz:community-material-typeface:1.2.65.1@aar'
     compile('com.mikepenz:materialize:0.2.7@aar') {
@@ -183,6 +232,25 @@ dependencies {
     //
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.heinrichreimersoftware:material-intro:1.5.8'
+
+    // html parsing
+    compile 'org.jsoup:jsoup:1.7.2'
+
+    // material dialogs
+    compile 'com.github.javiersantos:MaterialStyledDialogs:2.0'
+
+    // jobs
+    compile 'com.evernote:android-job:1.1.3'
+
+    // recyclerview adapters
+    compile('com.mikepenz:fastadapter:2.1.5@aar') {
+        transitive = true
+    }
+    compile 'com.mikepenz:fastadapter-commons:2.1.0@aar'
+    compile 'com.mikepenz:fastadapter-extensions:2.1.0@aar'
+
+    // levenshtein distance etc
+    compile 'org.apache.commons:commons-lang3:3.5'
 
     // retrofit
     compile 'com.squareup.retrofit2:retrofit:2.1.0'
@@ -199,4 +267,8 @@ dependencies {
 
 }
 
-apply plugin: 'com.google.gms.google-services'
+if(currentFlavor == "pharma"){
+    apply plugin: 'com.google.gms.google-services'
+}
+
+

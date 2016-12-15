@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.fragments;
@@ -76,6 +76,7 @@ import es.usc.citius.servando.calendula.fragments.dosePickers.DosePickerFragment
 import es.usc.citius.servando.calendula.fragments.dosePickers.LiquidDosePickerFragment;
 import es.usc.citius.servando.calendula.fragments.dosePickers.PillDosePickerFragment;
 import es.usc.citius.servando.calendula.persistence.Medicine;
+import es.usc.citius.servando.calendula.persistence.Patient;
 import es.usc.citius.servando.calendula.persistence.Presentation;
 import es.usc.citius.servando.calendula.persistence.RepetitionRule;
 import es.usc.citius.servando.calendula.persistence.Routine;
@@ -148,10 +149,10 @@ public class ScheduleTimetableFragment extends Fragment
     TextView helpView;
     ImageButton nextButton;
     ScrollView scrollView;
+    int color;
     private boolean isFirstScheduleSelection = true;
     private int lastScheduleType = -1;
-
-    int color;
+    private Patient patient;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -170,9 +171,8 @@ public class ScheduleTimetableFragment extends Fragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_schedule_timetable, container, false);
-
-        color = DB.patients().getActive(getActivity()).color();
-
+        patient = DB.patients().getActive(getActivity());
+        color = patient.color();
         scrollView = (ScrollView) rootView.findViewById(R.id.schedule_scroll);
         timetableContainer =
                 (LinearLayout) rootView.findViewById(R.id.schedule_timetable_container);
@@ -218,14 +218,614 @@ public class ScheduleTimetableFragment extends Fragment
         return rootView;
     }
 
+    public void onTypeSelected() {
+        Log.d(TAG, "onTypeSelected");
+        if (getView() != null) {
+            Log.d(TAG, "getView() is not null");
+            setupForCurrentSchedule(getView());
+        }
+    }
 
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    public void onDialogNumberSet(int reference, int number, double decimal, boolean isNegative,
+                                  double fullNumber) {
+
+        if (reference == REF_DIALOG_ROUTINE_INTERVAL) {
+            intervalEditText.setText("" + number);
+            schedule.rule().setInterval(number);
+        } else if (reference == REF_DIALOG_HOURLY_INTERVAL) {
+            hourlyIntervalEditText.setText("" + number);
+            schedule.rule().setFrequency(Frequency.HOURLY);
+            schedule.rule().setInterval(number);
+        } else if (reference == REF_DIALOG_CYCLE_DAYS) {
+            periodValue.setText(String.valueOf(number));
+            cycleDays = number;
+            if (cycleRest > 0) {
+                schedule.setCycle(cycleDays, cycleRest);
+            }
+        } else if (reference == REF_DIALOG_CYCLE_REST) {
+            periodRest.setText(String.valueOf(number));
+            cycleRest = number;
+            if (cycleDays > 0) {
+                schedule.setCycle(cycleDays, cycleRest);
+            }
+        }
+    }
+
+    @Override
+    public void onTimeSet(RadialTimePickerDialog radialTimePickerDialog, int hour,
+                          int minute) {
+
+        String time = new LocalTime(hour, minute).toString("kk:mm");
+        hourlyIntervalFrom.setText(getString(R.string.first_intake) + ": " + time);
+        schedule.setStartTime(new LocalTime(hour, minute));
+    }
+
+    @Override
+    public void onRecurrenceSet(String s) {
+
+        EventRecurrence event = new EventRecurrence();
+
+        LocalDate now = LocalDate.now();
+        Time startDate = new Time(Time.getCurrentTimezone());
+        startDate.set(now.getDayOfMonth(), now.getMonthOfYear(), now.getYear());
+        startDate.normalize(true);
+        event.parse(s);
+        event.setStartDate(startDate);
+
+        Log.d(TAG, "OnRecurrenceSet: " + event.startDate);
+
+        schedule.setRepetition(new RepetitionRule("RRULE:" + s));
+        setScheduleStart(schedule.start());
+        LocalDate end = schedule.end();
+        Log.d(TAG, "ICAL: " + schedule.rule().toIcal());
+        setScheduleEnd(end);
+        Log.d(TAG, "ICAL: " + schedule.rule().toIcal());
+        ruleText.setText(getCurrentSchedule());
+    }
+
+    void setupHourlyRepetitionLinsteners() {
+        hourlyIntervalEditText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showHourlyPickerDIalog();
+            }
+        });
+
+        hourlyIntervalFrom.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                DateTime time = schedule.startTime().toDateTimeToday();
+
+                RadialTimePickerDialog timePickerDialog =
+                        RadialTimePickerDialog.newInstance(ScheduleTimetableFragment.this,
+                                time.getHourOfDay(), time.getMinuteOfHour(), true);
+                timePickerDialog.show(getChildFragmentManager(), "111");
+            }
+        });
+
+        hourlyIntervalRepeatDose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showHourlyDosePickerDialog();
+            }
+        });
+    }
+
+    void setupStartEndDatePickers(View rootView) {
+
+        if (schedule.start() == null) {
+            schedule.setStart(LocalDate.now());
+        }
+
+        final LocalDate scheduleStart = schedule.start();
+
+        buttonScheduleStart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                DatePickerDialog dpd =
+                        new DatePickerDialog(getActivity(), new DatePickerDialog.OnDateSetListener() {
+                            @Override
+                            public void onDateSet(DatePicker view, int year, int monthOfYear,
+                                                  int dayOfMonth) {
+                                Log.d(TAG, year + " " + monthOfYear);
+                                LocalDate d = new LocalDate(year, monthOfYear + 1, dayOfMonth);
+                                setScheduleStart(d);
+                            }
+                        }, scheduleStart.getYear(), scheduleStart.getMonthOfYear() - 1,
+                                scheduleStart.getDayOfMonth());
+                dpd.show();
+            }
+        });
+
+        buttonScheduleEnd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                LocalDate scheduleEnd =
+                        schedule.end() != null ? schedule.end() : scheduleStart.plusMonths(3);
+
+                DatePickerDialog dpd =
+                        new DatePickerDialog(getActivity(), new DatePickerDialog.OnDateSetListener() {
+                            @Override
+                            public void onDateSet(DatePicker view, int year, int monthOfYear,
+                                                  int dayOfMonth) {
+                                LocalDate d = new LocalDate(year, monthOfYear + 1, dayOfMonth);
+                                setScheduleEnd(d);
+                            }
+                        }, scheduleEnd.getYear(), scheduleEnd.getMonthOfYear() - 1,
+                                scheduleEnd.getDayOfMonth());
+                dpd.show();
+            }
+        });
+
+        buttonScheduleEnd.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setMessage("Do you want this schedule to continue indefinitely?")
+                        .setCancelable(true)
+                        .setPositiveButton(getString(R.string.dialog_yes_option),
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        setScheduleEnd(null);
+                                    }
+                                })
+                        .setNegativeButton(getString(R.string.dialog_no_option),
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        dialog.cancel();
+                                    }
+                                });
+                AlertDialog alert = builder.create();
+                alert.show();
+                return true;
+            }
+        });
+
+        clearStartButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setScheduleStart(null);
+            }
+        });
+
+        clearEndButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setScheduleEnd(null);
+            }
+        });
+
+        setScheduleStart(schedule.start());
+        setScheduleEnd(schedule.end());
+    }
+
+    void onScheduleSelected(String selection, int index) {
+
+        ScheduleHelper.instance().setSelectedScheduleIdx(index);
+        String schedules[] = getResources().getStringArray(R.array.schedules_array);
+
+        // obtain times per day from selected schedule
+        for (int i = 0; i < schedules.length; i++) {
+            if (schedules[i].equalsIgnoreCase(selection)) {
+                timesPerDay = i + 1;
+                ScheduleHelper.instance().setTimesPerDay(timesPerDay);
+                break;
+            }
+        }
+        addTimetableEntries(timesPerDay, DB.routines().findAllForActivePatient(getContext()));
+    }
+
+    void setupDaySelectionListeners(final View rootView) {
+
+        View.OnClickListener listener = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                TextView text = ((TextView) view);
+                int index;
+                switch (text.getId()) {
+                    case R.id.day_mo:
+                        schedule.toggleSelectedDay(0);
+                        index = 0;
+                        break;
+                    case R.id.day_tu:
+                        schedule.toggleSelectedDay(1);
+                        index = 1;
+                        break;
+                    case R.id.day_we:
+                        schedule.toggleSelectedDay(2);
+                        index = 2;
+                        break;
+                    case R.id.day_th:
+                        index = 3;
+                        schedule.toggleSelectedDay(3);
+                        break;
+                    case R.id.day_fr:
+                        schedule.toggleSelectedDay(4);
+                        index = 4;
+                        break;
+                    case R.id.day_sa:
+                        schedule.toggleSelectedDay(5);
+                        index = 5;
+                        break;
+                    case R.id.day_su:
+                        schedule.toggleSelectedDay(6);
+                        index = 6;
+                        break;
+                    default:
+                        return;
+                }
+
+                boolean daySelected = schedule.days()[index];
+                StateListDrawable sld = (StateListDrawable) text.getBackground();
+                GradientDrawable shape = (GradientDrawable) sld.getCurrent();
+                shape.setColor(daySelected ? color : Color.WHITE);
+                text.setTypeface(null, daySelected ? Typeface.BOLD : Typeface.NORMAL);
+                text.setTextColor(daySelected ? Color.WHITE : Color.BLACK);
+
+                boolean allDaysSelected = schedule.allDaysSelected();
+
+                if (schedule.type() == Schedule.SCHEDULE_TYPE_EVERYDAY && !allDaysSelected) {
+                    setRepeatType(Schedule.SCHEDULE_TYPE_SOMEDAYS, rootView, false);
+                    ignoreNextEvent = true;
+                    repeatTypeSpinner.setSelection(1);
+                } else if (schedule.type() == Schedule.SCHEDULE_TYPE_SOMEDAYS && allDaysSelected) {
+                    repeatTypeSpinner.setSelection(0);
+                    schedule.setType(Schedule.SCHEDULE_TYPE_EVERYDAY);
+                }
+
+                Log.d(TAG, "All days selected: " + allDaysSelected + ", repeatType: " + schedule.type());
+            }
+        };
+
+        rootView.findViewById(R.id.day_mo).setOnClickListener(listener);
+        rootView.findViewById(R.id.day_tu).setOnClickListener(listener);
+        rootView.findViewById(R.id.day_we).setOnClickListener(listener);
+        rootView.findViewById(R.id.day_th).setOnClickListener(listener);
+        rootView.findViewById(R.id.day_fr).setOnClickListener(listener);
+        rootView.findViewById(R.id.day_sa).setOnClickListener(listener);
+        rootView.findViewById(R.id.day_su).setOnClickListener(listener);
+    }
+
+    void showIntervalPickerDIalog() {
+        NumberPickerBuilder npb =
+                new NumberPickerBuilder().setDecimalVisibility(NumberPicker.INVISIBLE)
+                        .setMinNumber(1)
+                        .setMaxNumber(31)
+                        .setPlusMinusVisibility(NumberPicker.INVISIBLE)
+                        .setFragmentManager(getChildFragmentManager())
+                        .setTargetFragment(this).setReference(REF_DIALOG_ROUTINE_INTERVAL)
+                        .setStyleResId(R.style.BetterPickersDialogFragment_Calendula);
+        npb.show();
+    }
+
+    void showHourlyPickerDIalog() {
+        /*NumberPickerBuilder npb =
+            new NumberPickerBuilder().setDecimalVisibility(NumberPicker.INVISIBLE)
+                .setMinNumber(1)
+                .setMaxNumber(24)
+                .setPlusMinusVisibility(NumberPicker.INVISIBLE)
+                .setFragmentManager(getChildFragmentManager())
+                .setTargetFragment(this)
+                .setReference(REF_DIALOG_HOURLY_INTERVAL)
+                .setStyleResId(R.style.BetterPickersDialogFragment_Calendula);
+        npb.show();*/
+
+        AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+        b.setTitle(getString(R.string.dialog_interval_title));
+        final String[] types = {"2", "3", "4", "6", "8", "12"};
+        b.setItems(types, new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                int result = Integer.valueOf(types[which]);
+                hourlyIntervalEditText.setText("" + result);
+                schedule.rule().setFrequency(Frequency.HOURLY);
+                schedule.rule().setInterval(result);
+            }
+        });
+
+        b.show();
+
+
+    }
+
+    void showRecurrencePickerDialog() {
+        RecurrencePickerDialog dialog = new RecurrencePickerDialog();
+
+        DateTime start = schedule.start() != null ? schedule.start().toDateTimeAtStartOfDay()
+                : DateTime.now().withTimeAtStartOfDay();
+
+        Bundle b = new Bundle();
+
+        b.putString(RecurrencePickerDialog.BUNDLE_RRULE,
+                schedule.rule().toIcal().replace("RRULE:", ""));
+        b.putLong(RecurrencePickerDialog.BUNDLE_START_TIME_MILLIS, DateTime.now().getMillis());
+        //b.putString(RecurrencePickerDialog.BUNDLE_TIME_ZONE, t.timezone);
+
+        dialog.setArguments(b);
+        dialog.setOnRecurrenceSetListener(this);
+        dialog.show(getChildFragmentManager(), "REC");
+    }
+
+    void addTimetableEntries(int timesPerDay, List<Routine> routines) {
+
+        Collections.sort(ScheduleHelper.instance().getScheduleItems(), scheduleItemComparator);
+
+        LinearLayout.LayoutParams params =
+                new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT);
+
+        String[] routineNames = getUpdatedRoutineNames();
+        timetableContainer.removeAllViews();
+
+        List<ScheduleItem> scheduleItems = new ArrayList<>();
+
+        boolean enableDelete = timesPerDay > 1;
+
+        for (int i = 0; i < timesPerDay; i++) {
+            // try to get previous routine from state holder
+            ScheduleItem s;
+
+            if (i < ScheduleHelper.instance().getScheduleItems().size()) {
+                ScheduleItem toCopy = ScheduleHelper.instance().getScheduleItems().get(i);
+                s = new ScheduleItem(null, toCopy.routine(), toCopy.dose());
+            } else {
+                s = new ScheduleItem(null, (i < routines.size()) ? routines.get(i) : null, 1);
+            }
+
+            if (s != null) {
+                scheduleItems.add(s);
+            }
+
+            View view = buildTimetableEntry(s, routineNames, enableDelete);
+            timetableContainer.addView(view, params);
+        }
+
+        ScheduleHelper.instance().setScheduleItems(scheduleItems);
+
+        //        for (ScheduleItem i : ScheduleCreationHelper.instance().getScheduleItems())
+        //            Log.d(TAG, "addTimetableEntries (end): " + i.getId() + ", " + i.routine().name() + ", " + i.dose());
+
+    }
+
+    String[] getUpdatedRoutineNames() {
+
+        List<Routine> routines = DB.routines().findAllForActivePatient(getContext());
+
+        int j = 0;
+        String[] routineNames = new String[routines.size() + 1];
+        for (Routine r : routines) {
+            routineNames[j++] = r.name();
+        }
+
+        routineNames[routineNames.length - 1] = getString(R.string.create_new_routine);
+
+        return routineNames;
+    }
+
+    View buildTimetableEntry(ScheduleItem r, String[] routineNames, boolean enableDelete) {
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        final View entry = inflater.inflate(R.layout.schedule_timetable_entry, null);
+        updateEntryTime(r.routine(), entry);
+        setupScheduleEntrySpinners(entry, r, routineNames);
+
+        if (enableDelete) {
+            entry.findViewById(R.id.entry_remove).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    ScheduleHelper.instance()
+                            .getScheduleItems()
+                            .remove(timetableContainer.indexOfChild(entry));
+                    scheduleSpinner.setSelection(timesPerDay - 2);
+                }
+            });
+        } else {
+            entry.findViewById(R.id.entry_remove).setVisibility(View.INVISIBLE);
+        }
+        return entry;
+    }
+
+    void updateRoutineSelectionAdapter(final View entryView, Spinner routineSpinner,
+                                       String[] routineNames) {
+        ArrayAdapter<String> routineAdapter =
+                new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item,
+                        routineNames);
+        routineAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
+        routineSpinner.setAdapter(routineAdapter);
+    }
+
+    void updateEntryTime(Routine r, View entry) {
+        String hourText;
+        String minuteText;
+        if (r != null) {
+            hourText = (r.time().getHourOfDay() < 10 ? "0" + r.time().getHourOfDay()
+                    : r.time().getHourOfDay()) + ":";
+            minuteText = (r.time().getMinuteOfHour() < 10 ? "0" + r.time().getMinuteOfHour()
+                    : r.time().getMinuteOfHour()) + "";
+        } else {
+            hourText = "--:";
+            minuteText = "--";
+        }
+
+        TextView h = ((TextView) entry.findViewById(R.id.hour_text));
+        TextView m = ((TextView) entry.findViewById(R.id.minute_text));
+        h.setText(hourText);
+        m.setText(minuteText);
+        h.setTextColor(color);
+        m.setTextColor(color);
+    }
+
+    void showAddNewRoutineDialog(final View entryView) {
+        FragmentManager fm = getActivity().getSupportFragmentManager();
+        final RoutineCreateOrEditFragment addRoutineFragment = new RoutineCreateOrEditFragment();
+        addRoutineFragment.setOnRoutineEditListener(
+                new RoutineCreateOrEditFragment.OnRoutineEditListener() {
+                    @Override
+                    public void onRoutineEdited(Routine r) {
+                        // do nothing
+                    }
+
+                    @Override
+                    public void onRoutineDeleted(Routine r) {
+                        // do nothing
+                    }
+
+                    @Override
+                    public void onRoutineCreated(final Routine r) {
+                        Spinner rSpinner = (Spinner) entryView.findViewById(R.id.entry_routine_spinner);
+                        String names[] = getUpdatedRoutineNames();
+                        updateRoutineSelectionAdapter(entryView, rSpinner, names);
+
+                        Log.d(TAG, "Routine name: " + r.name());
+                        Log.d(TAG, "Routine time: " + r.time().toString("hh:mm"));
+                        Log.d(TAG, "Names: " + Arrays.toString(names));
+
+                        int selection = Arrays.asList(names).indexOf(r.name());
+                        rSpinner.setSelection(selection);
+
+                        updateEntryTime(r, entryView);
+                        addRoutineFragment.dismiss();
+                    }
+                });
+
+        addRoutineFragment.show(fm, "fragment_edit_name");
+    }
+
+    void showDosePickerDialog(final ScheduleItem item, final TextView tv) {
+
+        Medicine med = ScheduleHelper.instance().getSelectedMed();
+
+        if (med == null) {
+            ((ScheduleCreationActivity) getActivity()).onDoseSelectedWithNoMed();
+            return;
+        }
+
+        final DosePickerFragment dpf = getDosePickerFragment(med, item, null);
+
+        if (dpf != null) {
+            FragmentManager fm = getActivity().getSupportFragmentManager();
+            dpf.setOnDoseSelectedListener(
+                    new LiquidDosePickerFragment.OnDoseSelectedListener() {
+                        @Override
+                        public void onDoseSelected(double dose) {
+                            Log.d(TAG, "Set dose "
+                                    + dose
+                                    + " to item "
+                                    + item.routine().name()
+                                    + ", "
+                                    + item.getId());
+                            item.setDose((float) dose);
+                            tv.setText(item.displayDose());
+                            logScheduleItems();
+                        }
+                    });
+            dpf.show(fm, "fragment_select_dose");
+        }
+
+    }
+
+    void showHourlyDosePickerDialog() {
+        Medicine med = ScheduleHelper.instance().getSelectedMed();
+
+        if (med == null) {
+            // TODO: get from resources and use snack.show()
+            Toast.makeText(getActivity(), "Por favor, selecciona un medicamento antes", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        final DosePickerFragment dpf = getDosePickerFragment(med, null, schedule);
+
+        if (dpf != null) {
+            FragmentManager fm = getActivity().getSupportFragmentManager();
+            dpf.setOnDoseSelectedListener(
+                    new LiquidDosePickerFragment.OnDoseSelectedListener() {
+                        @Override
+                        public void onDoseSelected(double dose) {
+                            schedule.setDose((float) dose);
+                            hourlyIntervalRepeatDose.setText(schedule.displayDose());
+                        }
+                    });
+            dpf.show(fm, "fragment_select_dose");
+        } else {
+
+        }
+    }
+
+    void checkSelectedDays(View rootView, boolean[] days) {
+
+        Log.d(TAG, "Checking selected days: " + Arrays.toString(days));
+        schedule.setDays(days);
+
+        TextView mo = ((TextView) rootView.findViewById(R.id.day_mo));
+        TextView tu = ((TextView) rootView.findViewById(R.id.day_tu));
+        TextView we = ((TextView) rootView.findViewById(R.id.day_we));
+        TextView th = ((TextView) rootView.findViewById(R.id.day_th));
+        TextView fr = ((TextView) rootView.findViewById(R.id.day_fr));
+        TextView sa = ((TextView) rootView.findViewById(R.id.day_sa));
+        TextView su = ((TextView) rootView.findViewById(R.id.day_su));
+
+        TextView[] daysTvs = new TextView[]{mo, tu, we, th, fr, sa, su};
+
+        for (int i = 0; i < daysTvs.length; i++) {
+            boolean isSelected = days[i];
+
+            StateListDrawable sld = (StateListDrawable) daysTvs[i].getBackground();
+            GradientDrawable shape = (GradientDrawable) sld.getCurrent();
+            shape.setColor(isSelected ? color : Color.WHITE);
+            daysTvs[i].setTypeface(null, isSelected ? Typeface.BOLD : Typeface.NORMAL);
+            daysTvs[i].setTextColor(isSelected ? Color.WHITE : Color.BLACK);
+        }
+    }
+
+    void setScheduleStart(LocalDate start) {
+        schedule.setStart(start);
+        if (start == null) {
+            buttonScheduleStart.setText(getString(R.string.button_schedule_repeat_today));
+            clearStartButton.setVisibility(View.INVISIBLE);
+        } else {
+            buttonScheduleStart.setText(
+                    start.toString(getString(R.string.schedule_limits_date_format)));
+            clearStartButton.setVisibility(View.VISIBLE);
+        }
+    }
+
+    void setScheduleEnd(LocalDate end) {
+        if (end == null) {
+            buttonScheduleEnd.setText(getString(R.string.never));
+            schedule.rule().iCalRule().setUntil(null);
+            clearEndButton.setVisibility(View.INVISIBLE);
+        } else {
+            DateValue v =
+                    new DateTimeValueImpl(end.getYear(), end.getMonthOfYear(), end.getDayOfMonth(), 0,
+                            0, 0);
+            schedule.rule().iCalRule().setUntil(v);
+            buttonScheduleEnd.setText(
+                    end.toString(getString(R.string.schedule_limits_date_format)));
+            clearEndButton.setVisibility(View.VISIBLE);
+        }
+    }
 
     private void updateColors(View rootView) {
 
         int color = DB.patients().getActive(getActivity()).color();
 
-        ((TextView)rootView.findViewById(R.id.textView3)).setTextColor(color);
-        ((TextView)rootView.findViewById(R.id.textView2)).setTextColor(color);
+        ((TextView) rootView.findViewById(R.id.textView3)).setTextColor(color);
+        ((TextView) rootView.findViewById(R.id.textView2)).setTextColor(color);
         (rootView.findViewById(R.id.imageView)).setBackgroundColor(color);
         (rootView.findViewById(R.id.imageView1)).setBackgroundColor(color);
 
@@ -242,7 +842,6 @@ public class ScheduleTimetableFragment extends Fragment
         periodValue.setTextColor(color);
         periodRest.setTextColor(color);
     }
-
 
     private void setupCycleSpinner() {
         final String[] cycles = getResources().getStringArray(R.array.schedule_cycles);
@@ -274,14 +873,6 @@ public class ScheduleTimetableFragment extends Fragment
             setupForKnownSchedule(rootView);
         } else {
             setupForNewSchedule(rootView);
-        }
-    }
-
-    public void onTypeSelected() {
-        Log.d(TAG, "onTypeSelected");
-        if (getView() != null) {
-            Log.d(TAG, "getView() is not null");
-            setupForCurrentSchedule(getView());
         }
     }
 
@@ -503,35 +1094,6 @@ public class ScheduleTimetableFragment extends Fragment
         v.startAnimation(a);
     }
 
-    void setupHourlyRepetitionLinsteners() {
-        hourlyIntervalEditText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showHourlyPickerDIalog();
-            }
-        });
-
-        hourlyIntervalFrom.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                DateTime time = schedule.startTime().toDateTimeToday();
-
-                RadialTimePickerDialog timePickerDialog =
-                        RadialTimePickerDialog.newInstance(ScheduleTimetableFragment.this,
-                                time.getHourOfDay(), time.getMinuteOfHour(), true);
-                timePickerDialog.show(getChildFragmentManager(), "111");
-            }
-        });
-
-        hourlyIntervalRepeatDose.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showHourlyDosePickerDialog();
-            }
-        });
-    }
-
     private void setupRepetitions(final View rooView) {
         ruleText.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -578,97 +1140,6 @@ public class ScheduleTimetableFragment extends Fragment
             }
         });
     }
-
-    void setupStartEndDatePickers(View rootView) {
-
-        if (schedule.start() == null) {
-            schedule.setStart(LocalDate.now());
-        }
-
-        final LocalDate scheduleStart = schedule.start();
-
-        buttonScheduleStart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                DatePickerDialog dpd =
-                        new DatePickerDialog(getActivity(), new DatePickerDialog.OnDateSetListener() {
-                            @Override
-                            public void onDateSet(DatePicker view, int year, int monthOfYear,
-                                                  int dayOfMonth) {
-                                Log.d(TAG, year + " " + monthOfYear);
-                                LocalDate d = new LocalDate(year, monthOfYear + 1, dayOfMonth);
-                                setScheduleStart(d);
-                            }
-                        }, scheduleStart.getYear(), scheduleStart.getMonthOfYear() - 1,
-                                scheduleStart.getDayOfMonth());
-                dpd.show();
-            }
-        });
-
-        buttonScheduleEnd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                LocalDate scheduleEnd =
-                        schedule.end() != null ? schedule.end() : scheduleStart.plusMonths(3);
-
-                DatePickerDialog dpd =
-                        new DatePickerDialog(getActivity(), new DatePickerDialog.OnDateSetListener() {
-                            @Override
-                            public void onDateSet(DatePicker view, int year, int monthOfYear,
-                                                  int dayOfMonth) {
-                                LocalDate d = new LocalDate(year, monthOfYear + 1, dayOfMonth);
-                                setScheduleEnd(d);
-                            }
-                        }, scheduleEnd.getYear(), scheduleEnd.getMonthOfYear() - 1,
-                                scheduleEnd.getDayOfMonth());
-                dpd.show();
-            }
-        });
-
-        buttonScheduleEnd.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                builder.setMessage("Do you want this schedule to continue indefinitely?")
-                        .setCancelable(true)
-                        .setPositiveButton(getString(R.string.dialog_yes_option),
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int id) {
-                                        setScheduleEnd(null);
-                                    }
-                                })
-                        .setNegativeButton(getString(R.string.dialog_no_option),
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int id) {
-                                        dialog.cancel();
-                                    }
-                                });
-                AlertDialog alert = builder.create();
-                alert.show();
-                return true;
-            }
-        });
-
-        clearStartButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setScheduleStart(null);
-            }
-        });
-
-        clearEndButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setScheduleEnd(null);
-            }
-        });
-
-        setScheduleStart(schedule.start());
-        setScheduleEnd(schedule.end());
-    }
-
 
     private void setFrequency(int freq, View rootView) {
         if (ScheduleHelper.instance().getScheduleType() == ScheduleTypeFragment.TYPE_ROUTINES) {
@@ -769,15 +1240,6 @@ public class ScheduleTimetableFragment extends Fragment
         checkSelectedDays(v, days);
     }
 
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
-
     private void setupScheduleSpinner() {
         // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<CharSequence> adapter =
@@ -798,243 +1260,6 @@ public class ScheduleTimetableFragment extends Fragment
             public void onNothingSelected(AdapterView<?> adapterView) {
             }
         });
-    }
-
-    void onScheduleSelected(String selection, int index) {
-
-        ScheduleHelper.instance().setSelectedScheduleIdx(index);
-        String schedules[] = getResources().getStringArray(R.array.schedules_array);
-
-        // obtain times per day from selected schedule
-        for (int i = 0; i < schedules.length; i++) {
-            if (schedules[i].equalsIgnoreCase(selection)) {
-                timesPerDay = i + 1;
-                ScheduleHelper.instance().setTimesPerDay(timesPerDay);
-                break;
-            }
-        }
-        addTimetableEntries(timesPerDay, DB.routines().findAllForActivePatient(getContext()));
-    }
-
-    void setupDaySelectionListeners(final View rootView) {
-
-        View.OnClickListener listener = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                TextView text = ((TextView) view);
-                int index;
-                switch (text.getId()) {
-                    case R.id.day_mo:
-                        schedule.toggleSelectedDay(0);
-                        index = 0;
-                        break;
-                    case R.id.day_tu:
-                        schedule.toggleSelectedDay(1);
-                        index = 1;
-                        break;
-                    case R.id.day_we:
-                        schedule.toggleSelectedDay(2);
-                        index = 2;
-                        break;
-                    case R.id.day_th:
-                        index = 3;
-                        schedule.toggleSelectedDay(3);
-                        break;
-                    case R.id.day_fr:
-                        schedule.toggleSelectedDay(4);
-                        index = 4;
-                        break;
-                    case R.id.day_sa:
-                        schedule.toggleSelectedDay(5);
-                        index = 5;
-                        break;
-                    case R.id.day_su:
-                        schedule.toggleSelectedDay(6);
-                        index = 6;
-                        break;
-                    default:
-                        return;
-                }
-
-                boolean daySelected = schedule.days()[index];
-                StateListDrawable sld = (StateListDrawable) text.getBackground();
-                GradientDrawable shape = (GradientDrawable) sld.getCurrent();
-                shape.setColor(daySelected ? color : Color.WHITE);
-                text.setTypeface(null, daySelected ? Typeface.BOLD : Typeface.NORMAL);
-                text.setTextColor(daySelected ? Color.WHITE : Color.BLACK);
-
-                boolean allDaysSelected = schedule.allDaysSelected();
-
-                if (schedule.type() == Schedule.SCHEDULE_TYPE_EVERYDAY && !allDaysSelected) {
-                    setRepeatType(Schedule.SCHEDULE_TYPE_SOMEDAYS, rootView, false);
-                    ignoreNextEvent = true;
-                    repeatTypeSpinner.setSelection(1);
-                } else if (schedule.type() == Schedule.SCHEDULE_TYPE_SOMEDAYS && allDaysSelected) {
-                    repeatTypeSpinner.setSelection(0);
-                    schedule.setType(Schedule.SCHEDULE_TYPE_EVERYDAY);
-                }
-
-                Log.d(TAG, "All days selected: " + allDaysSelected + ", repeatType: " + schedule.type());
-            }
-        };
-
-        rootView.findViewById(R.id.day_mo).setOnClickListener(listener);
-        rootView.findViewById(R.id.day_tu).setOnClickListener(listener);
-        rootView.findViewById(R.id.day_we).setOnClickListener(listener);
-        rootView.findViewById(R.id.day_th).setOnClickListener(listener);
-        rootView.findViewById(R.id.day_fr).setOnClickListener(listener);
-        rootView.findViewById(R.id.day_sa).setOnClickListener(listener);
-        rootView.findViewById(R.id.day_su).setOnClickListener(listener);
-    }
-
-    void showIntervalPickerDIalog() {
-        NumberPickerBuilder npb =
-                new NumberPickerBuilder().setDecimalVisibility(NumberPicker.INVISIBLE)
-                        .setMinNumber(1)
-                        .setMaxNumber(31)
-                        .setPlusMinusVisibility(NumberPicker.INVISIBLE)
-                        .setFragmentManager(getChildFragmentManager())
-                        .setTargetFragment(this).setReference(REF_DIALOG_ROUTINE_INTERVAL)
-                        .setStyleResId(R.style.BetterPickersDialogFragment_Calendula);
-        npb.show();
-    }
-
-    void showHourlyPickerDIalog() {
-        /*NumberPickerBuilder npb =
-            new NumberPickerBuilder().setDecimalVisibility(NumberPicker.INVISIBLE)
-                .setMinNumber(1)
-                .setMaxNumber(24)
-                .setPlusMinusVisibility(NumberPicker.INVISIBLE)
-                .setFragmentManager(getChildFragmentManager())
-                .setTargetFragment(this)
-                .setReference(REF_DIALOG_HOURLY_INTERVAL)
-                .setStyleResId(R.style.BetterPickersDialogFragment_Calendula);
-        npb.show();*/
-
-        AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
-        b.setTitle(getString(R.string.dialog_interval_title));
-        final String[] types = {"2", "3", "4", "6", "8", "12"};
-        b.setItems(types, new DialogInterface.OnClickListener() {
-
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-                int result = Integer.valueOf(types[which]);
-                hourlyIntervalEditText.setText("" + result);
-                schedule.rule().setFrequency(Frequency.HOURLY);
-                schedule.rule().setInterval(result);
-            }
-        });
-
-        b.show();
-
-
-    }
-
-    void showRecurrencePickerDialog() {
-        RecurrencePickerDialog dialog = new RecurrencePickerDialog();
-
-        DateTime start = schedule.start() != null ? schedule.start().toDateTimeAtStartOfDay()
-                : DateTime.now().withTimeAtStartOfDay();
-
-        Bundle b = new Bundle();
-
-        b.putString(RecurrencePickerDialog.BUNDLE_RRULE,
-                schedule.rule().toIcal().replace("RRULE:", ""));
-        b.putLong(RecurrencePickerDialog.BUNDLE_START_TIME_MILLIS, DateTime.now().getMillis());
-        //b.putString(RecurrencePickerDialog.BUNDLE_TIME_ZONE, t.timezone);
-
-        dialog.setArguments(b);
-        dialog.setOnRecurrenceSetListener(this);
-        dialog.show(getChildFragmentManager(), "REC");
-    }
-
-    void addTimetableEntries(int timesPerDay, List<Routine> routines) {
-
-        Collections.sort(ScheduleHelper.instance().getScheduleItems(), scheduleItemComparator);
-
-        LinearLayout.LayoutParams params =
-                new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT);
-
-        String[] routineNames = getUpdatedRoutineNames();
-        timetableContainer.removeAllViews();
-
-        List<ScheduleItem> scheduleItems = new ArrayList<ScheduleItem>();
-
-        boolean enableDelete = timesPerDay > 1;
-
-        for (int i = 0; i < timesPerDay; i++) {
-            // try to get previous routine from state holder
-            ScheduleItem s;
-
-            if (i < ScheduleHelper.instance().getScheduleItems().size()) {
-                ScheduleItem toCopy = ScheduleHelper.instance().getScheduleItems().get(i);
-                s = new ScheduleItem(null, toCopy.routine(), toCopy.dose());
-            } else {
-                s = new ScheduleItem(null, (i < routines.size()) ? routines.get(i) : null, 1);
-            }
-
-            if (s != null) {
-                scheduleItems.add(s);
-            }
-
-            View view = buildTimetableEntry(s, routineNames, enableDelete);
-            timetableContainer.addView(view, params);
-        }
-
-        ScheduleHelper.instance().setScheduleItems(scheduleItems);
-
-        //        for (ScheduleItem i : ScheduleCreationHelper.instance().getScheduleItems())
-        //            Log.d(TAG, "addTimetableEntries (end): " + i.getId() + ", " + i.routine().name() + ", " + i.dose());
-
-    }
-
-    String[] getUpdatedRoutineNames() {
-
-        List<Routine> routines = DB.routines().findAllForActivePatient(getContext());
-
-        int j = 0;
-        String[] routineNames = new String[routines.size() + 1];
-        for (Routine r : routines) {
-            routineNames[j++] = r.name();
-        }
-
-        routineNames[routineNames.length - 1] = getString(R.string.create_new_routine);
-
-        return routineNames;
-    }
-
-    View buildTimetableEntry(ScheduleItem r, String[] routineNames, boolean enableDelete) {
-        LayoutInflater inflater = getActivity().getLayoutInflater();
-        final View entry = inflater.inflate(R.layout.schedule_timetable_entry, null);
-        updateEntryTime(r.routine(), entry);
-        setupScheduleEntrySpinners(entry, r, routineNames);
-
-        if (enableDelete) {
-            entry.findViewById(R.id.entry_remove).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    ScheduleHelper.instance()
-                            .getScheduleItems()
-                            .remove(timetableContainer.indexOfChild(entry));
-                    scheduleSpinner.setSelection(timesPerDay - 2);
-                }
-            });
-        } else {
-            entry.findViewById(R.id.entry_remove).setVisibility(View.INVISIBLE);
-        }
-        return entry;
-    }
-
-    void updateRoutineSelectionAdapter(final View entryView, Spinner routineSpinner,
-                                       String[] routineNames) {
-        ArrayAdapter<String> routineAdapter =
-                new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item,
-                        routineNames);
-        routineAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
-        routineSpinner.setAdapter(routineAdapter);
     }
 
     private void setupScheduleEntrySpinners(final View entryView, ScheduleItem scheduleItem,
@@ -1079,7 +1304,7 @@ public class ScheduleTimetableFragment extends Fragment
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 String selected = (String) adapterView.getItemAtPosition(i);
-                Routine r = Routine.findByName(selected);
+                Routine r = DB.routines().findByPatientAndName(selected, patient);
                 ScheduleItem item = ((ScheduleItem) routineSpinner.getTag());
 
                 if (r != null) {
@@ -1127,64 +1352,6 @@ public class ScheduleTimetableFragment extends Fragment
         }
     }
 
-    void updateEntryTime(Routine r, View entry) {
-        String hourText;
-        String minuteText;
-        if (r != null) {
-            hourText = (r.time().getHourOfDay() < 10 ? "0" + r.time().getHourOfDay()
-                    : r.time().getHourOfDay()) + ":";
-            minuteText = (r.time().getMinuteOfHour() < 10 ? "0" + r.time().getMinuteOfHour()
-                    : r.time().getMinuteOfHour()) + "";
-        } else {
-            hourText = "--:";
-            minuteText = "--";
-        }
-
-        TextView h =((TextView) entry.findViewById(R.id.hour_text));
-        TextView m = ((TextView) entry.findViewById(R.id.minute_text));
-        h.setText(hourText);
-        m.setText(minuteText);
-        h.setTextColor(color);
-        m.setTextColor(color);
-    }
-
-    void showAddNewRoutineDialog(final View entryView) {
-        FragmentManager fm = getActivity().getSupportFragmentManager();
-        final RoutineCreateOrEditFragment addRoutineFragment = new RoutineCreateOrEditFragment();
-        addRoutineFragment.setOnRoutineEditListener(
-                new RoutineCreateOrEditFragment.OnRoutineEditListener() {
-                    @Override
-                    public void onRoutineEdited(Routine r) {
-                        // do nothing
-                    }
-
-                    @Override
-                    public void onRoutineDeleted(Routine r) {
-                        // do nothing
-                    }
-
-                    @Override
-                    public void onRoutineCreated(final Routine r) {
-                        Spinner rSpinner = (Spinner) entryView.findViewById(R.id.entry_routine_spinner);
-                        String names[] = getUpdatedRoutineNames();
-                        updateRoutineSelectionAdapter(entryView, rSpinner, names);
-
-                        Log.d(TAG, "Routine name: " + r.name());
-                        Log.d(TAG, "Routine time: " + r.time().toString("hh:mm"));
-                        Log.d(TAG, "Names: " + Arrays.toString(names));
-
-                        int selection = Arrays.asList(names).indexOf(r.name());
-                        rSpinner.setSelection(selection);
-
-                        updateEntryTime(r, entryView);
-                        addRoutineFragment.dismiss();
-                    }
-                });
-
-        addRoutineFragment.show(fm, "fragment_edit_name");
-    }
-
-
     private DosePickerFragment getDosePickerFragment(Medicine med, ScheduleItem item, Schedule s) {
         DosePickerFragment dpf = null;
         Bundle arguments = new Bundle();
@@ -1196,193 +1363,20 @@ public class ScheduleTimetableFragment extends Fragment
         if (med.presentation().equals(Presentation.DROPS)
                 || med.presentation().equals(Presentation.PILLS)
                 || med.presentation().equals(Presentation.CAPSULES)
-                || med.presentation().equals(Presentation.EFFERVESCENT)){
+                || med.presentation().equals(Presentation.EFFERVESCENT)) {
             dpf = new PillDosePickerFragment();
-        }else{
+        } else {
             dpf = new DefaultDosePickerFragment();
             arguments.putSerializable("presentation", med.presentation());
         }
-        if(item != null){
+        if (item != null) {
             arguments.putDouble("dose", item.dose());
-        }else if(s != null) {
+        } else if (s != null) {
             arguments.putDouble("dose", s.dose());
         }
 
         dpf.setArguments(arguments);
         return dpf;
 
-    }
-
-    void showDosePickerDialog(final ScheduleItem item, final TextView tv) {
-
-        Medicine med = ScheduleHelper.instance().getSelectedMed();
-
-        if(med == null){
-            ((ScheduleCreationActivity)getActivity()).onDoseSelectedWithNoMed();
-            return;
-        }
-
-        final DosePickerFragment dpf = getDosePickerFragment(med,item,null);
-
-        if(dpf != null){
-            FragmentManager fm = getActivity().getSupportFragmentManager();
-            dpf.setOnDoseSelectedListener(
-                    new LiquidDosePickerFragment.OnDoseSelectedListener() {
-                        @Override
-                        public void onDoseSelected(double dose) {
-                            Log.d(TAG, "Set dose "
-                                    + dose
-                                    + " to item "
-                                    + item.routine().name()
-                                    + ", "
-                                    + item.getId());
-                            item.setDose((float) dose);
-                            tv.setText(item.displayDose());
-                            logScheduleItems();
-                        }
-                    });
-            dpf.show(fm, "fragment_select_dose");
-        }
-
-    }
-
-
-    void showHourlyDosePickerDialog() {
-        Medicine med = ScheduleHelper.instance().getSelectedMed();
-
-        if(med == null){
-            // TODO: get from resources and use snack.show()
-            Toast.makeText(getActivity(), "Por favor, selecciona un medicamento antes", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        final DosePickerFragment dpf = getDosePickerFragment(med,null,schedule);
-
-        if(dpf != null){
-            FragmentManager fm = getActivity().getSupportFragmentManager();
-            dpf.setOnDoseSelectedListener(
-                    new LiquidDosePickerFragment.OnDoseSelectedListener() {
-                        @Override
-                        public void onDoseSelected(double dose) {
-                            schedule.setDose((float) dose);
-                            hourlyIntervalRepeatDose.setText(schedule.displayDose());
-                        }
-                    });
-            dpf.show(fm, "fragment_select_dose");
-        }else{
-
-        }
-    }
-
-    void checkSelectedDays(View rootView, boolean[] days) {
-
-        Log.d(TAG, "Checking selected days: " + Arrays.toString(days));
-        schedule.setDays(days);
-
-        TextView mo = ((TextView) rootView.findViewById(R.id.day_mo));
-        TextView tu = ((TextView) rootView.findViewById(R.id.day_tu));
-        TextView we = ((TextView) rootView.findViewById(R.id.day_we));
-        TextView th = ((TextView) rootView.findViewById(R.id.day_th));
-        TextView fr = ((TextView) rootView.findViewById(R.id.day_fr));
-        TextView sa = ((TextView) rootView.findViewById(R.id.day_sa));
-        TextView su = ((TextView) rootView.findViewById(R.id.day_su));
-
-        TextView [] daysTvs = new TextView[]{mo, tu, we, th, fr, sa, su};
-
-        for(int i = 0; i < daysTvs.length; i++){
-            boolean isSelected = days[i];
-
-            StateListDrawable sld = (StateListDrawable) daysTvs[i].getBackground();
-            GradientDrawable shape = (GradientDrawable) sld.getCurrent();
-            shape.setColor(isSelected ? color : Color.WHITE);
-            daysTvs[i].setTypeface(null, isSelected ? Typeface.BOLD : Typeface.NORMAL);
-            daysTvs[i].setTextColor(isSelected ? Color.WHITE : Color.BLACK);
-        }
-    }
-
-    @Override
-    public void onDialogNumberSet(int reference, int number, double decimal, boolean isNegative,
-                                  double fullNumber) {
-
-        if (reference == REF_DIALOG_ROUTINE_INTERVAL) {
-            intervalEditText.setText("" + number);
-            schedule.rule().setInterval(number);
-        } else if (reference == REF_DIALOG_HOURLY_INTERVAL) {
-            hourlyIntervalEditText.setText("" + number);
-            schedule.rule().setFrequency(Frequency.HOURLY);
-            schedule.rule().setInterval(number);
-        } else if (reference == REF_DIALOG_CYCLE_DAYS) {
-            periodValue.setText(String.valueOf(number));
-            cycleDays = number;
-            if (cycleRest > 0) {
-                schedule.setCycle(cycleDays, cycleRest);
-            }
-        } else if (reference == REF_DIALOG_CYCLE_REST) {
-            periodRest.setText(String.valueOf(number));
-            cycleRest = number;
-            if (cycleDays > 0) {
-                schedule.setCycle(cycleDays, cycleRest);
-            }
-        }
-    }
-
-    @Override
-    public void onTimeSet(RadialTimePickerDialog radialTimePickerDialog, int hour,
-                          int minute) {
-
-        String time = new LocalTime(hour, minute).toString("kk:mm");
-        hourlyIntervalFrom.setText(getString(R.string.first_intake) + ": " + time);
-        schedule.setStartTime(new LocalTime(hour, minute));
-    }
-
-    @Override
-    public void onRecurrenceSet(String s) {
-
-        EventRecurrence event = new EventRecurrence();
-
-        LocalDate now = LocalDate.now();
-        Time startDate = new Time(Time.getCurrentTimezone());
-        startDate.set(now.getDayOfMonth(), now.getMonthOfYear(), now.getYear());
-        startDate.normalize(true);
-        event.parse(s);
-        event.setStartDate(startDate);
-
-        Log.d(TAG, "OnRecurrenceSet: " + event.startDate);
-
-        schedule.setRepetition(new RepetitionRule("RRULE:" + s));
-        setScheduleStart(schedule.start());
-        LocalDate end = schedule.end();
-        Log.d(TAG, "ICAL: " + schedule.rule().toIcal());
-        setScheduleEnd(end);
-        Log.d(TAG, "ICAL: " + schedule.rule().toIcal());
-        ruleText.setText(getCurrentSchedule());
-    }
-
-    void setScheduleStart(LocalDate start) {
-        schedule.setStart(start);
-        if (start == null) {
-            buttonScheduleStart.setText(getString(R.string.button_schedule_repeat_today));
-            clearStartButton.setVisibility(View.INVISIBLE);
-        } else {
-            buttonScheduleStart.setText(
-                    start.toString(getString(R.string.schedule_limits_date_format)));
-            clearStartButton.setVisibility(View.VISIBLE);
-        }
-    }
-
-    void setScheduleEnd(LocalDate end) {
-        if (end == null) {
-            buttonScheduleEnd.setText(getString(R.string.never));
-            schedule.rule().iCalRule().setUntil(null);
-            clearEndButton.setVisibility(View.INVISIBLE);
-        } else {
-            DateValue v =
-                    new DateTimeValueImpl(end.getYear(), end.getMonthOfYear(), end.getDayOfMonth(), 0,
-                            0, 0);
-            schedule.rule().iCalRule().setUntil(v);
-            buttonScheduleEnd.setText(
-                    end.toString(getString(R.string.schedule_limits_date_format)));
-            clearEndButton.setVisibility(View.VISIBLE);
-        }
     }
 }

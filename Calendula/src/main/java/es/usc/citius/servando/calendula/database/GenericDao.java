@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.database;
@@ -48,10 +48,10 @@ import java.util.concurrent.Callable;
 /**
  * Created by joseangel.pineiro
  */
-public abstract class GenericDao<T extends Object, I> implements Dao<T, I> {
+public abstract class GenericDao<T, I> implements Dao<T, I> {
 
     protected Dao<T, I> dao;
-    DatabaseHelper dbHelper;
+    protected DatabaseHelper dbHelper;
 
     public GenericDao(DatabaseHelper db) {
         dbHelper = db;
@@ -234,8 +234,12 @@ public abstract class GenericDao<T extends Object, I> implements Dao<T, I> {
         return dao.update(preparedUpdate);
     }
 
-    public int refresh(T data) throws SQLException {
-        return dao.refresh(data);
+    public int refresh(T data) {
+        try {
+            return dao.refresh(data);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public int delete(T data) throws SQLException {
@@ -474,7 +478,6 @@ public abstract class GenericDao<T extends Object, I> implements Dao<T, I> {
     public CloseableIterator<T> closeableIterator() {
         return dao.closeableIterator();
     }
-
 
 
 }

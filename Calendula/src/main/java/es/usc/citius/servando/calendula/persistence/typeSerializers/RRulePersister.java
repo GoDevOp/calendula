@@ -13,7 +13,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.persistence.typeSerializers;
@@ -32,8 +32,14 @@ import es.usc.citius.servando.calendula.persistence.RepetitionRule;
  */
 public class RRulePersister extends BaseDataType {
 
+    private static final RRulePersister singleton = new RRulePersister();
+
     public RRulePersister() {
         super(SqlType.STRING, new Class<?>[]{RepetitionRule.class});
+    }
+
+    public static RRulePersister getSingleton() {
+        return singleton;
     }
 
     @Override
@@ -65,12 +71,5 @@ public class RRulePersister extends BaseDataType {
             ical += "$$$" + rule.start();
         }
         return ical;
-    }
-
-
-    private static final RRulePersister singleton = new RRulePersister();
-
-    public static RRulePersister getSingleton() {
-        return singleton;
     }
 }

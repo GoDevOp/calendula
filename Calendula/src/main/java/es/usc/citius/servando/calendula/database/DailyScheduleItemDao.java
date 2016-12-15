@@ -13,10 +13,13 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with this software.  If not, see <http://www.gnu.org/licenses>.
  */
 
 package es.usc.citius.servando.calendula.database;
+
+import android.content.Context;
+import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.DeleteBuilder;
@@ -31,6 +34,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import es.usc.citius.servando.calendula.persistence.DailyScheduleItem;
+import es.usc.citius.servando.calendula.persistence.Medicine;
 import es.usc.citius.servando.calendula.persistence.Patient;
 import es.usc.citius.servando.calendula.persistence.Schedule;
 import es.usc.citius.servando.calendula.persistence.ScheduleItem;
@@ -84,6 +88,16 @@ public class DailyScheduleItemDao extends GenericDao<DailyScheduleItem, Long> {
                 return null;
             }
         });
+    }
+
+    public void removeAllFrom(final ScheduleItem scheduleItem) {
+        final DeleteBuilder<DailyScheduleItem, Long> db = dao.deleteBuilder();
+        try {
+            db.setWhere(db.where().eq(DailyScheduleItem.COLUMN_SCHEDULE_ITEM, scheduleItem));
+            db.delete();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error deleting items", e);
+        }
     }
 
     public int removeOlderThan(LocalDate date) {
@@ -180,6 +194,41 @@ public class DailyScheduleItemDao extends GenericDao<DailyScheduleItem, Long> {
         } catch (SQLException e) {
             throw new RuntimeException("Error finding model", e);
         }
+    }
 
+    public void saveAndUpdateStock(DailyScheduleItem model, boolean fireEvent, Context c) {
+        // get original value
+        DailyScheduleItem original = findById(model.getId());
+        // ensure checked status has changed
+        boolean updateStock = original.takenToday() != model.takenToday();
+
+        if (updateStock) {
+            Schedule s = model.boundToSchedule() ? model.schedule() : model.scheduleItem().schedule();
+            DB.schedules().refresh(s);
+            Medicine m = s.medicine();
+            DB.medicines().refresh(m);
+
+            if (m.stockManagementEnabled()) {
+                try {
+                    float amount;
+                    if (s.repeatsHourly()) {
+                        amount = model.takenToday() ? -s.dose() : s.dose();
+                    } else {
+                        ScheduleItem si = model.scheduleItem();
+                        amount = model.takenToday() ? -si.dose() : si.dose();
+                    }
+                    m.setStock(m.stock() + amount);
+                    DB.medicines().save(m);
+
+                    if (fireEvent) {
+                        DB.medicines().fireEvent();
+                    }
+                } catch (Exception e) {
+                    Log.e("DSIDAO", "An error occurred updating stock", e);
+                }
+            }
+        }
+        // finally save model
+        save(model);
     }
 }
