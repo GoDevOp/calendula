@@ -1,0 +1,241 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:context="es.usc.citius.servando.calendula.pharmacies.fragments.PharmacyMarkerDetailsFragment">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="80dp"
+        android:id="@+id/layout_name">
+
+            <ImageView
+                android:id="@+id/pharmacy_cross_icon"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:paddingTop="5dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20dp"
+                android:textColor="@color/black"
+                android:id="@+id/pharmacy_name"
+                android:layout_toRightOf="@id/pharmacy_cross_icon"
+                android:layout_alignParentTop="true"/>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/layout_name"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="15dp"
+            android:id="@+id/layout_hours">
+
+            <TextView
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/clock_icon"
+                android:text="{gmd-time}"
+                android:textSize="20dp"
+                android:paddingLeft="35dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/pharmacy_state"
+                android:text="ABERTA"
+                android:textAppearance="@style/medium_bold"
+                android:textColor="@color/android_green_dark"
+                android:textSize="15dp"
+                android:layout_marginRight="40dp"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/pharmacy_hour"
+                android:textSize="15dp"
+                android:text="09:00 - 15:00\n16:00 - 21:00"
+                android:textColor="@color/black"
+                android:layout_alignParentTop="true"
+                android:layout_toRightOf="@+id/clock_icon"
+                android:layout_toEndOf="@+id/clock_icon"/>
+        </RelativeLayout>
+
+        <GridLayout
+            android:id="@+id/layout_timetravels"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:rowCount="2"
+            android:columnCount="4"
+            android:layout_alignParentBottom="true">
+
+            <View
+                android:layout_columnSpan="4"
+                android:layout_column="0"
+                android:layout_row="0"
+                android:id="@+id/gray_bar"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="3dp"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@android:color/darker_gray"/>
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="0"
+                android:layout_row="1"
+                android:layout_marginBottom="5dp"
+                android:layout_gravity="center|fill"
+                android:layout_columnWeight="1"
+                android:id="@+id/layout_time_car">
+
+                <TextView
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:layout_centerInParent="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/pharmacy_time_car"
+                    android:textSize="15dp"
+                    android:textColor="@color/android_blue_dark"
+                    android:text="..." />
+
+                <com.mikepenz.iconics.view.IconicsImageView
+                    android:layout_toLeftOf="@id/pharmacy_time_car"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginRight="2dp"
+                    android:layout_marginLeft="-30dp"
+                    app:iiv_color="@android:color/darker_gray"
+                    app:iiv_icon="gmd-directions_car"
+                    android:id="@+id/icon_car"/>
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="1"
+                android:layout_row="1"
+                android:layout_marginBottom="5dp"
+                android:id="@+id/layout_time_bike"
+                android:layout_gravity="center|fill"
+                android:layout_columnWeight="1"
+                android:layout_toRightOf="@id/layout_time_car">
+
+                <TextView
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:layout_centerInParent="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/pharmacy_time_bike"
+                    android:textSize="15dp"
+                    android:textColor="@color/android_blue_dark"
+                    android:text="..." />
+
+                <com.mikepenz.iconics.view.IconicsImageView
+                    android:layout_toLeftOf="@id/pharmacy_time_bike"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginRight="2dp"
+                    android:layout_marginLeft="-30dp"
+                    app:iiv_color="@android:color/darker_gray"
+                    app:iiv_icon="gmd-directions_bike"
+                    android:id="@+id/icon_bike"/>
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="2"
+                android:layout_row="1"
+                android:layout_marginBottom="5dp"
+                android:id="@+id/layout_time_walking"
+                android:layout_gravity="center|fill"
+                android:layout_columnWeight="1"
+                android:layout_toRightOf="@id/layout_time_bike">
+
+                <TextView
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:layout_centerInParent="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/pharmacy_time_walking"
+                    android:textSize="15dp"
+                    android:textColor="@color/android_blue_dark"
+                    android:text="..." />
+
+                <com.mikepenz.iconics.view.IconicsImageView
+                    android:layout_toLeftOf="@id/pharmacy_time_walking"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginRight="2dp"
+                    android:layout_marginLeft="-30dp"
+                    app:iiv_color="@android:color/darker_gray"
+                    app:iiv_icon="gmd-directions_walk"
+                    android:id="@+id/icon_walking"/>
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="3"
+                android:layout_row="1"
+                android:layout_marginBottom="5dp"
+                android:id="@+id/layout_time_public"
+                android:layout_gravity="center|fill"
+                android:layout_columnWeight="1"
+                android:layout_toRightOf="@id/layout_time_walking">
+
+                <TextView
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:layout_centerInParent="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/pharmacy_time_public"
+                    android:textSize="15dp"
+                    android:textColor="@color/android_blue_dark"
+                    android:text="..." />
+
+                <com.mikepenz.iconics.view.IconicsImageView
+                    android:layout_toLeftOf="@id/pharmacy_time_public"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginRight="2dp"
+                    android:layout_marginLeft="-30dp"
+                    app:iiv_color="@android:color/darker_gray"
+                    app:iiv_icon="gmd-directions_subway"
+                    android:id="@+id/icon_public"/>
+            </RelativeLayout>
+
+        </GridLayout>
+
+    </RelativeLayout>
+
+
+</FrameLayout>

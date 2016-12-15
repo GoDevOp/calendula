@@ -20,7 +20,10 @@ package es.usc.citius.servando.calendula.modules.modules;
 
 import android.content.Context;
 
+import com.mikepenz.iconics.Iconics;
+
 import es.usc.citius.servando.calendula.modules.CalendulaModule;
+import es.usc.citius.servando.calendula.util.PresentationsTypeface;
 
 /**
  * Created by alvaro.brey.vilas on 12/12/16.
@@ -39,6 +42,6 @@ public class PharmacyModule extends CalendulaModule {
 
     @Override
     protected void onApplicationStartup(Context ctx) {
-        // stub
+        Iconics.registerFont(new PresentationsTypeface());
     }
 }

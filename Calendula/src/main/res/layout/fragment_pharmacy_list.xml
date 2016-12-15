@@ -1,0 +1,44 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context="es.usc.citius.servando.calendula.pharmacies.fragments.PharmacyFragment"
+    android:background="@color/white">
+
+    <ListView
+        android:id="@+id/pharmacies_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:divider="#777"
+        android:layout_marginTop="76dp"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="15dp">
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/pharmacies_map_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="bottom|right"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="15dp"
+            android:paddingTop="3dp"
+            android:scaleType="center"
+            app:backgroundTint="#189e59"
+            />
+    </RelativeLayout>
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar_pharmacy"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="20dp"
+        android:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        android:background="#13988a"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
+
+</FrameLayout>
