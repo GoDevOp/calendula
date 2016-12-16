@@ -25,7 +25,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -355,6 +354,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         slidingLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         slidingLayoutHeight = slidingLayout.getPanelHeight();
         slidingLayout.setPanelHeight(0);
+        slidingLayout.setOverlayed(true);
         slidingLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
             Date d = new Date();
 
@@ -825,7 +825,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         protected void onPreExecute() {
             super.onPreExecute();
             progressBarMap.setVisibility(View.VISIBLE);
-            searchImg.setVisibility(View.GONE);
+            //searchImg.setVisibility(View.GONE);
         }
 
         @Override
@@ -881,7 +881,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 updateUI(false);
                 finished = true;
             }
-            searchImg.setVisibility(View.VISIBLE);
+            // searchImg.setVisibility(View.VISIBLE);
             progressBarMap.setVisibility(View.GONE);
         }
 
