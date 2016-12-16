@@ -13,8 +13,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:layout_marginBottom="140dp"
-        android:layout_marginRight="5dp"
+        android:layout_marginBottom="145dp"
+        android:layout_marginRight="15dp"
         android:paddingTop="3dp"
         android:scaleType="center"
         app:backgroundTint="#169E58"
@@ -44,37 +44,29 @@
                 android:name="com.google.android.gms.maps.SupportMapFragment"/>
 
             <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:id="@+id/pharmacies_search_bar"
-                android:layout_width="match_parent"
-                android:layout_height="55dp"
-                android:layout_marginLeft="20dp"
-                android:layout_marginRight="20dp"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentTop="true"
-                android:layout_marginTop="30dp"
-                android:background="@android:color/white">
+                            xmlns:tools="http://schemas.android.com/tools"
+                            android:id="@+id/pharmacies_search_bar"
+                            android:layout_width="match_parent"
+                            android:layout_marginLeft="15dp"
+                            android:layout_marginRight="15dp"
+                            android:layout_alignParentLeft="true"
+                            android:layout_alignParentTop="true"
+                            android:layout_marginTop="35dp"
+                            android:background="@drawable/shape_list_item"
+                            android:layout_height="50dp">
 
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@color/white">
+                    >
                     <ImageView
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:id="@+id/search_pharmacies_image"
                         android:layout_gravity="center_vertical"
-                        android:paddingLeft="5dp"/>
-
-                    <ProgressBar
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
                         android:paddingLeft="5dp"
-                        android:id="@+id/search_pharmacies_loading"
-                        android:layout_gravity="center_vertical"
-                        android:indeterminate="true"
-                        android:visibility="gone" />
+                        android:layout_marginLeft="10dp"/>
 
                     <EditText
                         android:id="@+id/search_pharmacies_text"
@@ -84,30 +76,45 @@
                         android:layout_gravity="center_vertical"
                         android:hint="@string/pharmacy_search"
                         android:textColor="@android:color/black"
-                        android:background="@android:color/white"
+                        android:background="@null"
                         android:imeOptions="actionSearch"
                         android:inputType="text"
                         android:maxLines="1"
-                        android:textColorHighlight="@color/android_orange">
+                        android:textColorHighlight="@color/android_orange"
+                        android:layout_margin="0dp"
+                        >
                     </EditText>
+
                 </LinearLayout>
+
+                <ProgressBar
+                    android:layout_height="match_parent"
+                    android:paddingLeft="5dp"
+                    android:id="@+id/search_pharmacies_loading"
+                    android:layout_gravity="center_vertical"
+                    android:indeterminate="true"
+                    android:visibility="invisible"
+                    android:layout_alignParentBottom="true"
+                    android:layout_width="25dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_marginRight="35dp"/>
 
                 <com.mikepenz.iconics.view.IconicsButton
                     android:id="@+id/clear_search_pharmacies"
                     android:layout_alignParentRight="true"
-                    android:layout_width="40dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
                     style="?android:attr/borderlessButtonStyle"
                     android:text="{gmd-close}"
-                    android:textSize="20dp" />
+                    android:textSize="20dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_width="35dp"/>
 
             </RelativeLayout>
 
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:paddingBottom="15dp">
+                >
 
                 <android.support.design.widget.FloatingActionButton
                     android:id="@+id/center_map_pharmacies"
@@ -134,7 +141,7 @@
                     android:paddingTop="3dp"
                     android:scaleType="center"
                     app:backgroundTint="#ffffff"
-                    />
+                    android:layout_marginBottom="15dp"/>
 
             </RelativeLayout>
 

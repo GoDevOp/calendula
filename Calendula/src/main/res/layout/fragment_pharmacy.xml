@@ -13,7 +13,8 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            >
 
             <RelativeLayout
                 android:layout_width="wrap_content"
@@ -22,10 +23,10 @@
 
                 <ImageView
                     android:layout_width="match_parent"
-                    android:layout_height="300dp"
-                    android:layout_marginTop="-30dp"
                     android:src="@drawable/pills"
-                    android:id="@+id/image_pills"/>
+                    android:id="@+id/image_pills"
+                    android:scaleType="centerCrop"
+                    android:layout_height="230dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -36,23 +37,24 @@
                     android:layout_alignRight="@id/image_pills"
                     android:layout_alignBottom="@id/image_pills"
                     android:gravity="bottom"
-                    android:layout_marginBottom="35dp"
                     android:textColor="@color/white"
                     android:textSize="25dp"
-                    android:paddingLeft="35dp"/>
+                    android:paddingLeft="35dp"
+                    android:paddingBottom="35dp"
+                    android:paddingRight="50dp"/>
 
             </RelativeLayout>
 
             <RelativeLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/pharmacy_detail_header">
+                android:layout_below="@id/pharmacy_detail_header"
+                android:layout_marginBottom="20dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:paddingBottom="10dp"
+                    android:layout_marginTop="20dp"
                     android:id="@+id/pharmacy_detail_layout_hours">
 
                     <com.mikepenz.iconics.view.IconicsImageView
@@ -70,20 +72,23 @@
                         android:textColor="@color/black"
                         android:layout_alignParentTop="true"
                         android:layout_toRightOf="@+id/detail_clock_icon"
-                        android:layout_toEndOf="@+id/detail_clock_icon"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/pharmacy_detail_state"
-                        android:textAppearance="@style/medium_bold"
-                        android:textColor="@color/android_green_dark"
-                        android:textSize="15dp"
-                        android:layout_marginLeft="100dp"
-                        android:layout_marginRight="80dp"
-                        android:layout_gravity="right"/>
+                        android:layout_toEndOf="@+id/detail_clock_icon"
+                        android:text="adsadsa"/>
 
                 </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/pharmacy_detail_state"
+                    android:textAppearance="@style/medium_bold"
+                    android:textColor="@color/android_green_dark"
+                    android:textSize="15dp"
+                    android:layout_marginRight="80dp"
+                    android:layout_gravity="right"
+                    android:layout_below="@+id/pharmacy_detail_layout_hours"
+                    android:layout_marginLeft="80dp"
+                    android:text="dsadsadsa"/>
 
                 <View
                     android:layout_marginTop="5dp"
@@ -91,16 +96,17 @@
                     android:layout_marginLeft="80dp"
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:layout_below="@id/pharmacy_detail_layout_hours"
-                    android:background="@android:color/darker_gray"/>
+                    android:layout_below="@+id/pharmacy_detail_state"
+                    android:background="#ececec"
+                    android:layout_marginRight="15dp"/>
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="20dp"
                     android:layout_marginBottom="30dp"
                     android:id="@+id/pharmacy_detail_layout_tel"
-                    android:layout_below="@id/pharmacy_detail_layout_hours">
+                    android:layout_below="@+id/pharmacy_detail_state">
 
                     <com.mikepenz.iconics.view.IconicsImageView
                         android:layout_width="80dp"
@@ -128,7 +134,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_below="@id/pharmacy_detail_layout_tel"
-                    android:background="@android:color/darker_gray"/>
+                    android:background="#ececec"
+                    android:layout_marginRight="15dp"/>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -164,7 +171,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_below="@id/pharmacy_detail_layout_dir"
-                    android:background="@android:color/darker_gray"/>
+                    android:background="#ececec"
+                    android:layout_marginRight="15dp"/>
 
                 <RelativeLayout
                     android:layout_width="wrap_content"
@@ -275,37 +283,23 @@
 
                 </RelativeLayout>
 
-                <RelativeLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingBottom="15dp">
-
-                    <android.support.design.widget.FloatingActionButton
-                        android:id="@+id/get_pharmacy_route_detail"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentBottom="true"
-                        android:layout_alignParentRight="true"
-                        android:layout_marginRight="15dp"
-                        android:paddingTop="3dp"
-                        android:scaleType="center"
-                        app:backgroundTint="#169E58"
-                        android:layout_alignParentTop="false" />
-
-                </RelativeLayout>
-
             </RelativeLayout>
 
             <RelativeLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#eeeeee"
-                android:gravity="center"
+                android:background="#ffffff"
                 android:id="@+id/pharmacy_weekley_hours"
-                android:padding="20dp"
                 android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true"
-                android:visibility="gone">
+
+                android:visibility="gone"
+                android:layout_below="@+id/pharmacy_detail_header"
+                android:paddingBottom="20dp"
+                android:paddingEnd="20dp"
+                android:paddingLeft="35dp"
+                android:paddingRight="30dp"
+                android:paddingTop="20dp"
+                android:layout_marginBottom="20dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -460,17 +454,31 @@
             </RelativeLayout>
 
             <android.support.design.widget.FloatingActionButton
+                android:id="@+id/get_pharmacy_route_detail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="3dp"
+                android:scaleType="center"
+                app:backgroundTint="#169E58"
+                android:layout_marginRight="15dp"
+                android:layout_alignParentRight="true"
+                android:layout_alignBottom="@+id/layout_time_public"
+                android:layout_marginBottom="15dp"
+                android:layout_alignParentBottom="true"/>
+
+            <android.support.design.widget.FloatingActionButton
                 android:id="@+id/view_week_hours_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
+                android:layout_alignParentTop="false"
                 android:layout_alignParentRight="true"
                 android:layout_marginRight="15dp"
-                android:layout_marginTop="230dp"
                 android:paddingTop="3dp"
                 android:scaleType="center"
                 app:backgroundTint="#ebeced"
-                />
+                android:layout_below="@+id/pharmacy_detail_header"
+                android:layout_marginTop="-30dp"/>
+
         </RelativeLayout>
     </ScrollView>
 
@@ -479,7 +487,7 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="@dimen/status_bar_height"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
 
 </FrameLayout>
