@@ -148,7 +148,7 @@ public class HomePagerActivity extends CalendulaActivity implements
             menu.findItem(R.id.action_expand).setVisible(false);
         }
 
-        if (pageNum == 2 && CalendulaApp.isPharmaModeEnabled()) {
+        if (pageNum == 2 && CalendulaApp.isQrScanEnabled()) {
             menu.findItem(R.id.action_calendar).setVisible(true);
         } else {
             menu.findItem(R.id.action_calendar).setVisible(false);

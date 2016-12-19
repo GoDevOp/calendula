@@ -28,6 +28,7 @@ import java.util.List;
 import es.usc.citius.servando.calendula.modules.modules.AllergiesModule;
 import es.usc.citius.servando.calendula.modules.modules.BaseModule;
 import es.usc.citius.servando.calendula.modules.modules.PharmacyModule;
+import es.usc.citius.servando.calendula.modules.modules.QrScanModule;
 import es.usc.citius.servando.calendula.modules.modules.StockModule;
 
 /**
@@ -61,7 +62,7 @@ public class ModuleRegistry {
     }
 
     public enum ModuleConfig {
-        PRODUCT(ModuleLists.STABLE_MODULES), DEVELOP(ModuleLists.UNSTABLE_MODULES), PHARMA(ModuleLists.UNSTABLE_MODULES);
+        PRODUCT(ModuleLists.STABLE_MODULES), DEVELOP(ModuleLists.UNSTABLE_MODULES), PHARMA(ModuleLists.PHARMACY_MODULES);
 
         private Class<?>[] modList;
 
@@ -77,8 +78,12 @@ public class ModuleRegistry {
 
         private static final Class<?>[] UNSTABLE_MODULES = ArrayUtils.addAll(
                 STABLE_MODULES,
-                PharmacyModule.class,
+                QrScanModule.class,
                 AllergiesModule.class,
                 StockModule.class);
+
+        private static final Class<?>[] PHARMACY_MODULES = ArrayUtils.addAll(
+                UNSTABLE_MODULES,
+                PharmacyModule.class);
     }
 }
