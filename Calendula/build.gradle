@@ -46,8 +46,11 @@ idea {
 
 // read keystore for app signing
 def keystorePropertiesFile = rootProject.file("keystore.properties")
-def keystoreProperties = new Properties()
-keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+def keystoreProperties = null
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties = new Properties()
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
 
 def getCurrentFlavor() {
     Gradle gradle = getGradle()
@@ -92,16 +95,20 @@ android {
         multiDexEnabled true
     }
 
+    dexOptions {
+        javaMaxHeapSize "4g"
+    }
+
     packagingOptions {
         exclude 'LICENSE.txt'
     }
 
     signingConfigs {
         release {
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-            storeFile file(keystoreProperties['storeFile'])
-            storePassword keystoreProperties['storePassword']
+            keyAlias keystoreProperties != null ? keystoreProperties['keyAlias'] : null
+            keyPassword keystoreProperties != null ? keystoreProperties['keyPassword'] : null
+            storeFile keystoreProperties != null ? file(keystoreProperties['storeFile']) : null
+            storePassword keystoreProperties != null ? keystoreProperties['storePassword'] : null
         }
     }
 
@@ -252,6 +259,8 @@ dependencies {
     // levenshtein distance etc
     compile 'org.apache.commons:commons-lang3:3.5'
 
+    // gif imageview
+    compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.3'
     // retrofit
     compile 'com.squareup.retrofit2:retrofit:2.1.0'
     compile 'com.squareup.retrofit2:converter-gson:2.0.0-beta4'

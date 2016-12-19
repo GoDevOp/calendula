@@ -95,7 +95,8 @@ public class LeftDrawerMgr implements Drawer.OnDrawerItemClickListener, AccountH
 
     public void init(Bundle savedInstanceState) {
 
-        boolean isPharmaEnabled = CalendulaApp.isPharmaModeEnabled();
+        boolean isQrScanEnabled = CalendulaApp.isQrScanEnabled();
+        boolean isPharmacyEnabled = ModuleManager.isEnabled(PharmacyModule.ID);
 
         ArrayList<IProfile> profiles = new ArrayList<>();
 
@@ -172,8 +173,8 @@ public class LeftDrawerMgr implements Drawer.OnDrawerItemClickListener, AccountH
         b.addDrawerItems(
                 new PrimaryDrawerItem()
                         .withName(R.string.home_menu_pharmacies)
-                        .withIcon(IconUtils.icon(home, CommunityMaterial.Icon.cmd_map_marker_multiple, R.color.black).alpha(CalendulaApp.isPharmaModeEnabled() ? 110 : 38))
-                        .withEnabled(CalendulaApp.isPharmaModeEnabled())
+                        .withIcon(IconUtils.icon(home, CommunityMaterial.Icon.cmd_map_marker_multiple, R.color.black).alpha(isPharmacyEnabled ? 110 : 38))
+                        .withEnabled(isPharmacyEnabled)
                         .withIdentifier(PHARMACIES),
                 new PrimaryDrawerItem()
                         .withName(R.string.home_menu_plantrip)
@@ -202,7 +203,7 @@ public class LeftDrawerMgr implements Drawer.OnDrawerItemClickListener, AccountH
         headerResult.setActiveProfile(p.id().intValue(), false);
         updateHeaderBackground(p);
 
-        onPharmacyModeChanged(isPharmaEnabled);
+        onPharmacyModeChanged(isQrScanEnabled);
 
     }
 
@@ -267,11 +268,6 @@ public class LeftDrawerMgr implements Drawer.OnDrawerItemClickListener, AccountH
         BadgeStyle bs = new BadgeStyle();
         if (enabled) {
             addCalendarItem();
-//            Drawable bg = new IconicsDrawable(home)
-//                    .icon(GoogleMaterial.Icon.gmd_check)
-//                    .color(home.getResources().getColor(R.color.dark_grey_text))
-//                    .sizeDp(18);
-//            bs.withBadgeBackground(bg);
         } else {
             drawer.removeItem(CALENDAR);
             bs.withBadgeBackground(new ColorDrawable(Color.TRANSPARENT));

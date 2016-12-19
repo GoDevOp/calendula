@@ -36,7 +36,7 @@ import java.util.Locale;
 import de.greenrobot.event.EventBus;
 import es.usc.citius.servando.calendula.database.DB;
 import es.usc.citius.servando.calendula.modules.ModuleManager;
-import es.usc.citius.servando.calendula.modules.modules.PharmacyModule;
+import es.usc.citius.servando.calendula.modules.modules.QrScanModule;
 import es.usc.citius.servando.calendula.util.Settings;
 
 /**
@@ -90,8 +90,8 @@ public class CalendulaApp extends Application {
         return isOpen;
     }
 
-    public static boolean isPharmaModeEnabled() {
-        return ModuleManager.isEnabled(PharmacyModule.ID);
+    public static boolean isQrScanEnabled() {
+        return ModuleManager.isEnabled(QrScanModule.ID);
     }
 
     public static void open(boolean isOpen) {

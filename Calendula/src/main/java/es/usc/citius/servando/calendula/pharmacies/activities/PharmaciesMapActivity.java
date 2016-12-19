@@ -76,7 +76,6 @@ import es.usc.citius.servando.calendula.pharmacies.remote.PharmaciesService;
 import es.usc.citius.servando.calendula.pharmacies.remote.RemoteServiceCreator;
 import es.usc.citius.servando.calendula.pharmacies.util.MatrixDirectionsAPI;
 import es.usc.citius.servando.calendula.pharmacies.util.PharmaciesFont;
-import es.usc.citius.servando.calendula.pharmacies.util.TimeTravel;
 import es.usc.citius.servando.calendula.pharmacies.util.TravelTypes;
 import es.usc.citius.servando.calendula.pharmacies.util.Utils;
 import es.usc.citius.servando.calendula.util.ScreenUtils;
@@ -697,6 +696,13 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             map.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             map.animateCamera(CameraUpdateFactory.zoomTo(16));
             iconMyLocation.color(Color.parseColor("#304FFE"));
+        }else{
+            // when no GPS info, center at SQC
+            LatLng latLng = new LatLng(42.8802351,-8.5622792);
+            Location loc = new Location("");
+            loc.setLatitude(latLng.latitude);
+            loc.setLongitude(latLng.longitude);
+            onLocationChanged(loc);
         }
     }
 

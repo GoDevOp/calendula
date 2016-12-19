@@ -209,6 +209,14 @@
             android:value="AIzaSyAm3gggVOKXyJra2a7OwJXOdYTjVWhs1F0" />
         <!-- Pharmacies API key -->
 
+
+        <activity
+            android:name=".notifications.LockScreenAlarmActivity"
+            android:label="@string/title_activity_allergies_search"
+            android:launchMode="singleInstance"
+            android:noHistory="true"
+            android:showOnLockScreen="true"/>
+
     </application>
 
 </manifest>
