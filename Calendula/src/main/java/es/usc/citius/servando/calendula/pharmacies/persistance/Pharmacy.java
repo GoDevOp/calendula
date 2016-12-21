@@ -36,6 +36,7 @@ public class Pharmacy implements Parcelable {
     private String timeTravelWalkingSec;
     private String timeTravelBicycleSec;
     private HashMap<Integer, String> weekHours;
+    private Boolean guard;
 
     public Pharmacy() {
         holidays = new ArrayList<Holiday>();
@@ -207,6 +208,14 @@ public class Pharmacy implements Parcelable {
         this.timeTravelBicycleSec = timeTravelBicycleSec;
     }
 
+    public boolean isGuard() {
+        return guard != null ? guard : false;
+    }
+
+    public void setGuard(boolean guard) {
+        this.guard = guard;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -247,6 +256,7 @@ public class Pharmacy implements Parcelable {
                     dateGuardCal.get(java.util.Calendar.MONTH) == now.get(java.util.Calendar.MONTH) &&
                     dateGuardCal.get(java.util.Calendar.DAY_OF_MONTH) == now.get(java.util.Calendar.DAY_OF_MONTH)){
                     open = true;
+                    this.guard = true;
                     break;
                 }
             }

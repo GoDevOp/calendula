@@ -91,7 +91,11 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
                 hours = getString(R.string.pharmacy_not_hours_today);
             }
             txtHours.setText(hours);
-            if (pharmacy.isOpen()){
+            if (pharmacy.isGuard()){
+                txtState.setText(getString(R.string.pharmacy_guard));
+                txtState.setTextColor(Color.parseColor("#669900"));
+            }
+            else if (pharmacy.isOpen()){
                 txtState.setText(getString(R.string.pharmacy_open));
                 txtState.setTextColor(Color.parseColor("#669900"));
             }
