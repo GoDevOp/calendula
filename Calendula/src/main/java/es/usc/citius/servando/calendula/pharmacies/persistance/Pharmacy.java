@@ -368,14 +368,32 @@ public class Pharmacy implements Parcelable {
                     for (Hours hours : season.getHours()) {
                         Integer weekDay = now.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.SUNDAY ? 7 : now.get(java.util.Calendar.DAY_OF_WEEK)-1;
                         if (hours.getWeekDays().contains(weekDay)){
-                            if (hours.getOpenHourMorning() != null &&  hours.getCloseHourMorning() != null) {
-                                strHours += sdf.format(hours.getOpenHourMorning()) + " - ";
+
+                            GregorianCalendar hour0 = new GregorianCalendar();
+                            hour0.setTimeInMillis(1451602800000l); // 01/01/2016 00:00:00
+                            GregorianCalendar hour2359 = new GregorianCalendar();
+                            hour2359.set(now.get(java.util.Calendar.YEAR), 0, 1, 23, 59, 59);
+
+                            Date openHourMorning = hours.getOpenHourMorning();
+                            Date closeHourMorning = hours.getCloseHourMorning();
+                            Date openHourAfternoon = hours.getOpenHourAfternoon();
+                            Date closeHourAfternoon = hours.getCloseHourAfternoon();
+
+                            if (closeHourMorning != null && closeHourMorning.compareTo(hour0.getTime()) == 0){
+                                hours.setCloseHourMorning(hour2359.getTime());
+                            }
+                            if (closeHourAfternoon != null && closeHourAfternoon.compareTo(hour0.getTime()) == 0){
+                                hours.setCloseHourAfternoon(hour2359.getTime());
+                            }
+
+                            if (openHourMorning != null &&  closeHourMorning != null) {
+                                strHours += sdf.format(openHourMorning) + " - ";
                                 strHours += sdf.format(hours.getCloseHourMorning());
                                 strHours += "\n";
                             }
-                            if (hours.getOpenHourAfternoon() != null &&  hours.getCloseHourAfternoon() != null) {
-                                strHours += sdf.format(hours.getOpenHourAfternoon()) + " - ";
-                                strHours += sdf.format(hours.getCloseHourAfternoon());
+                            if (openHourAfternoon != null &&  closeHourAfternoon != null) {
+                                strHours += sdf.format(openHourAfternoon) + " - ";
+                                strHours += sdf.format(closeHourAfternoon);
                             }
                             break;
                         }
@@ -436,6 +454,11 @@ public class Pharmacy implements Parcelable {
         cal.setTimeZone(java.util.TimeZone.getTimeZone("GMT"));
         Date dateWithoutTime = cal.getTime();
 
+        GregorianCalendar hour0 = new GregorianCalendar();
+        hour0.setTimeInMillis(1451602800000l); // 01/01/2016 00:00:00
+        GregorianCalendar hour2359 = new GregorianCalendar();
+        hour2359.set(now.get(java.util.Calendar.YEAR), 0, 1, 23, 59, 59);
+
         for (Calendar calendar:this.calendar){
             for (Season season:calendar.getSeasons()){
                 if (dateWithoutTime.after(season.getStartDate()) && dateWithoutTime.before(season.getEndDate())) {
@@ -448,6 +471,13 @@ public class Pharmacy implements Parcelable {
                                 Date closeHourMorning = hours.getCloseHourMorning();
                                 Date openHourAfternoon = hours.getOpenHourAfternoon();
                                 Date closeHourAfternoon = hours.getCloseHourAfternoon();
+
+                                if (closeHourMorning != null && closeHourMorning.compareTo(hour0.getTime()) == 0){
+                                    hours.setCloseHourMorning(hour2359.getTime());
+                                }
+                                if (closeHourAfternoon != null && closeHourAfternoon.compareTo(hour0.getTime()) == 0){
+                                    hours.setCloseHourAfternoon(hour2359.getTime());
+                                }
 
                                 if (openHourMorning != null) {
                                     openHourMorning = getDayWithOpenTime(hours.getOpenHourMorning());
