@@ -14,7 +14,11 @@ import android.widget.TextView;
 
 import com.mikepenz.iconics.IconicsDrawable;
 
+import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
+
 import es.usc.citius.servando.calendula.R;
+import es.usc.citius.servando.calendula.pharmacies.activities.PharmaciesMapActivity;
 import es.usc.citius.servando.calendula.pharmacies.persistance.Pharmacy;
 import es.usc.citius.servando.calendula.pharmacies.util.PharmaciesFont;
 import es.usc.citius.servando.calendula.pharmacies.util.TimeTravel;
@@ -65,6 +69,44 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
         this.lastLocation = location;
     }
 
+    public void updateTimes(HashMap<TravelTypes, String> times) throws Exception{
+
+        if (times != null){
+            pharmacy.setTimeTravelCarSec(times.get(TravelTypes.CAR));
+            pharmacy.setTimeTravelBicycleSec(times.get(TravelTypes.BICYCLE));
+            pharmacy.setTimeTravelWalkingSec(times.get(TravelTypes.WALK));
+            pharmacy.setTimeTravelTransitSec(times.get(TravelTypes.PUBLIC));
+        }
+
+        txtCarTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelCarSec()));
+        if (pharmacy.getTimeTravelCarSec() != "" && Long.parseLong(pharmacy.getTimeTravelCarSec()) > pharmacy.getSecondsUntilNextClose()) {
+            txtCarTime.setTextColor(Color.RED);
+        } else {
+            txtCarTime.setTextColor(Color.parseColor("#0099CC"));
+        }
+
+        txtWalkTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelWalkingSec()));
+        if (pharmacy.getTimeTravelWalkingSec() != "" && Long.parseLong(pharmacy.getTimeTravelWalkingSec()) > pharmacy.getSecondsUntilNextClose()) {
+            txtWalkTime.setTextColor(Color.RED);
+        } else {
+            txtWalkTime.setTextColor(Color.parseColor("#0099CC"));
+        }
+
+        txtBikeTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelBicycleSec()));
+        if (pharmacy.getTimeTravelBicycleSec() != "" && Long.parseLong(pharmacy.getTimeTravelBicycleSec()) > pharmacy.getSecondsUntilNextClose()) {
+            txtBikeTime.setTextColor(Color.RED);
+        } else {
+            txtBikeTime.setTextColor(Color.parseColor("#0099CC"));
+        }
+
+        txtPublicTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelTransitSec()));
+        if (pharmacy.getTimeTravelTransitSec() != "" && Long.parseLong(pharmacy.getTimeTravelTransitSec()) > pharmacy.getSecondsUntilNextClose()) {
+            txtPublicTime.setTextColor(Color.RED);
+        } else {
+            txtPublicTime.setTextColor(Color.parseColor("#0099CC"));
+        }
+    }
+
     public Pharmacy getPharmacy(){
         return pharmacy;
     }
@@ -105,54 +147,8 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
             }
 
             try {
-                if (getTimes && (pharmacy.getTimeTravelCar() == null || pharmacy.getTimeTravelCar().isEmpty())) {
-                    GetTravelTimeTask carTask = new GetTravelTimeTask(TravelTypes.CAR);
-                    carTask.execute();
-                } else {
-                    txtCarTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelCarSec()));
-                    if (pharmacy.getTimeTravelCarSec() != "" && Long.parseLong(pharmacy.getTimeTravelCarSec()) > pharmacy.getSecondsUntilNextClose()) {
-                        txtCarTime.setTextColor(Color.RED);
-                    } else {
-                        txtCarTime.setTextColor(Color.parseColor("#0099CC"));
-                    }
-                }
-
-                if (getTimes && (pharmacy.getTimeTravelWalking() == null || pharmacy.getTimeTravelWalking().isEmpty())) {
-                    GetTravelTimeTask walkTask = new GetTravelTimeTask(TravelTypes.WALK);
-                    walkTask.execute();
-                } else {
-                    txtWalkTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelWalkingSec()));
-                    if (pharmacy.getTimeTravelWalkingSec() != "" && Long.parseLong(pharmacy.getTimeTravelWalkingSec()) > pharmacy.getSecondsUntilNextClose()) {
-                        txtWalkTime.setTextColor(Color.RED);
-                    } else {
-                        txtWalkTime.setTextColor(Color.parseColor("#0099CC"));
-                    }
-                }
-
-                if (getTimes && (pharmacy.getTimeTravelBicycle() == null || pharmacy.getTimeTravelBicycle().isEmpty())) {
-                    GetTravelTimeTask bikeTask = new GetTravelTimeTask(TravelTypes.BICYCLE);
-                    bikeTask.execute();
-                } else {
-                    txtBikeTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelBicycleSec()));
-                    if (pharmacy.getTimeTravelBicycleSec() != "" && Long.parseLong(pharmacy.getTimeTravelBicycleSec()) > pharmacy.getSecondsUntilNextClose()) {
-                        txtBikeTime.setTextColor(Color.RED);
-                    } else {
-                        txtBikeTime.setTextColor(Color.parseColor("#0099CC"));
-                    }
-                }
-
-                if (getTimes && (pharmacy.getTimeTravelTransit() == null || pharmacy.getTimeTravelTransit().isEmpty())) {
-                    GetTravelTimeTask publicTask = new GetTravelTimeTask(TravelTypes.PUBLIC);
-                    publicTask.execute();
-                } else {
-                    txtPublicTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelTransitSec()));
-                    if (pharmacy.getTimeTravelTransitSec() != "" && Long.parseLong(pharmacy.getTimeTravelTransitSec()) > pharmacy.getSecondsUntilNextClose()) {
-                        txtPublicTime.setTextColor(Color.RED);
-                    } else {
-                        txtPublicTime.setTextColor(Color.parseColor("#0099CC"));
-                    }
-                }
-            } catch (NumberFormatException e){
+                updateTimes(null);
+            } catch (Exception e){
                 Log.e("MARKERDETAIL", "PharmacyMarkerDetailsFragment.updateData "+e.getLocalizedMessage());
             }
         }
