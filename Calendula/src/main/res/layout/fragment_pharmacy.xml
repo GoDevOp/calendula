@@ -304,16 +304,9 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Horario semanal"
+                    android:text="@string/pharmacy_weekley_schedule"
                     android:textSize="20dp"
                     android:id="@+id/pharmacy_hours_title"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="{gmd-close}"
-                    android:textSize="20dp"
-                    android:layout_alignParentRight="true"
-                    android:id="@+id/pharmacy_hours_close"/>
 
                 <View
                     android:layout_marginTop="5dp"

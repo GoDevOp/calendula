@@ -61,6 +61,7 @@ public class PharmacyFragment extends Fragment {
 
     IconicsDrawable iconDirections;
     IconicsDrawable iconHours;
+    IconicsDrawable iconClose;
 
     FloatingActionButton btnDirections;
     FloatingActionButton btnHours;
@@ -121,6 +122,7 @@ public class PharmacyFragment extends Fragment {
             public void onClick(View v) {
                 String destination = pharmacy.getGps()[1]+","+pharmacy.getGps()[0];
                 Uri gmmIntentUri = Uri.parse("google.navigation:q="+destination);
+
                 Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                 mapIntent.setPackage("com.google.android.apps.maps");
                 startActivity(mapIntent);
@@ -131,33 +133,34 @@ public class PharmacyFragment extends Fragment {
         iconHours = new IconicsDrawable(getActivity(), GoogleMaterial.Icon.gmd_time)
                 .sizeDp(24)
                 .color(Color.BLACK);
+        iconClose = new IconicsDrawable(getActivity(), GoogleMaterial.Icon.gmd_close)
+                .sizeDp(14)
+                .color(Color.BLACK);
         btnHours = (FloatingActionButton) layout.findViewById(R.id.view_week_hours_btn);
         btnHours.setImageDrawable(iconHours);
         btnHours.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (pharmacy.getWeekHours() == null){
-                    pharmacy.calculateWeekHours();
+
+                if (weekleyHours.getVisibility() == View.VISIBLE){
+                    weekleyHours.setVisibility(View.GONE);
+                    btnHours.setImageDrawable(iconHours);
                 }
-                txtHoursMonday.setText(pharmacy.getWeekHours().get(1) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(1));
-                txtHoursTuesday.setText(pharmacy.getWeekHours().get(2) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(2));
-                txtHoursWensday.setText(pharmacy.getWeekHours().get(3) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(3));
-                txtHoursThursday.setText(pharmacy.getWeekHours().get(4) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(4));
-                txtHoursFriday.setText(pharmacy.getWeekHours().get(5) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(5));
-                txtHoursSaturday.setText(pharmacy.getWeekHours().get(6) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(6));
-                txtHoursSunday.setText(pharmacy.getWeekHours().get(7) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(7));
+                else {
+                    if (pharmacy.getWeekHours() == null) {
+                        pharmacy.calculateWeekHours();
+                    }
+                    txtHoursMonday.setText(pharmacy.getWeekHours().get(1) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(1));
+                    txtHoursTuesday.setText(pharmacy.getWeekHours().get(2) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(2));
+                    txtHoursWensday.setText(pharmacy.getWeekHours().get(3) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(3));
+                    txtHoursThursday.setText(pharmacy.getWeekHours().get(4) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(4));
+                    txtHoursFriday.setText(pharmacy.getWeekHours().get(5) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(5));
+                    txtHoursSaturday.setText(pharmacy.getWeekHours().get(6) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(6));
+                    txtHoursSunday.setText(pharmacy.getWeekHours().get(7) == null ? getString(R.string.pharmacy_not_hours_today) : pharmacy.getWeekHours().get(7));
 
-                weekleyHours.setVisibility(View.VISIBLE);
-                btnHours.hide();
-            }
-        });
-
-        TextView hoursClose = (TextView) layout.findViewById(R.id.pharmacy_hours_close);
-        hoursClose.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                weekleyHours.setVisibility(View.GONE);
-                btnHours.show();
+                    weekleyHours.setVisibility(View.VISIBLE);
+                    btnHours.setImageDrawable(iconClose);
+                }
             }
         });
 

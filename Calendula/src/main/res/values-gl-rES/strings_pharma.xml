@@ -34,6 +34,7 @@
     <string name="pharmacy_minute">minuto</string>
     <string name="pharmacy_minutes">minutos</string>
     <string name="pharmacy_not_hours_today">Hoxe non abre</string>
+    <string name="pharmacy_weekley_schedule">Horario semanal</string>
     <string name="pharmacy_search">Buscar farmacias</string>
     <string name="pharmacy_search_no_results">Sen resultados para esa búsqueda</string>
     <string name="pharmacy_search_without_text">Por favor, introduce algún texto para buscar</string>
