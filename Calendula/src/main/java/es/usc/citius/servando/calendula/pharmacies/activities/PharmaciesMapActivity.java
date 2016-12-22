@@ -130,6 +130,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     private MarkerRenderer mMarkerRenderer;
 
     private boolean mapLoaded = false;
+    private boolean throwLocationQuery = true;
 
     //UI Controls
     FloatingActionButton btnMyPostion;
@@ -163,7 +164,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     GetApiDataTask apiTaskNearest = null;
     GetApiDataTask apiTaskSearch = null;
 
-    HashMap<String, Pharmacy> markerMap;
+    HashMap<Marker, Pharmacy> markerMap;
 
     List<PharmacyListItem> pharmaciesListItems;
     HashMap<TravelTypes, HashMap<Integer, String>> travelTimes;
@@ -257,6 +258,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         btnList.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                ScreenUtils.setStatusBarColor(PharmaciesMapActivity.this, Color.parseColor("#148577"));
                 listLayout = (RelativeLayout) findViewById(R.id.pharmacies_list);
                 listLayout.setVisibility(View.VISIBLE);
 
@@ -373,7 +375,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     ft.replace(R.id.fragment_contenedor, fragmentMarker);
                     fragmentContainer.getLayoutParams().height = slidingLayoutHeight;
                     ft.commit();
-                    fragmentMarker.updateData(false);
+                    fragmentMarker.updateData();
                     if (fragmentMarker.isVisible()) {
                         btnDirections.show();
                     }
@@ -477,9 +479,10 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             @Override
             public void onCameraIdle() {
                 mClusterManager.onCameraIdle();
-                if (!firstTime && searchTxt.getText().length() == 0) {
+                if (!firstTime && searchTxt.getText().length() == 0 && throwLocationQuery) {
                     throwLocationQuery();
                 }
+                throwLocationQuery = true;
             }
         });
 
@@ -560,7 +563,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         hideKeyboard();
         Pharmacy pharma = pharmacyMarker.getPharmacy();
         // Change color marker
-        if (previousPharmacy != null && previousMarker != null && markerMap.containsKey(previousMarker.getId()) &&
+        if (previousPharmacy != null && previousMarker != null && markerMap.containsKey(previousMarker) &&
                 fragmentMarker.isVisible() && pharmaciesHashMap.containsKey(previousPharmacy.getCodPharmacy())) {
             if (!previousPharmacy.isOpen()) {
                 previousMarker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedMarker.toBitmap()));
@@ -595,7 +598,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         fragmentMarker.setData(pharma, mLastLocation);
         showFragment(fragmentMarker);
         slidingLayout.setVisibility(View.VISIBLE);
-        fragmentMarker.updateData(true);
+        fragmentMarker.updateData();
         return true;
     }
 
@@ -616,6 +619,12 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         }
         else if (slidingLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED){
             slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        }
+        else if (pharmacyListFragment.isVisible()){
+            ScreenUtils.setStatusBarColor(this, Color.argb(50, 61, 63, 64));
+            listLayout = (RelativeLayout) findViewById(R.id.pharmacies_list);
+            listLayout.setVisibility(View.GONE);
+            this.getFragmentManager().popBackStack();
         }
         else{
             finish();
@@ -710,12 +719,22 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             map.animateCamera(CameraUpdateFactory.zoomTo(16));
             iconMyLocation.color(Color.parseColor("#304FFE"));
         }else{
-            // when no GPS info, center at SQC
+            // when no GPS info, center at SCQ
             LatLng latLng = new LatLng(42.8802351,-8.5622792);
             Location loc = new Location("");
             loc.setLatitude(latLng.latitude);
             loc.setLongitude(latLng.longitude);
             onLocationChanged(loc);
+        }
+    }
+
+    private void centerMap(Double latitude, Double longitude){
+        if (latitude != null && longitude != null) {
+            LatLng latLng = new LatLng(latitude, longitude);
+            map.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+            map.animateCamera(CameraUpdateFactory.zoomTo(16));
+            iconMyLocation.color(Color.parseColor("#304FFE"));
+            throwLocationQuery = false;
         }
     }
 
@@ -792,6 +811,43 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     public HashMap<TravelTypes,HashMap<Integer, String>> getTravelTimes(){
         return travelTimes;
+    }
+
+    public void centerPharmacy(PharmacyListItem pharmacyListItem){
+        Pharmacy pharmacy = pharmaciesHashMap.get(pharmacyListItem.getCodPharmacy());
+
+        if (markerMap.containsValue(pharmacy)){
+            for (Map.Entry<Marker, Pharmacy> e : markerMap.entrySet()) {
+                if (e.getValue().getCodPharmacy() == pharmacy.getCodPharmacy()) {
+                    Marker marker = e.getKey();
+                    if (pharmacy.isOpen()) {
+                        marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
+                        previousMarker = marker;
+                        previousPharmacy = pharmacy;
+                    }
+                    else{
+                        marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedSelectedMarker.toBitmap()));
+                    }
+                }
+            }
+        }
+
+        // put travel times in pharma to put in fragment marker
+        try {
+            pharmacy.setTimeTravelCarSec(travelTimes.get(TravelTypes.CAR).get(pharmacy.getCodPharmacy()));
+            pharmacy.setTimeTravelBicycleSec(travelTimes.get(TravelTypes.BICYCLE).get(pharmacy.getCodPharmacy()));
+            pharmacy.setTimeTravelWalkingSec(travelTimes.get(TravelTypes.WALK).get(pharmacy.getCodPharmacy()));
+            pharmacy.setTimeTravelTransitSec(travelTimes.get(TravelTypes.PUBLIC).get(pharmacy.getCodPharmacy()));
+        }
+        catch (Exception e){
+            Log.e("", e.getLocalizedMessage());
+        }
+        fragmentMarker.setData(pharmacy, mLastLocation);
+        fragmentMarker.updateData();
+        showFragment(fragmentMarker);
+        centerMap(pharmacy.getGps()[1].doubleValue(), pharmacy.getGps()[0].doubleValue());
+
+
     }
 
     private class GetApiDataTask extends AsyncTask<Void, Void, Void> implements Callback<List<Pharmacy>> {
@@ -891,12 +947,13 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 for (Pharmacy pharmacy : pharmacies) {
                     pharmaciesHashMap.put(pharmacy.getCodPharmacy(), pharmacy);
                     PharmacyListItem listItem = new PharmacyListItem();
+                    listItem.setCodPharmacy(pharmacy.getCodPharmacy());
                     listItem.setName(Utils.capitalizeNames(pharmacy.getName()));
                     listItem.setAddress(pharmacy.getAddress());
                     listItem.setOpen(pharmacy.isOpen());
                     pharmaciesListItems.add(listItem);
                 }
-                GetTravelTimeTask getTimesTask = new GetTravelTimeTask(TravelTypes.CAR);
+                GetTravelTimeTask getTimesTask = new GetTravelTimeTask();
                 getTimesTask.execute();
                 pharmacyListFragment.setData(pharmaciesListItems);
                 Date d = new Date();
@@ -964,10 +1021,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     private class GetTravelTimeTask extends AsyncTask<Void, Void, HashMap<TravelTypes,HashMap<Integer, String>>> {
 
-        private TravelTypes method;
-
-        GetTravelTimeTask(TravelTypes method){
-            this.method =  method;
+        GetTravelTimeTask(){
         }
 
         @Override
@@ -975,16 +1029,16 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
             HashMap<TravelTypes,HashMap<Integer, String>> response = new HashMap();
 
-            HashMap<Integer, String> responseCar;
+            HashMap<Integer, String> responseCar = null;
             responseCar = MatrixDirectionsAPI.getTime(mLastLocation, pharmacies, TravelTypes.CAR.getValue());
 
-            HashMap<Integer, String> responseBike;
+            HashMap<Integer, String> responseBike = null;
             responseBike = MatrixDirectionsAPI.getTime(mLastLocation, pharmacies, TravelTypes.BICYCLE.getValue());
 
-            HashMap<Integer, String> responseWalking;
+            HashMap<Integer, String> responseWalking = null;
             responseWalking = MatrixDirectionsAPI.getTime(mLastLocation, pharmacies, TravelTypes.WALK.getValue());
 
-            HashMap<Integer, String> responsePublic;
+            HashMap<Integer, String> responsePublic = null;
             responsePublic = MatrixDirectionsAPI.getTime(mLastLocation, pharmacies, TravelTypes.PUBLIC.getValue());
 
             response.put(TravelTypes.CAR, responseCar);
@@ -1064,7 +1118,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         @Override
         protected void onClusterItemRendered(PharmacyMarker pharmacyMarker, Marker marker) {
             super.onClusterItemRendered(pharmacyMarker, marker);
-            markerMap.put(marker.getId(), pharmacyMarker.getPharmacy());
+            markerMap.put(marker, pharmacyMarker.getPharmacy());
             if (previousPharmacy != null && pharmaciesHashMap.containsKey(previousPharmacy.getCodPharmacy()) && previousPharmacy.getCodPharmacy().intValue() == pharmacyMarker.getPharmacy().getCodPharmacy().intValue()) {
                 previousMarker = marker;
                 previousPharmacyMarker = pharmacyMarker;

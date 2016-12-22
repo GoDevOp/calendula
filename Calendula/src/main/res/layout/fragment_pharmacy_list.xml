@@ -15,8 +15,7 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingBottom="15dp">
+        android:layout_height="match_parent">
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/pharmacies_map_button"
@@ -29,6 +28,7 @@
             android:paddingTop="3dp"
             android:scaleType="center"
             app:backgroundTint="#189e59"
+            android:layout_marginBottom="15dp"
             />
     </RelativeLayout>
 

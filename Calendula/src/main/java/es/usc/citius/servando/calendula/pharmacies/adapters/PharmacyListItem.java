@@ -6,6 +6,7 @@ package es.usc.citius.servando.calendula.pharmacies.adapters;
 
 public class PharmacyListItem {
 
+    private Integer codPharmacy;
     private String name;
     private String address;
     private String timeTravelCar;
@@ -13,6 +14,14 @@ public class PharmacyListItem {
     private String timeTravelWalking;
     private String timeTravelBicycle;
     private boolean open;
+
+    public Integer getCodPharmacy() {
+        return codPharmacy;
+    }
+
+    public void setCodPharmacy(Integer codPharmacy) {
+        this.codPharmacy = codPharmacy;
+    }
 
     public String getName() {
         return name;

@@ -111,7 +111,7 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
         return pharmacy;
     }
 
-    public void updateData(boolean getTimes){
+    public void updateData(){
         if (pharmacy != null) {
 
             txtName = (TextView) layout.findViewById(R.id.pharmacy_name);
@@ -151,96 +151,6 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
             } catch (Exception e){
                 Log.e("MARKERDETAIL", "PharmacyMarkerDetailsFragment.updateData "+e.getLocalizedMessage());
             }
-        }
-    }
-
-    private void updateTime(TaskResponse time){
-        if (time.getMethod().equals(TravelTypes.CAR)){
-            pharmacy.setTimeTravelCarSec(time.getTime());
-            txtCarTime.setText(Utils.secondsToFormatString(time.getTime()));
-            if (time.getTime() != "" && Long.parseLong(time.getTime()) > pharmacy.getSecondsUntilNextClose()){
-                txtCarTime.setTextColor(Color.RED);
-            }
-            else{
-                txtCarTime.setTextColor(Color.parseColor("#0099CC"));
-            }
-        }
-        else if (time.getMethod().equals(TravelTypes.BICYCLE)){
-            pharmacy.setTimeTravelBicycleSec(time.getTime());
-            txtBikeTime.setText(Utils.secondsToFormatString(time.getTime()));
-            if (time.getTime() != "" && Long.parseLong(time.getTime()) > pharmacy.getSecondsUntilNextClose()){
-                txtBikeTime.setTextColor(Color.RED);
-            }
-            else{
-                txtBikeTime.setTextColor(Color.parseColor("#0099CC"));
-            }
-        }
-        else if (time.getMethod().equals(TravelTypes.PUBLIC)){
-            pharmacy.setTimeTravelTransitSec(time.getTime());
-            txtPublicTime.setText(Utils.secondsToFormatString(time.getTime()));
-            if (time.getTime() != "" && Long.parseLong(time.getTime()) > pharmacy.getSecondsUntilNextClose()){
-                txtPublicTime.setTextColor(Color.RED);
-            }
-            else{
-                txtPublicTime.setTextColor(Color.parseColor("#0099CC"));
-            }
-        }
-        else if (time.getMethod().equals(TravelTypes.WALK)){
-            pharmacy.setTimeTravelWalkingSec(time.getTime());
-            txtWalkTime.setText(Utils.secondsToFormatString(time.getTime()));
-            if (time.getTime() != "" && Long.parseLong(time.getTime()) > pharmacy.getSecondsUntilNextClose()){
-                txtWalkTime.setTextColor(Color.RED);
-            }
-            else{
-                txtWalkTime.setTextColor(Color.parseColor("#0099CC"));
-            }
-        }
-    }
-
-    private class GetTravelTimeTask extends AsyncTask<Void, Void, TaskResponse> {
-
-        private TravelTypes method;
-
-        GetTravelTimeTask(TravelTypes method){
-            this.method =  method;
-        }
-
-        @Override
-        protected TaskResponse doInBackground(Void... params) {
-
-            TaskResponse response = new TaskResponse();
-
-            String timeTravel = TimeTravel.getTime((float)lastLocation.getLatitude(), (float)lastLocation.getLongitude(), pharmacy.getGps()[1], pharmacy.getGps()[0], method.getValue());
-            response.setTime(timeTravel);
-            response.setMethod(method);
-
-            return response;
-        }
-
-        @Override
-        protected void onPostExecute(TaskResponse result) {
-            updateTime(result);
-        }
-    }
-
-    private class TaskResponse{
-        private String time;
-        private TravelTypes method;
-
-        public String getTime() {
-            return time;
-        }
-
-        public void setTime(String time) {
-            this.time = time;
-        }
-
-        public TravelTypes getMethod() {
-            return method;
-        }
-
-        public void setMethod(TravelTypes method) {
-            this.method = method;
         }
     }
 

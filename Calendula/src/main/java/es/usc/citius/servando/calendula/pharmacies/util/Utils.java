@@ -39,9 +39,15 @@ public class Utils {
                 capitalizedName.append(word.toLowerCase().concat(" "));
             }
             else {
-                String firstLetter = word.substring(0, 1).toUpperCase();
-                String otherLetters = word.substring(1, word.length()).toLowerCase();
-                capitalizedName.append(firstLetter.concat(otherLetters).concat(" "));
+                try {
+                    String firstLetter = word.substring(0, 1).toUpperCase();
+                    String otherLetters = word.substring(1, word.length()).toLowerCase();
+                    capitalizedName.append(firstLetter.concat(otherLetters).concat(" "));
+                }
+                catch (Exception e){
+                    Log.e("", e.getLocalizedMessage());
+                    return "";
+                }
             }
         }
 

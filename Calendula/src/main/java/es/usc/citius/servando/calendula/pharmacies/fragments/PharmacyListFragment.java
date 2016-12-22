@@ -11,6 +11,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -19,9 +20,11 @@ import android.widget.Toast;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.iconics.IconicsDrawable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import es.usc.citius.servando.calendula.R;
+import es.usc.citius.servando.calendula.pharmacies.activities.PharmaciesMapActivity;
 import es.usc.citius.servando.calendula.pharmacies.adapters.PharmacyItemAdapter;
 import es.usc.citius.servando.calendula.pharmacies.adapters.PharmacyListItem;
 import es.usc.citius.servando.calendula.pharmacies.persistance.Pharmacy;
@@ -90,6 +93,7 @@ public class PharmacyListFragment extends Fragment {
         btnMap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                ScreenUtils.setStatusBarColor(getActivity(), Color.argb(50, 61, 63, 64));
                 listLayout = (RelativeLayout) getActivity().findViewById(R.id.pharmacies_list);
                 listLayout.setVisibility(View.GONE);
                 getActivity().getFragmentManager().popBackStack();
@@ -97,18 +101,32 @@ public class PharmacyListFragment extends Fragment {
         });
 
         pharmacyListView = (ListView) layout.findViewById(R.id.pharmacies_list_view);
+        pharmacyListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                ScreenUtils.setStatusBarColor(getActivity(), Color.argb(50, 61, 63, 64));
+                PharmacyListItem itemClicked = (PharmacyListItem) parent.getItemAtPosition(position);
+                ((PharmaciesMapActivity)getActivity()).centerPharmacy(itemClicked);
+                listLayout = (RelativeLayout) getActivity().findViewById(R.id.pharmacies_list);
+                listLayout.setVisibility(View.GONE);
+                getActivity().getFragmentManager().popBackStack();
+            }
+        });
 
         // Add data to itemAdapter
         pharmacyItemAdapter = new PharmacyItemAdapter(getActivity(), pharmacies);
 
         // Fill adapter list with data
-        pharmacyListView.setAdapter(pharmacyItemAdapter);
+        if (pharmacyListView != null && pharmacyItemAdapter != null) {
+            pharmacyListView.setAdapter(pharmacyItemAdapter);
+        }
 
         return layout;
     }
 
     public void setData(List<PharmacyListItem> pharmacies){
-        this.pharmacies =  pharmacies;
+        this.pharmacies =  new ArrayList<>();
+        this.pharmacies.addAll(pharmacies);
     }
 
     public void updateData(){
