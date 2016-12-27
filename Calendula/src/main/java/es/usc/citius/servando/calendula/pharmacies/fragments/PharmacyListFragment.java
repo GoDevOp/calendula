@@ -14,6 +14,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +30,8 @@ import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.materialdrawer.icons.MaterialDrawerFont;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import es.usc.citius.servando.calendula.R;
@@ -123,7 +126,18 @@ public class PharmacyListFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 pharmacyItemAdapter.changeTime(1);
-                pharmacyItemAdapter.notifyDataSetChanged();
+                Collections.sort(pharmacies, new Comparator<PharmacyListItem>() {
+                    @Override
+                    public int compare(PharmacyListItem o1, PharmacyListItem o2) {
+                        try{
+                            return o1.getDistanceCar().compareTo(o2.getDistanceCar());
+                        } catch(Exception e){
+                            Log.e("Compare", e.getLocalizedMessage());
+                            return 1;
+                        }
+                    }
+                });
+                updateData();
 
                 btnCar.setBackgroundColor(Color.parseColor("#0d7065"));
                 btnWalk.setBackgroundColor(Color.TRANSPARENT);
@@ -138,7 +152,18 @@ public class PharmacyListFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 pharmacyItemAdapter.changeTime(2);
-                pharmacyItemAdapter.notifyDataSetChanged();
+                Collections.sort(pharmacies, new Comparator<PharmacyListItem>() {
+                    @Override
+                    public int compare(PharmacyListItem o1, PharmacyListItem o2) {
+                        try{
+                            return o1.getDistanceWalking().compareTo(o2.getDistanceWalking());
+                        } catch(Exception e){
+                            Log.e("Compare", e.getLocalizedMessage());
+                            return 1;
+                        }
+                    }
+                });
+                updateData();
 
                 btnCar.setBackgroundColor(Color.TRANSPARENT);
                 btnWalk.setBackgroundColor(Color.parseColor("#0d7065"));
@@ -153,7 +178,18 @@ public class PharmacyListFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 pharmacyItemAdapter.changeTime(3);
-                pharmacyItemAdapter.notifyDataSetChanged();
+                Collections.sort(pharmacies, new Comparator<PharmacyListItem>() {
+                    @Override
+                    public int compare(PharmacyListItem o1, PharmacyListItem o2) {
+                        try{
+                            return o1.getDistanceBicycle().compareTo(o2.getDistanceBicycle());
+                        } catch(Exception e){
+                            Log.e("Compare", e.getLocalizedMessage());
+                            return 1;
+                        }
+                    }
+                });
+                updateData();
 
                 btnCar.setBackgroundColor(Color.TRANSPARENT);
                 btnWalk.setBackgroundColor(Color.TRANSPARENT);
@@ -169,7 +205,18 @@ public class PharmacyListFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 pharmacyItemAdapter.changeTime(4);
-                pharmacyItemAdapter.notifyDataSetChanged();
+                Collections.sort(pharmacies, new Comparator<PharmacyListItem>() {
+                    @Override
+                    public int compare(PharmacyListItem o1, PharmacyListItem o2) {
+                        try {
+                            return o1.getDistanceTransit().compareTo(o2.getDistanceTransit());
+                        } catch(Exception e){
+                            Log.e("Compare", e.getLocalizedMessage());
+                            return 1;
+                        }
+                    }
+                });
+                updateData();
 
                 btnCar.setBackgroundColor(Color.TRANSPARENT);
                 btnWalk.setBackgroundColor(Color.TRANSPARENT);

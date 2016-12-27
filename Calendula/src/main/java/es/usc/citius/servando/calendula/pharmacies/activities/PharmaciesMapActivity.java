@@ -60,6 +60,7 @@ import com.mikepenz.iconics.context.IconicsLayoutInflater;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -1062,6 +1063,17 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 item.setDistanceTransit(responsePublic.get(item.getCodPharmacy()).getDistance());
             }
 
+            Collections.sort(pharmaciesListItems, new Comparator<PharmacyListItem>() {
+                @Override
+                public int compare(PharmacyListItem o1, PharmacyListItem o2) {
+                    try{
+                        return o1.getDistanceCar().compareTo(o2.getDistanceCar());
+                    } catch(Exception e){
+                        Log.e("Compare", e.getLocalizedMessage());
+                        return 1;
+                    }
+                }
+            });
             return response;
         }
 
