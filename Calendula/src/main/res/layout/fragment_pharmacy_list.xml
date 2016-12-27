@@ -39,6 +39,41 @@
         android:layout_marginTop="20dp"
         android:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         android:background="#13988a"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="10dp"
+                android:padding="10dp"
+                android:layout_alignParentRight="true"
+                android:id="@+id/pharmacy_toolbar_list_public" />
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="10dp"
+                android:padding="10dp"
+                android:layout_toLeftOf="@id/pharmacy_toolbar_list_public"
+                android:id="@+id/pharmacy_toolbar_list_bike" />
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="10dp"
+                android:padding="10dp"
+                android:layout_toLeftOf="@id/pharmacy_toolbar_list_bike"
+                android:id="@+id/pharmacy_toolbar_list_walk" />
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="10dp"
+                android:padding="10dp"
+                android:layout_toLeftOf="@id/pharmacy_toolbar_list_walk"
+                android:id="@+id/pharmacy_toolbar_list_car" />
+        </RelativeLayout>
+
+    </android.support.v7.widget.Toolbar>
 
 </FrameLayout>

@@ -1,8 +1,14 @@
 package es.usc.citius.servando.calendula.pharmacies.fragments;
 
 
+import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.RectShape;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -12,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -19,6 +26,7 @@ import android.widget.Toast;
 
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.iconics.IconicsDrawable;
+import com.mikepenz.materialdrawer.icons.MaterialDrawerFont;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,12 +53,23 @@ public class PharmacyListFragment extends Fragment {
     PharmacyItemAdapter pharmacyItemAdapter;
 
     IconicsDrawable iconMap;
+    IconicsDrawable iconCar;
+    IconicsDrawable iconBike;
+    IconicsDrawable iconWalk;
+    IconicsDrawable iconTransit;
+
+    ImageButton btnCar;
+    ImageButton btnBike;
+    ImageButton btnWalk;
+    ImageButton btnTransit;
 
     RelativeLayout listLayout;
 
     List<PharmacyListItem> pharmacies;
 
     Toolbar toolbar;
+
+    ShapeDrawable sd;
 
     public PharmacyListFragment() {
         // Required empty public constructor
@@ -73,6 +92,7 @@ public class PharmacyListFragment extends Fragment {
 
         toolbar = (android.support.v7.widget.Toolbar) layout.findViewById(R.id.toolbar_pharmacy);
         toolbar.setNavigationIcon(icon);
+
         activity.getDelegate().setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -84,6 +104,81 @@ public class PharmacyListFragment extends Fragment {
         iconMap = new IconicsDrawable(getActivity(), PharmaciesFont.Icon.ic_marker)
                 .sizeDp(34)
                 .color(Color.WHITE);
+        iconCar = new IconicsDrawable(getActivity(), GoogleMaterial.Icon.gmd_directions_car)
+                .sizeDp(14)
+                .color(Color.WHITE);
+        iconBike = new IconicsDrawable(getActivity(), GoogleMaterial.Icon.gmd_directions_bike)
+                .sizeDp(14)
+                .color(Color.WHITE);
+        iconWalk = new IconicsDrawable(getActivity(), GoogleMaterial.Icon.gmd_directions_walk)
+                .sizeDp(14)
+                .color(Color.WHITE);
+        iconTransit = new IconicsDrawable(getActivity(), GoogleMaterial.Icon.gmd_directions_subway)
+                .sizeDp(14)
+                .color(Color.WHITE);
+
+        btnCar = (ImageButton) layout.findViewById(R.id.pharmacy_toolbar_list_car);
+        btnCar.setBackgroundColor(Color.parseColor("#0d7065"));
+        btnCar.setImageDrawable(iconCar);
+        btnCar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pharmacyItemAdapter.changeTime(1);
+                pharmacyItemAdapter.notifyDataSetChanged();
+
+                btnCar.setBackgroundColor(Color.parseColor("#0d7065"));
+                btnWalk.setBackgroundColor(Color.TRANSPARENT);
+                btnBike.setBackgroundColor(Color.TRANSPARENT);
+                btnTransit.setBackgroundColor(Color.TRANSPARENT);
+            }
+        });
+
+        btnWalk = (ImageButton) layout.findViewById(R.id.pharmacy_toolbar_list_walk);
+        btnWalk.setImageDrawable(iconWalk);
+        btnWalk.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pharmacyItemAdapter.changeTime(2);
+                pharmacyItemAdapter.notifyDataSetChanged();
+
+                btnCar.setBackgroundColor(Color.TRANSPARENT);
+                btnWalk.setBackgroundColor(Color.parseColor("#0d7065"));
+                btnBike.setBackgroundColor(Color.TRANSPARENT);
+                btnTransit.setBackgroundColor(Color.TRANSPARENT);
+            }
+        });
+
+        btnBike = (ImageButton) layout.findViewById(R.id.pharmacy_toolbar_list_bike);
+        btnBike.setImageDrawable(iconBike);
+        btnBike.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pharmacyItemAdapter.changeTime(3);
+                pharmacyItemAdapter.notifyDataSetChanged();
+
+                btnCar.setBackgroundColor(Color.TRANSPARENT);
+                btnWalk.setBackgroundColor(Color.TRANSPARENT);
+                btnBike.setBackgroundColor(Color.parseColor("#0d7065"));
+                btnTransit.setBackgroundColor(Color.TRANSPARENT);
+
+            }
+        });
+
+        btnTransit = (ImageButton) layout.findViewById(R.id.pharmacy_toolbar_list_public);
+        btnTransit.setImageDrawable(iconTransit);
+        btnTransit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pharmacyItemAdapter.changeTime(4);
+                pharmacyItemAdapter.notifyDataSetChanged();
+
+                btnCar.setBackgroundColor(Color.TRANSPARENT);
+                btnWalk.setBackgroundColor(Color.TRANSPARENT);
+                btnBike.setBackgroundColor(Color.TRANSPARENT);
+                btnTransit.setBackgroundColor(Color.parseColor("#0d7065"));
+
+            }
+        });
 
         btnList = (FloatingActionButton) layout.findViewById(R.id.pharmacies_list_button);
         btnMyPosition = (FloatingActionButton) layout.findViewById(R.id.center_map_pharmacies);

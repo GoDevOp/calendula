@@ -30,7 +30,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/pharmacy_list_icon"
-        android:layout_below="@+id/pharmacy_list_icon"
+        android:layout_below="@id/pharmacy_list_name"
         android:layout_marginLeft="56dp"
         android:text="Address"
         android:textColor="#777"
@@ -38,44 +38,15 @@
         tools:text="Address" />
 
     <TextView
-        android:id="@+id/pharmacy_list_time_car"
+        android:id="@+id/pharmacy_list_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/pharmacy_list_address"
+        android:layout_below="@id/pharmacy_list_address"
         android:layout_marginLeft="56dp"
-        android:text="TimeCar"
+        android:text="Time"
+        android:textColor="#777"
         android:textSize="12dp"
-        tools:text="TimeCar" />
-
-    <TextView
-        android:id="@+id/pharmacy_list_time_walking"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/pharmacy_list_time_car"
-        android:layout_below="@+id/pharmacy_list_address"
-        android:text="TimeWalking"
-        android:textSize="12dp"
-        tools:text="TimeWalking" />
-
-    <TextView
-        android:id="@+id/pharmacy_list_time_bike"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/pharmacy_list_time_walking"
-        android:layout_below="@+id/pharmacy_list_address"
-        android:text="TimeBike"
-        android:textSize="12dp"
-        tools:text="TimeBike" />
-
-    <TextView
-        android:id="@+id/pharmacy_list_time_transit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/pharmacy_list_time_bike"
-        android:layout_below="@+id/pharmacy_list_address"
-        android:text="TimeTransit"
-        android:textSize="12dp"
-        tools:text="TimeTransit" />
+        tools:text="Time" />
 
     <View
         android:layout_width="match_parent"

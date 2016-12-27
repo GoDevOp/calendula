@@ -953,9 +953,9 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     listItem.setOpen(pharmacy.isOpen());
                     pharmaciesListItems.add(listItem);
                 }
+                pharmacyListFragment.setData(pharmaciesListItems);
                 GetTravelTimeTask getTimesTask = new GetTravelTimeTask();
                 getTimesTask.execute();
-                pharmacyListFragment.setData(pharmaciesListItems);
                 Date d = new Date();
                 Log.d("DEBUG", Utils.getDate(d) + " API sends " + pharmaciesHashMap.size() + " pharmacies");
                 updateUI(false);
@@ -1045,6 +1045,13 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             response.put(TravelTypes.BICYCLE, responseBike);
             response.put(TravelTypes.WALK, responseWalking);
             response.put(TravelTypes.PUBLIC, responsePublic);
+
+            for (PharmacyListItem item : pharmaciesListItems){
+                item.setTimeTravelCar(responseCar.get(item.getCodPharmacy()));
+                item.setTimeTravelBicycle(responseBike.get(item.getCodPharmacy()));
+                item.setTimeTravelWalking(responseWalking.get(item.getCodPharmacy()));
+                item.setTimeTravelTransit(responsePublic.get(item.getCodPharmacy()));
+            }
 
             return response;
         }
