@@ -13,6 +13,10 @@ public class PharmacyListItem {
     private String timeTravelTransit;
     private String timeTravelWalking;
     private String timeTravelBicycle;
+    private String distanceCar;
+    private String distanceTransit;
+    private String distanceWalking;
+    private String distanceBicycle;
     private boolean open;
 
     public Integer getCodPharmacy() {
@@ -77,6 +81,38 @@ public class PharmacyListItem {
 
     public void setOpen(boolean open) {
         this.open = open;
+    }
+
+    public String getDistanceCar() {
+        return distanceCar;
+    }
+
+    public void setDistanceCar(String distanceCar) {
+        this.distanceCar = distanceCar;
+    }
+
+    public String getDistanceTransit() {
+        return distanceTransit;
+    }
+
+    public void setDistanceTransit(String distanceTransit) {
+        this.distanceTransit = distanceTransit;
+    }
+
+    public String getDistanceWalking() {
+        return distanceWalking;
+    }
+
+    public void setDistanceWalking(String distanceWalking) {
+        this.distanceWalking = distanceWalking;
+    }
+
+    public String getDistanceBicycle() {
+        return distanceBicycle;
+    }
+
+    public void setDistanceBicycle(String distanceBicycle) {
+        this.distanceBicycle = distanceBicycle;
     }
 
     @Override

@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import es.usc.citius.servando.calendula.pharmacies.persistance.MatrixDirectionsApiResponse;
 import es.usc.citius.servando.calendula.pharmacies.persistance.Pharmacy;
 
 /**
@@ -26,11 +27,11 @@ import es.usc.citius.servando.calendula.pharmacies.persistance.Pharmacy;
 
 public class MatrixDirectionsAPI {
 
-    public static HashMap<Integer, String> getTime(Location origin,
-                                                   List<Pharmacy> destinationPharmacies,
-                                                   String mode){
+    public static HashMap<Integer, MatrixDirectionsApiResponse> getTime(Location origin,
+                                                                        List<Pharmacy> destinationPharmacies,
+                                                                        String mode){
 
-        HashMap<Integer, String> result = new HashMap<Integer, String>();
+        HashMap<Integer, MatrixDirectionsApiResponse> result = new HashMap<Integer, MatrixDirectionsApiResponse>();
 
         // Create URL
         StringBuilder urlStr = new StringBuilder("https://maps.googleapis.com/maps/api/distancematrix/json?");
@@ -76,15 +77,23 @@ public class MatrixDirectionsAPI {
                 JSONObject elementsObject = rowsArray.getJSONObject(0);
                 JSONArray elementsArray = elementsObject.getJSONArray("elements");
                 for (int i=0; i < elementsArray.length(); i++){
+                    MatrixDirectionsApiResponse data = new MatrixDirectionsApiResponse();
+                    String distance = "";
                     String duration = "";
                     JSONObject element = elementsArray.getJSONObject(i);
                     String status = element.getString("status");
                     if (status.equals("OK")){
                         JSONObject durationObject = element.getJSONObject("duration");
                         duration = durationObject.getString("value");
+
+                        JSONObject distanceObject = element.getJSONObject("distance");
+                        distance = distanceObject.getString("value");
+
+                        data.setTime(duration);
+                        data.setDistance(distance);
                     }
                     // Associate in hashmap time with pharmacy
-                    result.put(destinationPharmacies.get(i).getCodPharmacy(), duration);
+                    result.put(destinationPharmacies.get(i).getCodPharmacy(), data);
                 }
             }
 

@@ -118,7 +118,6 @@ public class PharmacyListFragment extends Fragment {
                 .color(Color.WHITE);
 
         btnCar = (ImageButton) layout.findViewById(R.id.pharmacy_toolbar_list_car);
-        btnCar.setBackgroundColor(Color.parseColor("#0d7065"));
         btnCar.setImageDrawable(iconCar);
         btnCar.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -179,6 +178,11 @@ public class PharmacyListFragment extends Fragment {
 
             }
         });
+
+        btnCar.setBackgroundColor(Color.parseColor("#0d7065"));
+        btnWalk.setBackgroundColor(Color.TRANSPARENT);
+        btnBike.setBackgroundColor(Color.TRANSPARENT);
+        btnTransit.setBackgroundColor(Color.TRANSPARENT);
 
         btnList = (FloatingActionButton) layout.findViewById(R.id.pharmacies_list_button);
         btnMyPosition = (FloatingActionButton) layout.findViewById(R.id.center_map_pharmacies);

@@ -107,6 +107,35 @@ public class Utils {
         return out;
     }
 
+    public static String metersToFormatString(String metersStr){
+
+        String out = "";
+        if (metersStr != "") {
+            try{
+                Long longVal = Long.parseLong(metersStr);
+                Integer km = Math.round(longVal / 1000);
+
+                if (km >= 1){
+                    out += km+" km";
+                    if ((longVal-(km*1000)) >= 1){
+                        out+=" "+Math.round((longVal-(km*1000)))+" m";
+                    }
+                }
+                else {
+                    out += longVal + "m";
+                }
+
+            } catch (NumberFormatException e){
+                Log.e("UTILS", "Utils.metersToFormatString "+e.getLocalizedMessage());
+            }
+        }
+        else{
+            out= "--";
+        }
+
+        return out;
+    }
+
     public static String secondsToFormatString(String seconds, boolean longFormat){
 
         if (!longFormat){

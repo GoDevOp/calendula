@@ -72,19 +72,26 @@ public class PharmacyItemAdapter extends ArrayAdapter<PharmacyListItem> {
 
         name.setText(listItem.getName());
         address.setText(listItem.getAddress());
-        time.setText(Utils.secondsToFormatString(listItem.getTimeTravelCar(), true));
+        time.setText(Utils.secondsToFormatString(listItem.getTimeTravelCar(), true) + " ("+Utils.metersToFormatString(listItem.getDistanceCar())+")");
         switch(visibleTime) {
             case 1:
-                time.setText(Utils.secondsToFormatString(listItem.getTimeTravelCar(), true));
+                time.setText(Utils.secondsToFormatString(listItem.getTimeTravelCar(), true)+ " ("+Utils.metersToFormatString(listItem.getDistanceCar())+")");
                 break;
             case 2:
-                time.setText(Utils.secondsToFormatString(listItem.getTimeTravelWalking(), true));
+                time.setText(Utils.secondsToFormatString(listItem.getTimeTravelWalking(), true)+ " ("+Utils.metersToFormatString(listItem.getDistanceWalking())+")");
                 break;
             case 3:
-                time.setText(Utils.secondsToFormatString(listItem.getTimeTravelBicycle(), true));
+                time.setText(Utils.secondsToFormatString(listItem.getTimeTravelBicycle(), true)+ " ("+Utils.metersToFormatString(listItem.getDistanceBicycle())+")");
                 break;
             case 4:
-                time.setText(Utils.secondsToFormatString(listItem.getTimeTravelTransit(), true));
+                String out = "";
+                if (listItem.getTimeTravelTransit() != null && !listItem.getTimeTravelTransit().isEmpty()){
+                    out += Utils.secondsToFormatString(listItem.getTimeTravelTransit(), true);
+                }
+                if (listItem.getDistanceTransit() != null && !listItem.getDistanceTransit().isEmpty()){
+                    out += " ("+Utils.metersToFormatString(listItem.getDistanceTransit())+")";
+                }
+                time.setText(out);
                 break;
         }
 

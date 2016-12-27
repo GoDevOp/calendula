@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -59,6 +60,7 @@ import com.mikepenz.iconics.context.IconicsLayoutInflater;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -70,6 +72,7 @@ import es.usc.citius.servando.calendula.pharmacies.adapters.PharmacyListItem;
 import es.usc.citius.servando.calendula.pharmacies.fragments.PharmacyFragment;
 import es.usc.citius.servando.calendula.pharmacies.fragments.PharmacyListFragment;
 import es.usc.citius.servando.calendula.pharmacies.fragments.PharmacyMarkerDetailsFragment;
+import es.usc.citius.servando.calendula.pharmacies.persistance.MatrixDirectionsApiResponse;
 import es.usc.citius.servando.calendula.pharmacies.persistance.Pharmacy;
 import es.usc.citius.servando.calendula.pharmacies.persistance.Query;
 import es.usc.citius.servando.calendula.pharmacies.remote.PharmaciesService;
@@ -167,7 +170,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     HashMap<Marker, Pharmacy> markerMap;
 
     List<PharmacyListItem> pharmaciesListItems;
-    HashMap<TravelTypes, HashMap<Integer, String>> travelTimes;
+    HashMap<TravelTypes, HashMap<Integer, MatrixDirectionsApiResponse>> travelTimes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -586,10 +589,10 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
         // put travel times in pharma to put in fragment marker
         try {
-            pharma.setTimeTravelCarSec(travelTimes.get(TravelTypes.CAR).get(pharma.getCodPharmacy()));
-            pharma.setTimeTravelBicycleSec(travelTimes.get(TravelTypes.BICYCLE).get(pharma.getCodPharmacy()));
-            pharma.setTimeTravelWalkingSec(travelTimes.get(TravelTypes.WALK).get(pharma.getCodPharmacy()));
-            pharma.setTimeTravelTransitSec(travelTimes.get(TravelTypes.PUBLIC).get(pharma.getCodPharmacy()));
+            pharma.setTimeTravelCarSec(travelTimes.get(TravelTypes.CAR).get(pharma.getCodPharmacy()).getTime());
+            pharma.setTimeTravelBicycleSec(travelTimes.get(TravelTypes.BICYCLE).get(pharma.getCodPharmacy()).getTime());
+            pharma.setTimeTravelWalkingSec(travelTimes.get(TravelTypes.WALK).get(pharma.getCodPharmacy()).getTime());
+            pharma.setTimeTravelTransitSec(travelTimes.get(TravelTypes.PUBLIC).get(pharma.getCodPharmacy()).getTime());
         }
         catch (Exception e){
             Log.e("", e.getLocalizedMessage());
@@ -809,7 +812,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         apiTask.execute();
     }
 
-    public HashMap<TravelTypes,HashMap<Integer, String>> getTravelTimes(){
+    public HashMap<TravelTypes,HashMap<Integer, MatrixDirectionsApiResponse>> getTravelTimes(){
         return travelTimes;
     }
 
@@ -834,10 +837,10 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
         // put travel times in pharma to put in fragment marker
         try {
-            pharmacy.setTimeTravelCarSec(travelTimes.get(TravelTypes.CAR).get(pharmacy.getCodPharmacy()));
-            pharmacy.setTimeTravelBicycleSec(travelTimes.get(TravelTypes.BICYCLE).get(pharmacy.getCodPharmacy()));
-            pharmacy.setTimeTravelWalkingSec(travelTimes.get(TravelTypes.WALK).get(pharmacy.getCodPharmacy()));
-            pharmacy.setTimeTravelTransitSec(travelTimes.get(TravelTypes.PUBLIC).get(pharmacy.getCodPharmacy()));
+            pharmacy.setTimeTravelCarSec(travelTimes.get(TravelTypes.CAR).get(pharmacy.getCodPharmacy()).getTime());
+            pharmacy.setTimeTravelBicycleSec(travelTimes.get(TravelTypes.BICYCLE).get(pharmacy.getCodPharmacy()).getTime());
+            pharmacy.setTimeTravelWalkingSec(travelTimes.get(TravelTypes.WALK).get(pharmacy.getCodPharmacy()).getTime());
+            pharmacy.setTimeTravelTransitSec(travelTimes.get(TravelTypes.PUBLIC).get(pharmacy.getCodPharmacy()).getTime());
         }
         catch (Exception e){
             Log.e("", e.getLocalizedMessage());
@@ -1019,26 +1022,26 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         }
     }
 
-    private class GetTravelTimeTask extends AsyncTask<Void, Void, HashMap<TravelTypes,HashMap<Integer, String>>> {
+    private class GetTravelTimeTask extends AsyncTask<Void, Void, HashMap<TravelTypes,HashMap<Integer, MatrixDirectionsApiResponse>>> {
 
         GetTravelTimeTask(){
         }
 
         @Override
-        protected HashMap<TravelTypes,HashMap<Integer, String>> doInBackground(Void... params) {
+        protected HashMap<TravelTypes,HashMap<Integer, MatrixDirectionsApiResponse>> doInBackground(Void... params) {
 
-            HashMap<TravelTypes,HashMap<Integer, String>> response = new HashMap();
+            HashMap<TravelTypes,HashMap<Integer, MatrixDirectionsApiResponse>> response = new HashMap();
 
-            HashMap<Integer, String> responseCar = null;
+            HashMap<Integer, MatrixDirectionsApiResponse> responseCar = null;
             responseCar = MatrixDirectionsAPI.getTime(mLastLocation, pharmacies, TravelTypes.CAR.getValue());
 
-            HashMap<Integer, String> responseBike = null;
+            HashMap<Integer, MatrixDirectionsApiResponse> responseBike = null;
             responseBike = MatrixDirectionsAPI.getTime(mLastLocation, pharmacies, TravelTypes.BICYCLE.getValue());
 
-            HashMap<Integer, String> responseWalking = null;
+            HashMap<Integer, MatrixDirectionsApiResponse> responseWalking = null;
             responseWalking = MatrixDirectionsAPI.getTime(mLastLocation, pharmacies, TravelTypes.WALK.getValue());
 
-            HashMap<Integer, String> responsePublic = null;
+            HashMap<Integer, MatrixDirectionsApiResponse> responsePublic = null;
             responsePublic = MatrixDirectionsAPI.getTime(mLastLocation, pharmacies, TravelTypes.PUBLIC.getValue());
 
             response.put(TravelTypes.CAR, responseCar);
@@ -1046,28 +1049,34 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             response.put(TravelTypes.WALK, responseWalking);
             response.put(TravelTypes.PUBLIC, responsePublic);
 
+            // Add times to list and order by distance
             for (PharmacyListItem item : pharmaciesListItems){
-                item.setTimeTravelCar(responseCar.get(item.getCodPharmacy()));
-                item.setTimeTravelBicycle(responseBike.get(item.getCodPharmacy()));
-                item.setTimeTravelWalking(responseWalking.get(item.getCodPharmacy()));
-                item.setTimeTravelTransit(responsePublic.get(item.getCodPharmacy()));
+                item.setTimeTravelCar(responseCar.get(item.getCodPharmacy()).getTime());
+                item.setTimeTravelBicycle(responseBike.get(item.getCodPharmacy()).getTime());
+                item.setTimeTravelWalking(responseWalking.get(item.getCodPharmacy()).getTime());
+                item.setTimeTravelTransit(responsePublic.get(item.getCodPharmacy()).getTime());
+
+                item.setDistanceCar(responseCar.get(item.getCodPharmacy()).getDistance());
+                item.setDistanceBicycle(responseBike.get(item.getCodPharmacy()).getDistance());
+                item.setDistanceWalking(responseWalking.get(item.getCodPharmacy()).getDistance());
+                item.setDistanceTransit(responsePublic.get(item.getCodPharmacy()).getDistance());
             }
 
             return response;
         }
 
         @Override
-        protected void onPostExecute(HashMap<TravelTypes,HashMap<Integer, String>> result) {
+        protected void onPostExecute(HashMap<TravelTypes,HashMap<Integer, MatrixDirectionsApiResponse>> result) {
             travelTimes = result;
 
             if (fragmentMarker.isVisible()){
                 try {
                     HashMap<TravelTypes, String> pharmaTimes = new HashMap<>();
 
-                    pharmaTimes.put(TravelTypes.CAR, result.get(TravelTypes.CAR).get(previousPharmacy.getCodPharmacy()));
-                    pharmaTimes.put(TravelTypes.BICYCLE, result.get(TravelTypes.BICYCLE).get(previousPharmacy.getCodPharmacy()));
-                    pharmaTimes.put(TravelTypes.WALK, result.get(TravelTypes.WALK).get(previousPharmacy.getCodPharmacy()));
-                    pharmaTimes.put(TravelTypes.PUBLIC, result.get(TravelTypes.PUBLIC).get(previousPharmacy.getCodPharmacy()));
+                    pharmaTimes.put(TravelTypes.CAR, result.get(TravelTypes.CAR).get(previousPharmacy.getCodPharmacy()).getTime());
+                    pharmaTimes.put(TravelTypes.BICYCLE, result.get(TravelTypes.BICYCLE).get(previousPharmacy.getCodPharmacy()).getTime());
+                    pharmaTimes.put(TravelTypes.WALK, result.get(TravelTypes.WALK).get(previousPharmacy.getCodPharmacy()).getTime());
+                    pharmaTimes.put(TravelTypes.PUBLIC, result.get(TravelTypes.PUBLIC).get(previousPharmacy.getCodPharmacy()).getTime());
 
                     fragmentMarker.updateTimes(pharmaTimes);
                 }
