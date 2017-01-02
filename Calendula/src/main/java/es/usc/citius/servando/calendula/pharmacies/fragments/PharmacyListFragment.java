@@ -125,24 +125,22 @@ public class PharmacyListFragment extends Fragment {
         btnCar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                pharmacyItemAdapter.changeTime(1);
+                pharmacyItemAdapter.changeTime(PharmacyItemAdapter.TIME_CAR);
                 Collections.sort(pharmacies, new Comparator<PharmacyListItem>() {
                     @Override
                     public int compare(PharmacyListItem o1, PharmacyListItem o2) {
                         try{
-                            return o1.getDistanceCar().compareTo(o2.getDistanceCar());
+                            return Integer.parseInt(o1.getTimeTravelCar()) - Integer.parseInt(o2.getTimeTravelCar());
                         } catch(Exception e){
                             Log.e("Compare", e.getLocalizedMessage());
                             return 1;
                         }
                     }
                 });
+                setData(pharmacies);
                 updateData();
 
-                btnCar.setBackgroundColor(Color.parseColor("#0d7065"));
-                btnWalk.setBackgroundColor(Color.TRANSPARENT);
-                btnBike.setBackgroundColor(Color.TRANSPARENT);
-                btnTransit.setBackgroundColor(Color.TRANSPARENT);
+                setButtonSelected(PharmacyItemAdapter.TIME_CAR);
             }
         });
 
@@ -151,24 +149,22 @@ public class PharmacyListFragment extends Fragment {
         btnWalk.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                pharmacyItemAdapter.changeTime(2);
+                pharmacyItemAdapter.changeTime(PharmacyItemAdapter.TIME_WALK);
                 Collections.sort(pharmacies, new Comparator<PharmacyListItem>() {
                     @Override
                     public int compare(PharmacyListItem o1, PharmacyListItem o2) {
                         try{
-                            return o1.getDistanceWalking().compareTo(o2.getDistanceWalking());
+                            return Integer.parseInt(o1.getTimeTravelWalking()) - Integer.parseInt(o2.getTimeTravelWalking());
                         } catch(Exception e){
                             Log.e("Compare", e.getLocalizedMessage());
                             return 1;
                         }
                     }
                 });
+                setData(pharmacies);
                 updateData();
 
-                btnCar.setBackgroundColor(Color.TRANSPARENT);
-                btnWalk.setBackgroundColor(Color.parseColor("#0d7065"));
-                btnBike.setBackgroundColor(Color.TRANSPARENT);
-                btnTransit.setBackgroundColor(Color.TRANSPARENT);
+                setButtonSelected(PharmacyItemAdapter.TIME_WALK);
             }
         });
 
@@ -177,25 +173,22 @@ public class PharmacyListFragment extends Fragment {
         btnBike.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                pharmacyItemAdapter.changeTime(3);
+                pharmacyItemAdapter.changeTime(PharmacyItemAdapter.TIME_BIKE);
                 Collections.sort(pharmacies, new Comparator<PharmacyListItem>() {
                     @Override
                     public int compare(PharmacyListItem o1, PharmacyListItem o2) {
                         try{
-                            return o1.getDistanceBicycle().compareTo(o2.getDistanceBicycle());
+                            return Integer.parseInt(o1.getTimeTravelBicycle()) - Integer.parseInt(o2.getTimeTravelBicycle());
                         } catch(Exception e){
                             Log.e("Compare", e.getLocalizedMessage());
                             return 1;
                         }
                     }
                 });
+                setData(pharmacies);
                 updateData();
 
-                btnCar.setBackgroundColor(Color.TRANSPARENT);
-                btnWalk.setBackgroundColor(Color.TRANSPARENT);
-                btnBike.setBackgroundColor(Color.parseColor("#0d7065"));
-                btnTransit.setBackgroundColor(Color.TRANSPARENT);
-
+                setButtonSelected(PharmacyItemAdapter.TIME_BIKE);
             }
         });
 
@@ -204,25 +197,22 @@ public class PharmacyListFragment extends Fragment {
         btnTransit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                pharmacyItemAdapter.changeTime(4);
+                pharmacyItemAdapter.changeTime(PharmacyItemAdapter.TIME_PUBLIC);
                 Collections.sort(pharmacies, new Comparator<PharmacyListItem>() {
                     @Override
                     public int compare(PharmacyListItem o1, PharmacyListItem o2) {
                         try {
-                            return o1.getDistanceTransit().compareTo(o2.getDistanceTransit());
+                            return Integer.parseInt(o1.getTimeTravelBicycle()) - Integer.parseInt(o2.getTimeTravelBicycle());
                         } catch(Exception e){
                             Log.e("Compare", e.getLocalizedMessage());
                             return 1;
                         }
                     }
                 });
+                setData(pharmacies);
                 updateData();
 
-                btnCar.setBackgroundColor(Color.TRANSPARENT);
-                btnWalk.setBackgroundColor(Color.TRANSPARENT);
-                btnBike.setBackgroundColor(Color.TRANSPARENT);
-                btnTransit.setBackgroundColor(Color.parseColor("#0d7065"));
-
+                setButtonSelected(PharmacyItemAdapter.TIME_PUBLIC);
             }
         });
 
@@ -283,4 +273,30 @@ public class PharmacyListFragment extends Fragment {
         }
     }
 
+    public void changeTime(Integer time){
+        if (pharmacyItemAdapter != null){
+            pharmacyItemAdapter.changeTime(time);
+            setButtonSelected(time);
+        }
+    }
+
+    public void setButtonSelected(Integer time){
+        btnCar.setBackgroundColor(Color.TRANSPARENT);
+        btnWalk.setBackgroundColor(Color.TRANSPARENT);
+        btnBike.setBackgroundColor(Color.TRANSPARENT);
+        btnTransit.setBackgroundColor(Color.TRANSPARENT);
+
+        if (time == PharmacyItemAdapter.TIME_CAR){
+            btnCar.setBackgroundColor(Color.parseColor("#0d7065"));
+        }
+        else if (time == PharmacyItemAdapter.TIME_WALK){
+            btnWalk.setBackgroundColor(Color.parseColor("#0d7065"));
+        }
+        else if (time == PharmacyItemAdapter.TIME_BIKE){
+            btnBike.setBackgroundColor(Color.parseColor("#0d7065"));
+        }
+        else if (time == PharmacyItemAdapter.TIME_PUBLIC){
+            btnTransit.setBackgroundColor(Color.parseColor("#0d7065"));
+        }
+    }
 }

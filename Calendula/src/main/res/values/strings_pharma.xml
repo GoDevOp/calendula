@@ -38,4 +38,5 @@
     <string name="pharmacy_search">Search pharmacies</string>
     <string name="pharmacy_search_no_results">No results for that search</string>
     <string name="pharmacy_search_without_text">Please enter some text to search</string>
+    <string name="pharmacy_empty">There are no pharmacies to show</string>
 </resources>

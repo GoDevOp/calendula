@@ -69,6 +69,7 @@ import java.util.Map;
 
 import es.usc.citius.servando.calendula.CalendulaActivity;
 import es.usc.citius.servando.calendula.R;
+import es.usc.citius.servando.calendula.pharmacies.adapters.PharmacyItemAdapter;
 import es.usc.citius.servando.calendula.pharmacies.adapters.PharmacyListItem;
 import es.usc.citius.servando.calendula.pharmacies.fragments.PharmacyFragment;
 import es.usc.citius.servando.calendula.pharmacies.fragments.PharmacyListFragment;
@@ -167,6 +168,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     GetApiDataTask apiTask = null;
     GetApiDataTask apiTaskNearest = null;
     GetApiDataTask apiTaskSearch = null;
+    GetTravelTimeTask getTimesTask = null;
 
     HashMap<Marker, Pharmacy> markerMap;
 
@@ -266,14 +268,20 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 listLayout = (RelativeLayout) findViewById(R.id.pharmacies_list);
                 listLayout.setVisibility(View.VISIBLE);
 
-                pharmacyListFragment.setData(pharmaciesListItems);
+                if (pharmaciesListItems == null || pharmaciesListItems.isEmpty()){
+                    Toast.makeText(getBaseContext(), R.string.pharmacy_empty, Toast.LENGTH_SHORT);
+                }
+                else {
+                    pharmacyListFragment.setData(pharmaciesListItems);
+                    pharmacyListFragment.changeTime(PharmacyItemAdapter.TIME_CAR);
 
-                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
-                ft.replace(R.id.pharmacies_list, pharmacyListFragment);
-                ft.addToBackStack(null);
-                ft.commit();
-                pharmacyListFragment.updateData();
+                    FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                    ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+                    ft.replace(R.id.pharmacies_list, pharmacyListFragment);
+                    ft.addToBackStack(null);
+                    ft.commit();
+                    pharmacyListFragment.updateData();
+                }
             }
         });
 
@@ -299,6 +307,9 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     }
                     if (apiTask != null && apiTask.getStatus() != AsyncTask.Status.FINISHED){
                         apiTask.cancel(true);
+                    }
+                    if (getTimesTask != null && getTimesTask.getStatus() != AsyncTask.Status.FINISHED){
+                        getTimesTask.cancel(true);
                     }
                     Query searchQuery = new Query();
                     searchQuery.setQueryType(GET_TEXT_QUERY_PHARMACIES);
@@ -624,7 +635,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         else if (slidingLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED){
             slidingLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
         }
-        else if (pharmacyListFragment.isVisible()){
+        else if (listLayout.getVisibility() == View.VISIBLE){
             ScreenUtils.setStatusBarColor(this, Color.argb(50, 61, 63, 64));
             listLayout = (RelativeLayout) findViewById(R.id.pharmacies_list);
             listLayout.setVisibility(View.GONE);
@@ -807,6 +818,9 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         if (apiTaskSearch != null && apiTaskSearch.getStatus() != AsyncTask.Status.FINISHED) {
             apiTaskSearch.cancel(true);
         }
+        if (getTimesTask != null && getTimesTask.getStatus() != AsyncTask.Status.FINISHED) {
+            getTimesTask.cancel(true);
+        }
         apiTask = new GetApiDataTask(query);
         Date d = new Date();
         Log.d("DEBUG", Utils.getDate(d) + " New task " + apiTask.toString());
@@ -942,8 +956,11 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 if (apiTaskSearch != null && apiTaskSearch.getStatus() != Status.FINISHED) {
                     apiTaskSearch.cancel(true);
                 }
+                if (getTimesTask != null && getTimesTask.getStatus() != Status.FINISHED) {
+                    getTimesTask.cancel(true);
+                }
             }
-            else if (this.query.getQueryType() == GET_TEXT_QUERY_PHARMACIES){
+            else if (pharmacies.size() == 0 && this.query.getQueryType() == GET_TEXT_QUERY_PHARMACIES){
                 Toast.makeText(getBaseContext(), getString(R.string.pharmacy_search_no_results), Toast.LENGTH_SHORT).show();
             }
 
@@ -958,7 +975,10 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     pharmaciesListItems.add(listItem);
                 }
                 pharmacyListFragment.setData(pharmaciesListItems);
-                GetTravelTimeTask getTimesTask = new GetTravelTimeTask();
+                if (getTimesTask != null){
+                    getTimesTask.cancel(true);
+                }
+                getTimesTask = new GetTravelTimeTask();
                 getTimesTask.execute();
                 Date d = new Date();
                 Log.d("DEBUG", Utils.getDate(d) + " API sends " + pharmaciesHashMap.size() + " pharmacies");
@@ -1033,16 +1053,16 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
             HashMap<TravelTypes,HashMap<Integer, MatrixDirectionsApiResponse>> response = new HashMap();
 
-            HashMap<Integer, MatrixDirectionsApiResponse> responseCar = null;
+            HashMap<Integer, MatrixDirectionsApiResponse> responseCar;
             responseCar = MatrixDirectionsAPI.getTime(mLastLocation, pharmacies, TravelTypes.CAR.getValue());
 
-            HashMap<Integer, MatrixDirectionsApiResponse> responseBike = null;
+            HashMap<Integer, MatrixDirectionsApiResponse> responseBike;
             responseBike = MatrixDirectionsAPI.getTime(mLastLocation, pharmacies, TravelTypes.BICYCLE.getValue());
 
-            HashMap<Integer, MatrixDirectionsApiResponse> responseWalking = null;
+            HashMap<Integer, MatrixDirectionsApiResponse> responseWalking;
             responseWalking = MatrixDirectionsAPI.getTime(mLastLocation, pharmacies, TravelTypes.WALK.getValue());
 
-            HashMap<Integer, MatrixDirectionsApiResponse> responsePublic = null;
+            HashMap<Integer, MatrixDirectionsApiResponse> responsePublic;
             responsePublic = MatrixDirectionsAPI.getTime(mLastLocation, pharmacies, TravelTypes.PUBLIC.getValue());
 
             response.put(TravelTypes.CAR, responseCar);
@@ -1052,23 +1072,32 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
             // Add times to list and order by distance
             for (PharmacyListItem item : pharmaciesListItems){
-                item.setTimeTravelCar(responseCar.get(item.getCodPharmacy()).getTime());
-                item.setTimeTravelBicycle(responseBike.get(item.getCodPharmacy()).getTime());
-                item.setTimeTravelWalking(responseWalking.get(item.getCodPharmacy()).getTime());
-                item.setTimeTravelTransit(responsePublic.get(item.getCodPharmacy()).getTime());
+                if (this.isCancelled()) {
+                    return null;
+                }
+                try {
+                    item.setTimeTravelCar(responseCar.get(item.getCodPharmacy()).getTime());
+                    item.setTimeTravelBicycle(responseBike.get(item.getCodPharmacy()).getTime());
+                    item.setTimeTravelWalking(responseWalking.get(item.getCodPharmacy()).getTime());
+                    item.setTimeTravelTransit(responsePublic.get(item.getCodPharmacy()).getTime());
 
-                item.setDistanceCar(responseCar.get(item.getCodPharmacy()).getDistance());
-                item.setDistanceBicycle(responseBike.get(item.getCodPharmacy()).getDistance());
-                item.setDistanceWalking(responseWalking.get(item.getCodPharmacy()).getDistance());
-                item.setDistanceTransit(responsePublic.get(item.getCodPharmacy()).getDistance());
+                    item.setDistanceCar(responseCar.get(item.getCodPharmacy()).getDistance());
+                    item.setDistanceBicycle(responseBike.get(item.getCodPharmacy()).getDistance());
+                    item.setDistanceWalking(responseWalking.get(item.getCodPharmacy()).getDistance());
+                    item.setDistanceTransit(responsePublic.get(item.getCodPharmacy()).getDistance());
+                }
+                catch (Exception e){
+                    Log.e("GetTravelTimeTask", e.getLocalizedMessage());
+                }
+
             }
 
             Collections.sort(pharmaciesListItems, new Comparator<PharmacyListItem>() {
                 @Override
                 public int compare(PharmacyListItem o1, PharmacyListItem o2) {
-                    try{
-                        return o1.getDistanceCar().compareTo(o2.getDistanceCar());
-                    } catch(Exception e){
+                    try {
+                        return Integer.parseInt(o1.getTimeTravelCar()) - Integer.parseInt(o2.getTimeTravelCar());
+                    } catch (Exception e) {
                         Log.e("Compare", e.getLocalizedMessage());
                         return 1;
                     }
