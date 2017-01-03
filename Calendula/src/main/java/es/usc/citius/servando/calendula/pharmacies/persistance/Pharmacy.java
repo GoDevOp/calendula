@@ -244,7 +244,7 @@ public class Pharmacy implements Parcelable {
         cal.set(now.get(java.util.Calendar.YEAR), 0, 1, now.get(java.util.Calendar.HOUR_OF_DAY), now.get(java.util.Calendar.MINUTE), 0);
 
         GregorianCalendar hour0 = new GregorianCalendar();
-        hour0.setTimeInMillis(1451602800000l); // 01/10/2016 00:00:00
+        hour0.setTimeInMillis(1483228800000l); // 01/10/2017 00:00:00
         GregorianCalendar hour2359 = new GregorianCalendar();
         hour2359.set(now.get(java.util.Calendar.YEAR), 0, 1, 23, 59, 59);
 
@@ -455,7 +455,7 @@ public class Pharmacy implements Parcelable {
         Date dateWithoutTime = cal.getTime();
 
         GregorianCalendar hour0 = new GregorianCalendar();
-        hour0.setTimeInMillis(1451602800000l); // 01/01/2016 00:00:00
+        hour0.setTimeInMillis(1483228800000l); // 01/01/2017 00:00:00
         GregorianCalendar hour2359 = new GregorianCalendar();
         hour2359.set(now.get(java.util.Calendar.YEAR), 0, 1, 23, 59, 59);
 
@@ -490,6 +490,16 @@ public class Pharmacy implements Parcelable {
                                 }
                                 if (closeHourAfternoon != null) {
                                     closeHourAfternoon = getDayWithOpenTime(hours.getCloseHourAfternoon());
+                                }
+
+                                // if close hour is before open hour it's because close after 00:00
+                                if (closeHourMorning != null && openHourMorning != null &&
+                                        closeHourMorning.before(openHourMorning)){
+                                    closeHourMorning = Utils.addDays(closeHourMorning, 1);
+                                }
+                                if (closeHourAfternoon != null && openHourAfternoon != null &&
+                                        closeHourAfternoon.before(openHourAfternoon)){
+                                    closeHourAfternoon = Utils.addDays(closeHourAfternoon, 1);
                                 }
 
                                 if(((openHourMorning != null && date.after(openHourMorning) &&
