@@ -889,7 +889,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     Log.d("DEBUG", Utils.getDate(d) + " Pharmacies location request");
                 }
                 else if (query.getQueryType() == GET_NEAREST_PHARMACIES){
-                    call = service.getNearest(query.getLatitude(), query.getLongitude(), 1000000, "open");
+                    call = service.getNearest(query.getLatitude(), query.getLongitude(), 1000000, "");
                     Date d = new Date();
                     Log.d("DEBUG", Utils.getDate(d) + " Pharmacies nearest request");
                 }
@@ -939,7 +939,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             pharmaciesListItems = new ArrayList<>();
             markerMap = new HashMap<>();
 
-            if (pharmacies != null && pharmacies.size() == 0 && apiTaskSearch == null) {
+            if (pharmacies != null && pharmacies.size() == 0 && apiTaskSearch == null && query.getQueryType() != GET_NEAREST_PHARMACIES) {
                 Location loc = getMapCenter();
                 Query query = new Query();
                 query.setLatitude(loc.getLatitude());
@@ -964,7 +964,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 Toast.makeText(getBaseContext(), getString(R.string.pharmacy_search_no_results), Toast.LENGTH_SHORT).show();
             }
 
-            if (pharmacies != null && !isCancelled()) {
+            if (pharmacies != null && !isCancelled() && !pharmacies.isEmpty()) {
                 for (Pharmacy pharmacy : pharmacies) {
                     pharmaciesHashMap.put(pharmacy.getCodPharmacy(), pharmacy);
                     PharmacyListItem listItem = new PharmacyListItem();
