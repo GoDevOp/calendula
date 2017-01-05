@@ -135,7 +135,7 @@ public class PharmacyMarkerDetailsFragment extends Fragment {
             txtHours.setText(hours);
             if (pharmacy.isGuard()){
                 txtState.setText(getString(R.string.pharmacy_guard));
-                txtState.setTextColor(Color.parseColor("#669900"));
+                txtState.setTextColor(Color.parseColor("#F28130"));
             }
             else if (pharmacy.isOpen()){
                 txtState.setText(getString(R.string.pharmacy_open));

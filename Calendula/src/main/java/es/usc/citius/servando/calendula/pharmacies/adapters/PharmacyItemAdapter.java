@@ -54,10 +54,17 @@ public class PharmacyItemAdapter extends ArrayAdapter<PharmacyListItem> {
 
         IconicsDrawable iconOpen;
         IconicsDrawable iconClose;
+        IconicsDrawable iconGuard;
 
         listItem = getItem(position);
 
-        if (listItem.isOpen()){
+        if (listItem.isGuard()){
+            iconGuard = new IconicsDrawable(getContext(), PharmaciesFont.Icon.ic_list)
+                    .sizeDp(34)
+                    .color(Color.argb(242, 129, 48, 89));
+            image.setImageDrawable(iconGuard);
+        }
+        else if (listItem.isOpen()){
             iconOpen = new IconicsDrawable(getContext(), PharmaciesFont.Icon.ic_list)
                     .sizeDp(34)
                     .color(Color.argb(255, 24, 158, 89));

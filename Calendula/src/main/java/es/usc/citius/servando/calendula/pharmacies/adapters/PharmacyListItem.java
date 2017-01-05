@@ -18,6 +18,7 @@ public class PharmacyListItem {
     private String distanceWalking;
     private String distanceBicycle;
     private boolean open;
+    private boolean guard;
 
     public Integer getCodPharmacy() {
         return codPharmacy;
@@ -113,6 +114,14 @@ public class PharmacyListItem {
 
     public void setDistanceBicycle(String distanceBicycle) {
         this.distanceBicycle = distanceBicycle;
+    }
+
+    public boolean isGuard() {
+        return guard;
+    }
+
+    public void setGuard(boolean guard) {
+        this.guard = guard;
     }
 
     @Override
