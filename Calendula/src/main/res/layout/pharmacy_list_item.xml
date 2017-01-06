@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="80dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:minHeight="75dp"
     android:orientation="vertical"
     android:layout_marginTop="10dp"
     android:paddingTop="10dp"
@@ -14,7 +15,7 @@
         android:id="@+id/pharmacy_list_icon"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_centerVertical="true" />
+        android:layout_alignParentTop="true" />
 
     <TextView
         android:id="@+id/pharmacy_list_name"
@@ -37,16 +38,146 @@
         android:textSize="12dp"
         tools:text="Address" />
 
-    <TextView
-        android:id="@+id/pharmacy_list_time"
-        android:layout_width="wrap_content"
+    <GridLayout
+        android:id="@+id/layout_timetravels_list"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/pharmacy_list_address"
         android:layout_marginLeft="56dp"
-        android:text="Time"
-        android:textColor="#777"
-        android:textSize="12dp"
-        tools:text="Time" />
+        android:layout_marginTop="5dp"
+        android:rowCount="1"
+        android:columnCount="4"
+        android:layout_below="@id/pharmacy_list_address">
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="0"
+            android:layout_row="0"
+            android:layout_marginBottom="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_columnWeight="1"
+            android:layout_gravity="center|fill"
+            android:id="@+id/layout_time_car">
+
+            <com.mikepenz.iconics.view.IconicsImageView
+                android:layout_alignParentLeft="true"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_marginRight="2dp"
+                app:iiv_size="12dp"
+                app:iiv_color="@android:color/darker_gray"
+                app:iiv_icon="gmd-directions_car"
+                android:id="@+id/icon_car"/>
+
+            <TextView
+                android:layout_toRightOf="@id/icon_car"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:layout_centerInParent="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/pharmacy_list_time_car"
+                android:textSize="12dp"
+                android:textColor="@color/android_blue_dark"
+                android:text="..." />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="1"
+            android:layout_row="0"
+            android:layout_marginBottom="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_columnWeight="1"
+            android:layout_gravity="center|fill"
+            android:id="@+id/layout_time_bike">
+
+            <com.mikepenz.iconics.view.IconicsImageView
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_marginRight="2dp"
+                app:iiv_color="@android:color/darker_gray"
+                app:iiv_icon="gmd-directions_bike"
+                android:id="@+id/icon_bike"/>
+
+            <TextView
+                android:layout_toRightOf="@id/icon_bike"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:layout_centerInParent="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/pharmacy_list_time_bike"
+                android:textSize="12dp"
+                android:textColor="@color/android_blue_dark"
+                android:text="..." />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="2"
+            android:layout_row="0"
+            android:layout_marginBottom="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_gravity="center|fill"
+            android:layout_columnWeight="1"
+            android:id="@+id/layout_time_walking">
+
+            <com.mikepenz.iconics.view.IconicsImageView
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_marginRight="2dp"
+                app:iiv_color="@android:color/darker_gray"
+                app:iiv_icon="gmd-directions_walk"
+                android:id="@+id/icon_walking"/>
+
+            <TextView
+                android:layout_toRightOf="@id/icon_walking"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:layout_centerInParent="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/pharmacy_list_time_walking"
+                android:textSize="12dp"
+                android:textColor="@color/android_blue_dark"
+                android:text="..." />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="3"
+            android:layout_row="0"
+            android:layout_marginBottom="5dp"
+            android:layout_gravity="center|fill"
+            android:layout_columnWeight="1"
+            android:id="@+id/layout_time_public">
+
+            <com.mikepenz.iconics.view.IconicsImageView
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_marginRight="2dp"
+                app:iiv_color="@android:color/darker_gray"
+                app:iiv_icon="gmd-directions_subway"
+                android:id="@+id/icon_public"/>
+
+            <TextView
+                android:layout_toRightOf="@id/icon_public"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:layout_centerInParent="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/pharmacy_list_time_public"
+                android:textSize="12dp"
+                android:textColor="@color/android_blue_dark"
+                android:text="..." />
+        </RelativeLayout>
+
+    </GridLayout>
 
     <View
         android:layout_width="match_parent"

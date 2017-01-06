@@ -31,7 +31,10 @@ public class PharmacyItemAdapter extends ArrayAdapter<PharmacyListItem> {
 
     Integer visibleTime = 1;
 
-    TextView time;
+    TextView timeCar;
+    TextView timeBike;
+    TextView timeWalk;
+    TextView timePublic;
     PharmacyListItem listItem;
 
     public PharmacyItemAdapter(Context context, List<PharmacyListItem> objects) {
@@ -50,7 +53,10 @@ public class PharmacyItemAdapter extends ArrayAdapter<PharmacyListItem> {
         ImageView image = (ImageView) convertView.findViewById(R.id.pharmacy_list_icon);
         TextView name = (TextView) convertView.findViewById(R.id.pharmacy_list_name);
         TextView address = (TextView) convertView.findViewById(R.id.pharmacy_list_address);
-        time = (TextView) convertView.findViewById(R.id.pharmacy_list_time);
+        timeCar = (TextView) convertView.findViewById(R.id.pharmacy_list_time_car);
+        timeBike = (TextView) convertView.findViewById(R.id.pharmacy_list_time_bike);
+        timeWalk = (TextView) convertView.findViewById(R.id.pharmacy_list_time_walking);
+        timePublic = (TextView) convertView.findViewById(R.id.pharmacy_list_time_public);
 
         IconicsDrawable iconOpen;
         IconicsDrawable iconClose;
@@ -79,28 +85,10 @@ public class PharmacyItemAdapter extends ArrayAdapter<PharmacyListItem> {
 
         name.setText(listItem.getName());
         address.setText(listItem.getAddress());
-        time.setText(Utils.secondsToFormatString(listItem.getTimeTravelCar(), true) + " ("+Utils.metersToFormatString(listItem.getDistanceCar())+")");
-        switch(visibleTime) {
-            case 1:
-                time.setText(Utils.secondsToFormatString(listItem.getTimeTravelCar(), true)+ " ("+Utils.metersToFormatString(listItem.getDistanceCar())+")");
-                break;
-            case 2:
-                time.setText(Utils.secondsToFormatString(listItem.getTimeTravelWalking(), true)+ " ("+Utils.metersToFormatString(listItem.getDistanceWalking())+")");
-                break;
-            case 3:
-                time.setText(Utils.secondsToFormatString(listItem.getTimeTravelBicycle(), true)+ " ("+Utils.metersToFormatString(listItem.getDistanceBicycle())+")");
-                break;
-            case 4:
-                String out = "";
-                if (listItem.getTimeTravelTransit() != null && !listItem.getTimeTravelTransit().isEmpty()){
-                    out += Utils.secondsToFormatString(listItem.getTimeTravelTransit(), true);
-                }
-                if (listItem.getDistanceTransit() != null && !listItem.getDistanceTransit().isEmpty()){
-                    out += " ("+Utils.metersToFormatString(listItem.getDistanceTransit())+")";
-                }
-                time.setText(out);
-                break;
-        }
+        timeCar.setText(Utils.secondsToFormatString(listItem.getTimeTravelCar(), false));
+        timeBike.setText(Utils.secondsToFormatString(listItem.getTimeTravelBicycle(), false));
+        timeWalk.setText(Utils.secondsToFormatString(listItem.getTimeTravelWalking(), false));
+        timePublic.setText(Utils.secondsToFormatString(listItem.getTimeTravelTransit(), false));
 
         return convertView;
     }
