@@ -209,9 +209,6 @@ public class PharmacyListFragment extends Fragment {
                     searchQuery.setSearch(v.getText().toString());
                     activity.setApiTaskSearch(activity.startSearchTask(searchQuery));
 
-                    //return true;
-                    Toast.makeText(getContext(), "Búsqueda de "+v.getText().toString(), Toast.LENGTH_SHORT).show();
-
                     return true;
                 }
                 return false;
@@ -239,7 +236,6 @@ public class PharmacyListFragment extends Fragment {
         });
 
         btnClear = (IconicsButton) layout.findViewById(R.id.clear_search_pharmacies);
-        //btnClear.setImageDrawable(iconClose);
         btnClear.setCompoundDrawables(iconClose, null, null, null);
         btnClear.setVisibility(View.GONE);
         btnClear.setOnClickListener(new View.OnClickListener() {
@@ -264,7 +260,8 @@ public class PharmacyListFragment extends Fragment {
         btnMic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getContext(), "Búsqueda por voz", Toast.LENGTH_SHORT).show();
+                PharmaciesMapActivity activity = (PharmaciesMapActivity) getActivity();
+                activity.listen();
             }
         });
 
@@ -293,12 +290,6 @@ public class PharmacyListFragment extends Fragment {
         }
     }
 
-    public void changeTime(Integer time){
-        if (pharmacyItemAdapter != null){
-            pharmacyItemAdapter.changeTime(time);
-        }
-    }
-
     public void setCursorVisible(boolean cursorVisible) {
         this.cursorVisible = cursorVisible;
         if (searchTxt != null) {
@@ -316,6 +307,9 @@ public class PharmacyListFragment extends Fragment {
     public void setSearch(String search){
         if (searchTxt != null){
             this.searchTxt.setText(search);
+            if (search.length() > 0){
+                this.btnClear.setVisibility(View.VISIBLE);
+            }
         }
     }
 

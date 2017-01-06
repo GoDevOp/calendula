@@ -1,6 +1,7 @@
 package es.usc.citius.servando.calendula.pharmacies.activities;
 
 import android.Manifest;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -10,6 +11,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -18,13 +20,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.LayoutInflaterCompat;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -32,7 +30,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -66,6 +63,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import es.usc.citius.servando.calendula.CalendulaActivity;
@@ -283,23 +281,23 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             @Override
             public void onClick(View v) {
                 ScreenUtils.setStatusBarColor(PharmaciesMapActivity.this, Color.parseColor("#148577"));
+                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+                ft.replace(R.id.pharmacies_list, pharmacyListFragment);
+                ft.addToBackStack(null);
+                ft.commit();
+
                 listLayout = (RelativeLayout) findViewById(R.id.pharmacies_list);
                 listLayout.setVisibility(View.VISIBLE);
 
-                if (pharmaciesListItems == null || pharmaciesListItems.isEmpty()){
+                if (pharmaciesListItems == null || pharmaciesListItems.size() == 0){
                     Toast.makeText(getBaseContext(), R.string.pharmacy_empty, Toast.LENGTH_SHORT);
                 }
-                else {
-                    pharmacyListFragment.setData(pharmaciesListItems);
-                    pharmacyListFragment.changeTime(PharmacyItemAdapter.TIME_CAR);
+                pharmacyListFragment.setData(pharmaciesListItems);
+                pharmacyListFragment.setSearch(searchTxt.getText().toString());
 
-                    FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                    ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
-                    ft.replace(R.id.pharmacies_list, pharmacyListFragment);
-                    ft.addToBackStack(null);
-                    ft.commit();
-                    pharmacyListFragment.updateData();
-                }
+                pharmacyListFragment.updateData();
+
             }
         });
 
@@ -315,6 +313,12 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             @Override
             public void onClick(View v) {
                 ScreenUtils.setStatusBarColor(PharmaciesMapActivity.this, Color.parseColor("#148577"));
+                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+                ft.replace(R.id.pharmacies_list, pharmacyListFragment);
+                ft.addToBackStack(null);
+                ft.commit();
+
                 listLayout = (RelativeLayout) findViewById(R.id.pharmacies_list);
                 listLayout.setVisibility(View.VISIBLE);
                 pharmacyListFragment.setCursorVisible(true);
@@ -326,17 +330,11 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 if (pharmaciesListItems == null || pharmaciesListItems.isEmpty()){
                     Toast.makeText(getBaseContext(), R.string.pharmacy_empty, Toast.LENGTH_SHORT);
                 }
-                else {
-                    pharmacyListFragment.setData(pharmaciesListItems);
-                    pharmacyListFragment.changeTime(PharmacyItemAdapter.TIME_CAR);
+                pharmacyListFragment.setData(pharmaciesListItems);
+                pharmacyListFragment.setSearch(searchTxt.getText().toString());
 
-                    FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                    ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
-                    ft.replace(R.id.pharmacies_list, pharmacyListFragment);
-                    ft.addToBackStack(null);
-                    ft.commit();
-                    pharmacyListFragment.updateData();
-                }
+                pharmacyListFragment.updateData();
+
             }
         });
 
@@ -363,7 +361,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         btnMic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getBaseContext(), "Búsqueda por voz", Toast.LENGTH_SHORT).show();
+                listen();
             }
         });
 
@@ -655,6 +653,22 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             this.getFragmentManager().popBackStack();
         }
         else{
+            if (apiTaskSearch != null){
+                apiTaskSearch.cancel(true);
+                apiTaskSearch = null;
+            }
+            if (apiTask != null){
+                apiTask.cancel(true);
+                apiTask = null;
+            }
+            if (apiTaskNearest != null){
+                apiTaskNearest.cancel(true);
+                apiTaskNearest = null;
+            }
+            if (getTimesTask != null){
+                getTimesTask.cancel(true);
+                getTimesTask = null;
+            }
             finish();
         }
     }
@@ -883,7 +897,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         }
         apiTask = new GetApiDataTask(query);
         Date d = new Date();
-        Log.d("DEBUG", Utils.getDate(d) + " New task " + apiTask.toString());
+        Log.d("DEBUG", Utils.getDate(d) + " New location task " + apiTask.toString());
         apiTask.execute();
     }
 
@@ -932,6 +946,10 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     }
 
     public GetApiDataTask startSearchTask(Query query){
+        if (apiTaskSearch != null) {
+            apiTaskSearch.cancel(true);
+            apiTaskSearch = null;
+        }
         GetApiDataTask task = new GetApiDataTask(query);
         task.execute();
         return task;
@@ -965,7 +983,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 else if (query.getQueryType() == GET_TEXT_QUERY_PHARMACIES){
                     call = service.listByUserSearch(query.getSearch());
                     Date d = new Date();
-                    Log.d("DEBUG", Utils.getDate(d) + " Pharmacies nearest request");
+                    Log.d("DEBUG", Utils.getDate(d) + " Pharmacies query text request");
                 }
                 call.enqueue(this);
             }
@@ -980,7 +998,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         @Override
         protected void onCancelled() {
             Date d = new Date();
-            if (call != null) {
+            if (apiTask != null && call != null) {
                 Log.d("DEBUG", Utils.getDate(d) + " Cancelled call at task " + apiTask.toString());
                 call.cancel();
             }
@@ -1008,7 +1026,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             pharmaciesListItems = new ArrayList<>();
             markerMap = new HashMap<>();
 
-            if (pharmacies != null && pharmacies.size() == 0 && apiTaskSearch == null && query.getQueryType() != GET_NEAREST_PHARMACIES) {
+            if (pharmacies != null && pharmacies.size() == 0 && apiTaskSearch == null && query.getQueryType() == GET_LOCATION_PHARMACIES) {
                 Location loc = getMapCenter();
                 Query query = new Query();
                 query.setLatitude(loc.getLatitude());
@@ -1017,7 +1035,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 query.setQueryType(GET_NEAREST_PHARMACIES);
                 apiTaskNearest = new GetApiDataTask(query);
                 Date d = new Date();
-                Log.d("DEBUG", Utils.getDate(d) + " New task " + apiTask.toString());
+                Log.d("DEBUG", Utils.getDate(d) + " New nearest task " + apiTask.toString());
                 apiTaskNearest.execute();
                 if (apiTask != null && apiTask.getStatus() != Status.FINISHED) {
                     apiTask.cancel(true);
@@ -1033,7 +1051,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 Toast.makeText(getBaseContext(), getString(R.string.pharmacy_search_no_results), Toast.LENGTH_SHORT).show();
             }
 
-            if (pharmacies != null && !isCancelled() && !pharmacies.isEmpty()) {
+            if (pharmacies != null && !isCancelled() && pharmacies.size() > 0) {
                 for (Pharmacy pharmacy : pharmacies) {
                     pharmaciesHashMap.put(pharmacy.getCodPharmacy(), pharmacy);
                     PharmacyListItem listItem = new PharmacyListItem();
@@ -1044,17 +1062,18 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     listItem.setGuard(pharmacy.isGuard());
                     pharmaciesListItems.add(listItem);
                 }
-                pharmacyListFragment.setData(pharmaciesListItems);
                 if (getTimesTask != null){
                     getTimesTask.cancel(true);
+                    getTimesTask = null;
                 }
                 getTimesTask = new GetTravelTimeTask();
                 getTimesTask.execute();
                 Date d = new Date();
                 Log.d("DEBUG", Utils.getDate(d) + " API sends " + pharmaciesHashMap.size() + " pharmacies");
-                updateUI(false);
                 finished = true;
             }
+            updateUI(false);
+            pharmacyListFragment.setData(pharmaciesListItems);
             progressBarMap.setVisibility(View.GONE);
             pharmacyListFragment.setProgressBarVisibility(View.GONE);
         }
@@ -1275,5 +1294,44 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             }
 
         }
+    }
+
+    public void listen(){
+        Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        i.putExtra(RecognizerIntent.EXTRA_PROMPT, R.string.pharmacy_voice_text);
+
+        try {
+            startActivityForResult(i, 100);
+        } catch (ActivityNotFoundException a) {
+            Toast.makeText(PharmaciesMapActivity.this, "Your device doesn't support Speech Recognition", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == 100){
+            if (resultCode == RESULT_OK && null != data) {
+                ArrayList<String> res = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                String inSpeech = res.get(0);
+                recognition(inSpeech);
+            }
+        }
+    }
+
+    private void recognition(String text){
+        Query searchQuery = new Query();
+        searchQuery.setQueryType(GET_TEXT_QUERY_PHARMACIES);
+        searchQuery.setSearch(text);
+        searchTxt.setText(text);
+        setClearVisibility(true);
+        if (pharmacyListFragment != null){
+            pharmacyListFragment.setSearch(text);
+            pharmacyListFragment.setProgressBarVisibility(View.VISIBLE);
+
+        }
+        setApiTaskSearch(startSearchTask(searchQuery));
     }
 }
