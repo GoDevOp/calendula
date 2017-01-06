@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:divider="#777"
-        android:layout_marginTop="76dp"/>
+        android:layout_marginTop="96dp"/>
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -35,43 +35,89 @@
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar_pharmacy"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="76dp"
         android:layout_marginTop="20dp"
         android:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         android:background="#13988a"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
-        <RelativeLayout
+        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/pharmacies_search_bar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <ImageButton
-                android:layout_width="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:background="@drawable/shape_list_item"
+            android:layout_height="50dp">
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="10dp"
-                android:padding="10dp"
+                >
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:id="@+id/back_pharmacies_image"
+                    android:layout_gravity="center_vertical"
+                    android:paddingLeft="5dp"
+                    android:layout_marginLeft="10dp"/>
+
+                <EditText
+                    android:id="@+id/search_pharmacies_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="55dp"
+                    android:padding="10dp"
+                    android:layout_gravity="center_vertical"
+                    android:hint="@string/pharmacy_search"
+                    android:textColor="@android:color/black"
+                    android:background="@null"
+                    android:imeOptions="actionSearch"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:textColorHighlight="@color/android_orange"
+                    android:layout_margin="0dp"
+                    >
+                </EditText>
+
+            </LinearLayout>
+
+            <ProgressBar
+                android:layout_height="match_parent"
+                android:paddingLeft="5dp"
+                android:id="@+id/search_pharmacies_loading"
+                android:layout_gravity="center_vertical"
+                android:indeterminate="true"
+                android:visibility="invisible"
+                android:layout_alignParentBottom="true"
+                android:layout_width="25dp"
                 android:layout_alignParentRight="true"
-                android:id="@+id/pharmacy_toolbar_list_public" />
-            <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_marginRight="35dp"/>
+
+            <com.mikepenz.iconics.view.IconicsButton
+                android:id="@+id/voice_search_pharmacies"
+                android:layout_alignParentRight="true"
                 android:layout_marginRight="10dp"
-                android:padding="10dp"
-                android:layout_toLeftOf="@id/pharmacy_toolbar_list_public"
-                android:id="@+id/pharmacy_toolbar_list_bike" />
-            <ImageButton
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="10dp"
-                android:padding="10dp"
-                android:layout_toLeftOf="@id/pharmacy_toolbar_list_bike"
-                android:id="@+id/pharmacy_toolbar_list_walk" />
-            <ImageButton
-                android:layout_width="wrap_content"
+                style="?android:attr/borderlessButtonStyle"
+                android:text="{gmd-mic}"
+                android:textAlignment="center"
+                android:textSize="20dp"
+                android:layout_alignParentTop="true"
+                android:layout_width="35dp"/>
+
+            <com.mikepenz.iconics.view.IconicsButton
+                android:id="@+id/clear_search_pharmacies"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="10dp"
-                android:padding="10dp"
-                android:layout_toLeftOf="@id/pharmacy_toolbar_list_walk"
-                android:id="@+id/pharmacy_toolbar_list_car" />
+                android:layout_toLeftOf="@id/voice_search_pharmacies"
+                style="?android:attr/borderlessButtonStyle"
+                android:text="{gmd-close}"
+                android:textSize="20dp"
+                android:layout_alignParentTop="true"
+                android:layout_width="35dp"/>
+
         </RelativeLayout>
 
     </android.support.v7.widget.Toolbar>

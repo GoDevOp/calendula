@@ -57,6 +57,7 @@ import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.iconics.context.IconicsLayoutInflater;
+import com.mikepenz.iconics.view.IconicsButton;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.util.ArrayList;
@@ -141,7 +142,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     FloatingActionButton btnMyPostion;
     FloatingActionButton btnList;
     FloatingActionButton btnDirections;
-    Button btnClear;
+    IconicsButton btnClear;
+    IconicsButton btnMic;
     EditText searchTxt;
     ImageView searchImg;
     ProgressBar progressBarMap;
@@ -156,6 +158,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
     IconicsDrawable iconGuardSelectedMarker;
     IconicsDrawable iconDirections;
     IconicsDrawable iconSearch;
+    IconicsDrawable iconMic;
+    IconicsDrawable iconClear;
 
     private SlidingUpPanelLayout slidingLayout;
     RelativeLayout fragmentContainer;
@@ -167,10 +171,10 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     Integer slidingLayoutHeight;
 
-    GetApiDataTask apiTask = null;
-    GetApiDataTask apiTaskNearest = null;
-    GetApiDataTask apiTaskSearch = null;
-    GetTravelTimeTask getTimesTask = null;
+    public GetApiDataTask apiTask = null;
+    public GetApiDataTask apiTaskNearest = null;
+    public GetApiDataTask apiTaskSearch = null;
+    public GetTravelTimeTask getTimesTask = null;
 
     HashMap<Marker, Pharmacy> markerMap;
 
@@ -208,8 +212,8 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
         firstTime = true;
 
-        listLayout = (RelativeLayout) findViewById(R.id.pharmacies_list);
         pharmacyListFragment = new PharmacyListFragment();
+        listLayout = (RelativeLayout) findViewById(R.id.pharmacies_list);
 
         iconMyLocation = new IconicsDrawable(this, GoogleMaterial.Icon.gmd_my_location)
                 .sizeDp(24)
@@ -240,6 +244,12 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 .color(Color.WHITE);
         iconSearch = new IconicsDrawable(this, GoogleMaterial.Icon.gmd_search)
                 .sizeDp(24)
+                .color(Color.GRAY);
+        iconMic = new IconicsDrawable(this, GoogleMaterial.Icon.gmd_mic)
+                .sizeDp(20)
+                .color(Color.GRAY);
+        iconClear = new IconicsDrawable(this, GoogleMaterial.Icon.gmd_close)
+                .sizeDp(14)
                 .color(Color.GRAY);
 
         btnDirections = (FloatingActionButton) findViewById(R.id.get_pharmacy_route);
@@ -300,73 +310,60 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
         searchTxt = (EditText) findViewById(R.id.search_pharmacies_text);
         searchTxt.setCursorVisible(false);
-        searchTxt.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    if (v.getText().toString().isEmpty()){
-                        Toast.makeText(getBaseContext(), getString(R.string.pharmacy_search_without_text), Toast.LENGTH_SHORT).show();
-                        return false;
-                    }
-                    hideKeyboard();
-                    searchTxt.setCursorVisible(false);
-                    if (apiTaskNearest != null && apiTaskNearest.getStatus() != AsyncTask.Status.FINISHED){
-                        apiTaskNearest.cancel(true);
-                    }
-                    if (apiTask != null && apiTask.getStatus() != AsyncTask.Status.FINISHED){
-                        apiTask.cancel(true);
-                    }
-                    if (getTimesTask != null && getTimesTask.getStatus() != AsyncTask.Status.FINISHED){
-                        getTimesTask.cancel(true);
-                    }
-                    Query searchQuery = new Query();
-                    searchQuery.setQueryType(GET_TEXT_QUERY_PHARMACIES);
-                    searchQuery.setSearch(v.getText().toString());
-                    apiTaskSearch = new GetApiDataTask(searchQuery);
-                    apiTaskSearch.execute();
 
-                    return true;
-                }
-                return false;
-            }
-        });
-        searchTxt.addTextChangedListener(new TextWatcher() {
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.length() > 0){
-                    btnClear.setVisibility(View.VISIBLE);
-                }
-                else{
-                    btnClear.setVisibility(View.GONE);
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
-        });
         searchTxt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                searchTxt.setCursorVisible(true);
+                ScreenUtils.setStatusBarColor(PharmaciesMapActivity.this, Color.parseColor("#148577"));
+                listLayout = (RelativeLayout) findViewById(R.id.pharmacies_list);
+                listLayout.setVisibility(View.VISIBLE);
+                pharmacyListFragment.setCursorVisible(true);
+
+                if (fragmentMarker.isVisible()){
+                    btnDirections.hide();
+                }
+
+                if (pharmaciesListItems == null || pharmaciesListItems.isEmpty()){
+                    Toast.makeText(getBaseContext(), R.string.pharmacy_empty, Toast.LENGTH_SHORT);
+                }
+                else {
+                    pharmacyListFragment.setData(pharmaciesListItems);
+                    pharmacyListFragment.changeTime(PharmacyItemAdapter.TIME_CAR);
+
+                    FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                    ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+                    ft.replace(R.id.pharmacies_list, pharmacyListFragment);
+                    ft.addToBackStack(null);
+                    ft.commit();
+                    pharmacyListFragment.updateData();
+                }
             }
         });
 
-        btnClear = (Button) findViewById(R.id.clear_search_pharmacies);
+        btnClear = (IconicsButton) findViewById(R.id.clear_search_pharmacies);
+        btnClear.setCompoundDrawables(iconClear, null, null, null);
         btnClear.setVisibility(View.GONE);
         btnClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (apiTaskSearch != null && apiTaskSearch.getStatus() == AsyncTask.Status.RUNNING){
+                    apiTaskSearch.cancel(true);
+                }
                 apiTaskSearch = null;
                 centerMap();
                 searchTxt.setText("");
+                pharmacyListFragment.setSearch("");
                 throwLocationQuery();
                 btnClear.setVisibility(View.GONE);
+            }
+        });
+
+        btnMic = (IconicsButton) findViewById(R.id.voice_search_pharmacies);
+        btnMic.setCompoundDrawables(iconMic, null, null, null);
+        btnMic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getBaseContext(), "Búsqueda por voz", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -743,7 +740,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     }
 
-    private void centerMap() {
+    public void centerMap() {
         if (mLastLocation != null) {
             LatLng latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
             map.moveCamera(CameraUpdateFactory.newLatLng(latLng));
@@ -810,7 +807,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
     }
 
-    private void hideKeyboard(){
+    public void hideKeyboard(){
         View view = PharmaciesMapActivity.this.getCurrentFocus();
         if (view != null) {
             InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -818,7 +815,54 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         }
     }
 
-    private void throwLocationQuery(){
+    public void setSearch(String search){
+        if (this.searchTxt != null) {
+            this.searchTxt.setText(search);
+        }
+    }
+
+    public GetApiDataTask getApiTask() {
+        return apiTask;
+    }
+
+    public void setApiTask(GetApiDataTask apiTask) {
+        this.apiTask = apiTask;
+    }
+
+    public GetApiDataTask getApiTaskNearest() {
+        return apiTaskNearest;
+    }
+
+    public void setApiTaskNearest(GetApiDataTask apiTaskNearest) {
+        this.apiTaskNearest = apiTaskNearest;
+    }
+
+    public GetApiDataTask getApiTaskSearch() {
+        return apiTaskSearch;
+    }
+
+    public void setApiTaskSearch(GetApiDataTask apiTaskSearch) {
+        this.apiTaskSearch = apiTaskSearch;
+    }
+
+    public GetTravelTimeTask getGetTimesTask() {
+        return getTimesTask;
+    }
+
+    public void setGetTimesTask(GetTravelTimeTask getTimesTask) {
+        this.getTimesTask = getTimesTask;
+    }
+
+    public void setClearVisibility(boolean visible){
+        if (visible){
+            btnClear.setVisibility(View.VISIBLE);
+        }
+        else{
+            btnClear.setVisibility(View.GONE);
+        }
+    }
+
+    public void throwLocationQuery(){
         Location loc = getMapCenter();
         Query query = new Query();
         query.setLatitude(loc.getLatitude());
@@ -887,7 +931,13 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
 
     }
 
-    private class GetApiDataTask extends AsyncTask<Void, Void, Void> implements Callback<List<Pharmacy>> {
+    public GetApiDataTask startSearchTask(Query query){
+        GetApiDataTask task = new GetApiDataTask(query);
+        task.execute();
+        return task;
+    }
+
+    public class GetApiDataTask extends AsyncTask<Void, Void, Void> implements Callback<List<Pharmacy>> {
 
         private Query query;
         private Call<List<Pharmacy>> call;
@@ -941,7 +991,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         protected void onPreExecute() {
             super.onPreExecute();
             progressBarMap.setVisibility(View.VISIBLE);
-            //searchImg.setVisibility(View.GONE);
+            pharmacyListFragment.setProgressBarVisibility(View.VISIBLE);
         }
 
         @Override
@@ -1006,6 +1056,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                 finished = true;
             }
             progressBarMap.setVisibility(View.GONE);
+            pharmacyListFragment.setProgressBarVisibility(View.GONE);
         }
 
         @Override
@@ -1063,7 +1114,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
         }
     }
 
-    private class GetTravelTimeTask extends AsyncTask<Void, Void, HashMap<TravelTypes,HashMap<Integer, MatrixDirectionsApiResponse>>> {
+    public class GetTravelTimeTask extends AsyncTask<Void, Void, HashMap<TravelTypes,HashMap<Integer, MatrixDirectionsApiResponse>>> {
 
         GetTravelTimeTask(){
         }
