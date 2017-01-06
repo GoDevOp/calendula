@@ -225,6 +225,58 @@ public class PharmacyFragment extends Fragment {
         txtPublicTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelTransitSec(), true));
         txtWalkTime.setText(Utils.secondsToFormatString(pharmacy.getTimeTravelWalkingSec(), true));
 
+        txtCarTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (pharmacy != null) {
+                    String destination = pharmacy.getGps()[1] + "," + pharmacy.getGps()[0];
+                    Uri gmmIntentUri = Uri.parse("google.navigation:q=" + destination + "&mode=d");
+                    Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                    mapIntent.setPackage("com.google.android.apps.maps");
+                    startActivity(mapIntent);
+                }
+            }
+        });
+
+        txtBikeTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (pharmacy != null) {
+                    String destination = pharmacy.getGps()[1] + "," + pharmacy.getGps()[0];
+                    Uri gmmIntentUri = Uri.parse("google.navigation:q=" + destination + "&mode=b");
+                    Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                    mapIntent.setPackage("com.google.android.apps.maps");
+                    startActivity(mapIntent);
+                }
+            }
+        });
+
+        txtWalkTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (pharmacy != null) {
+                    String destination = pharmacy.getGps()[1] + "," + pharmacy.getGps()[0];
+                    Uri gmmIntentUri = Uri.parse("google.navigation:q=" + destination + "&mode=w");
+                    Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                    mapIntent.setPackage("com.google.android.apps.maps");
+                    startActivity(mapIntent);
+                }
+            }
+        });
+
+        txtPublicTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (pharmacy != null) {
+                    String destination = pharmacy.getGps()[1] + "," + pharmacy.getGps()[0];
+                    Uri gmmIntentUri = Uri.parse("google.navigation:q=" + destination);
+                    Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                    mapIntent.setPackage("com.google.android.apps.maps");
+                    startActivity(mapIntent);
+                }
+            }
+        });
+
         try {
             if (pharmacy.getTimeTravelCarSec() != "" && Long.parseLong(pharmacy.getTimeTravelCarSec()) > pharmacy.getSecondsUntilNextClose()) {
                 txtCarTime.setTextColor(Color.RED);
