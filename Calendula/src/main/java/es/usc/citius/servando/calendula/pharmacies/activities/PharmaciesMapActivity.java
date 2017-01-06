@@ -1145,6 +1145,12 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     Log.e("", e.getLocalizedMessage());
                 }
             }
+
+            //update times on list
+            if (listLayout.getVisibility() == View.VISIBLE){
+                pharmacyListFragment.setData(pharmaciesListItems);
+                pharmacyListFragment.updateData();
+            }
         }
     }
 
