@@ -912,17 +912,17 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             for (Map.Entry<Marker, Pharmacy> e : markerMap.entrySet()) {
                 if (e.getValue().getCodPharmacy() == pharmacy.getCodPharmacy()) {
                     Marker marker = e.getKey();
-                    if (pharmacy.isOpen()) {
-                        marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
-                        previousMarker = marker;
-                        previousPharmacy = pharmacy;
-                    }
-                    else if (pharmacy.isGuard()){
+                    if (pharmacy.isGuard()){
                         marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconGuardSelectedMarker.toBitmap()));
+                    }
+                    else if (pharmacy.isOpen()) {
+                        marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconSelectedMarker.toBitmap()));
                     }
                     else {
                         marker.setIcon(BitmapDescriptorFactory.fromBitmap(iconClosedSelectedMarker.toBitmap()));
                     }
+                    previousMarker = marker;
+                    previousPharmacy = pharmacy;
                 }
             }
         }
@@ -1060,6 +1060,7 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
                     listItem.setAddress(pharmacy.getAddress());
                     listItem.setOpen(pharmacy.isOpen());
                     listItem.setGuard(pharmacy.isGuard());
+                    listItem.setSecondsUntilClose(pharmacy.getSecondsUntilNextClose());
                     pharmaciesListItems.add(listItem);
                 }
                 if (getTimesTask != null){

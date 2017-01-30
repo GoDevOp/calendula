@@ -77,10 +77,6 @@ public class PharmacyListFragment extends Fragment {
     PharmacyItemAdapter pharmacyItemAdapter;
 
     IconicsDrawable iconMap;
-    IconicsDrawable iconCar;
-    IconicsDrawable iconBike;
-    IconicsDrawable iconWalk;
-    IconicsDrawable iconTransit;
     IconicsDrawable iconArrow;
     IconicsDrawable iconMic;
     IconicsDrawable iconClose;

@@ -17,6 +17,7 @@ public class PharmacyListItem {
     private String distanceTransit;
     private String distanceWalking;
     private String distanceBicycle;
+    private Long secondsUntilClose;
     private boolean open;
     private boolean guard;
 
@@ -122,6 +123,14 @@ public class PharmacyListItem {
 
     public void setGuard(boolean guard) {
         this.guard = guard;
+    }
+
+    public Long getSecondsUntilClose() {
+        return secondsUntilClose;
+    }
+
+    public void setSecondsUntilClose(Long secondsUntilClose) {
+        this.secondsUntilClose = secondsUntilClose;
     }
 
     @Override

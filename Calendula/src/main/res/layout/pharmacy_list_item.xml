@@ -18,6 +18,18 @@
         android:layout_alignParentTop="true" />
 
     <TextView
+        android:id="@+id/guard_text"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="3dp"
+        android:layout_below="@id/pharmacy_list_icon"
+        android:text="Garda"
+        android:textAlignment="center"
+        android:textColor="#F28130"
+        android:textSize="12dp"
+        tools:text="Garda" />
+
+    <TextView
         android:id="@+id/pharmacy_list_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

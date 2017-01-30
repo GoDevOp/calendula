@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.media.Image;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,10 +25,6 @@ import es.usc.citius.servando.calendula.pharmacies.util.Utils;
  */
 
 public class PharmacyItemAdapter extends ArrayAdapter<PharmacyListItem> {
-    public static final Integer TIME_CAR = 1;
-    public static final Integer TIME_BIKE = 2;
-    public static final Integer TIME_WALK = 3;
-    public static final Integer TIME_PUBLIC = 4;
 
     Integer visibleTime = 1;
 
@@ -35,6 +32,7 @@ public class PharmacyItemAdapter extends ArrayAdapter<PharmacyListItem> {
     TextView timeBike;
     TextView timeWalk;
     TextView timePublic;
+    TextView guardText;
     PharmacyListItem listItem;
 
     public PharmacyItemAdapter(Context context, List<PharmacyListItem> objects) {
@@ -57,6 +55,7 @@ public class PharmacyItemAdapter extends ArrayAdapter<PharmacyListItem> {
         timeBike = (TextView) convertView.findViewById(R.id.pharmacy_list_time_bike);
         timeWalk = (TextView) convertView.findViewById(R.id.pharmacy_list_time_walking);
         timePublic = (TextView) convertView.findViewById(R.id.pharmacy_list_time_public);
+        guardText = (TextView) convertView.findViewById(R.id.guard_text);
 
         IconicsDrawable iconOpen;
         IconicsDrawable iconClose;
@@ -67,28 +66,52 @@ public class PharmacyItemAdapter extends ArrayAdapter<PharmacyListItem> {
         if (listItem.isGuard()){
             iconGuard = new IconicsDrawable(getContext(), PharmaciesFont.Icon.ic_list)
                     .sizeDp(34)
-                    .color(Color.argb(242, 129, 48, 89));
+                    .color(Color.parseColor("#F28130"));
             image.setImageDrawable(iconGuard);
         }
         else if (listItem.isOpen()){
             iconOpen = new IconicsDrawable(getContext(), PharmaciesFont.Icon.ic_list)
                     .sizeDp(34)
-                    .color(Color.argb(255, 24, 158, 89));
+                    .color(Color.parseColor("#82C77B"));
             image.setImageDrawable(iconOpen);
         }
         else{
             iconClose = new IconicsDrawable(getContext(), PharmaciesFont.Icon.ic_list)
                     .sizeDp(34)
-                    .color(Color.argb(100, 24, 158, 89));
+                    .color(Color.parseColor("#BCBCBC"));
             image.setImageDrawable(iconClose);
         }
 
+        if (listItem.isGuard()){
+            guardText.setVisibility(View.VISIBLE);
+        }
+        else{
+            guardText.setVisibility(View.GONE);
+        }
         name.setText(listItem.getName());
         address.setText(listItem.getAddress());
         timeCar.setText(Utils.secondsToFormatString(listItem.getTimeTravelCar(), false));
         timeBike.setText(Utils.secondsToFormatString(listItem.getTimeTravelBicycle(), false));
         timeWalk.setText(Utils.secondsToFormatString(listItem.getTimeTravelWalking(), false));
         timePublic.setText(Utils.secondsToFormatString(listItem.getTimeTravelTransit(), false));
+
+        try {
+
+            if (Long.parseLong(listItem.getTimeTravelCar()) > listItem.getSecondsUntilClose()) {
+                timeCar.setTextColor(Color.RED);
+            }
+            if (Long.parseLong(listItem.getTimeTravelBicycle()) > listItem.getSecondsUntilClose()) {
+                timeBike.setTextColor(Color.RED);
+            }
+            if (Long.parseLong(listItem.getTimeTravelWalking()) > listItem.getSecondsUntilClose()) {
+                timeWalk.setTextColor(Color.RED);
+            }
+            if (Long.parseLong(listItem.getTimeTravelTransit()) > listItem.getSecondsUntilClose()) {
+                timePublic.setTextColor(Color.RED);
+            }
+        }catch(Exception e){
+            Log.e("PharmacyItemAdapter", "TimeParse "+e.getLocalizedMessage());
+        }
 
         return convertView;
     }
