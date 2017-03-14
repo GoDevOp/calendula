@@ -33,7 +33,7 @@ public class TimeTravel {
         urlStr.append(longitudeDestination.toString());
         urlStr.append("&mode=");
         urlStr.append(mode);
-        urlStr.append("&key=AIzaSyAm3gggVOKXyJra2a7OwJXOdYTjVWhs1F0");
+        urlStr.append("&key=AIzaSyAIy2TbU3TVPEopMa0T68dDr58FucNHE1Y");
 
         URL url = null;
         try {

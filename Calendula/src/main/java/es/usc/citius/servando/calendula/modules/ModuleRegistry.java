@@ -62,7 +62,7 @@ public class ModuleRegistry {
     }
 
     public enum ModuleConfig {
-        PRODUCT(ModuleLists.STABLE_MODULES), DEVELOP(ModuleLists.UNSTABLE_MODULES), PHARMA(ModuleLists.PHARMACY_MODULES);
+        PRODUCT(ModuleLists.STABLE_MODULES), DEVELOP(ModuleLists.UNSTABLE_MODULES), PHARMA(ModuleLists.PHARMACY_MODULES), ALPHA(ModuleLists.STABLE_MODULES);
 
         private Class<?>[] modList;
 

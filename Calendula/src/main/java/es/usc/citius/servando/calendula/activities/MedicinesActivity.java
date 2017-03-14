@@ -19,9 +19,11 @@
 package es.usc.citius.servando.calendula.activities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -58,6 +60,7 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.github.javiersantos.materialstyleddialogs.MaterialStyledDialog;
 import com.github.javiersantos.materialstyleddialogs.enums.Style;
+import com.google.zxing.integration.android.IntentIntegrator;
 import com.j256.ormlite.dao.CloseableIterator;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.mikepenz.community_material_typeface_library.CommunityMaterial;
@@ -69,7 +72,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import butterknife.BindView;
@@ -88,6 +93,7 @@ import es.usc.citius.servando.calendula.drugdb.model.persistence.Prescription;
 import es.usc.citius.servando.calendula.events.PersistenceEvents;
 import es.usc.citius.servando.calendula.fragments.MedicineCreateOrEditFragment;
 import es.usc.citius.servando.calendula.persistence.Medicine;
+import es.usc.citius.servando.calendula.persistence.PatientAlert;
 import es.usc.citius.servando.calendula.persistence.Presentation;
 import es.usc.citius.servando.calendula.persistence.alerts.AllergyPatientAlert;
 import es.usc.citius.servando.calendula.persistence.alerts.DrivingCautionAlert;
@@ -102,7 +108,9 @@ import es.usc.citius.servando.calendula.util.prospects.ProspectUtils;
 
 public class MedicinesActivity extends CalendulaActivity implements MedicineCreateOrEditFragment.OnMedicineEditListener {
 
+    public static final int MIN_SEARCH_LEN = 3;
     private final static String TAG = MedicinesActivity.class.getSimpleName();
+
 //    RoutinesListFragment listFragment;
 //    RoutineCreateOrEditFragment editFragment;
     /**
@@ -120,6 +128,7 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
     @BindView(R.id.pager)
     ViewPager mViewPager;
 
+    String qrData;
     Long mMedicineId;
     MenuItem removeItem;
 
@@ -141,6 +150,9 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
     ProgressBar progressBar;
     @BindView(R.id.add_custom_med_btn)
     Button addCustomMedBtn;
+    @BindView(R.id.barcode_scan_btn)
+    Button barcodeBtn;
+
 
     Button addCustomMedFooter;
 
@@ -151,12 +163,14 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
     private String intentAction;
     private String intentSearchText = null;
 
+    private String lastSearch = "";
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.medicines, menu);
         removeItem = menu.findItem(R.id.action_remove);
-        removeItem.setVisible(mMedicineId != -1);
+        removeItem.setVisible(false);
         return true;
     }
 
@@ -164,7 +178,7 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_remove:
-                ((MedicineCreateOrEditFragment) getViewPagerFragment(0)).showDeleteConfirmationDialog(Medicine.findById(mMedicineId));
+                //noop
                 return true;
             default:
                 finish();
@@ -173,6 +187,7 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
     }
 
     public void showSearchView(final String text) {
+        // TODO: 08/02/17 move search to separate activity and use startActivityFromResult 
         addButton.setVisibility(View.GONE);
         searchView.setVisibility(View.VISIBLE);
         searchEditText.requestFocus();
@@ -199,6 +214,10 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
         InputMethodManager imm = (InputMethodManager) getSystemService(
                 Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
+    }
+
+    public boolean isSearchViewShowing() {
+        return searchView.getVisibility() == View.VISIBLE;
     }
 
     @Override
@@ -258,6 +277,16 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
         }
     }
 
+    public void doScan() {
+        IntentIntegrator integrator = new IntentIntegrator(this);
+        integrator.setDesiredBarcodeFormats(IntentIntegrator.ALL_CODE_TYPES);
+        integrator.setOrientationLocked(true);
+        integrator.setTimeout(30 * 1000);
+        integrator.setBeepEnabled(false);
+        integrator.setPrompt(getString(R.string.scan_barcode));
+        integrator.initiateScan();
+    }
+
     Fragment getViewPagerFragment(int position) {
         return getSupportFragmentManager().findFragmentByTag(FragmentUtils.makeViewPagerFragmentName(R.id.pager, position));
     }
@@ -279,6 +308,9 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
         processIntent();
 
         TextView title = ((TextView) findViewById(R.id.textView2));
+        if (mMedicineId != -1) {
+            title.setText(getString(R.string.edit_medicine));
+        }
 
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(mSectionsPagerAdapter);
@@ -377,6 +409,13 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
                 .colorRes(R.color.white)
                 .actionBar();
 
+        Drawable icBarcode = new IconicsDrawable(this)
+                .icon(CommunityMaterial.Icon.cmd_barcode)
+                .colorRes(R.color.black)
+                .actionBar();
+
+        barcodeBtn.setCompoundDrawables(null, null, icBarcode, null);
+        barcodeBtn.setCompoundDrawablePadding(10);
         closeSearchButton.setImageDrawable(icClose);
         backButton.setImageDrawable(icBack);
         addCustomMedBtn.setVisibility(View.GONE);
@@ -384,10 +423,49 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
         searchView.setBackgroundColor(color);
         searchList.setDivider(null);
         searchList.setDividerHeight(0);
+
         if (mMedicineId == -1 || intentSearchText != null) {
             showSearchView(intentSearchText);
         } else {
             hideSearchView();
+        }
+        barcodeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                doScan();
+            }
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            String contents = data.getStringExtra("SCAN_RESULT");
+            String format = data.getStringExtra("SCAN_RESULT_FORMAT");
+            // Handle successful scan
+            Log.d(TAG, "onActivityResult: " + contents + ", " + format);
+            if (contents != null) {
+                final Prescription p = getPrescriptionFromBarcode(contents);
+                if (p != null) {
+                    new Handler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            //hideSearchView();
+                            //((MedicineCreateOrEditFragment) getViewPagerFragment(0)).setPrescription(p);
+                            searchEditText.setText(p.getCode());
+                        }
+                    });
+                } else {
+                    Log.d(TAG, "onCreate: " + p);
+                    Toast.makeText(this, R.string.medicine_not_found_error, Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(this, R.string.medicine_not_found_error, Toast.LENGTH_SHORT).show();
+            }
+        } else if (resultCode == RESULT_CANCELED) {
+            // Handle cancel
+            Log.d("SCAN", "onActivityResult: Cancel");
         }
     }
 
@@ -403,10 +481,18 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
         overridePendingTransition(0, 0);
     }
 
+    private Prescription getPrescriptionFromBarcode(String barcode) {
+        int len = barcode.length();
+        String cn = len > 6 ? barcode.substring(len - 7, len - 1) : null;
+        Log.d(TAG, "getPrescriptionFromBarcode: " + cn);
+        return DB.drugDB().prescriptions().findByCn(cn);
+    }
+
     private void processIntent() {
         mMedicineId = getIntent().getLongExtra(CalendulaApp.INTENT_EXTRA_MEDICINE_ID, -1);
         intentAction = getIntent().getStringExtra(CalendulaApp.INTENT_EXTRA_ACTION);
         intentSearchText = getIntent().getStringExtra("search_text");
+        qrData = getIntent().getStringExtra("qr_data");
     }
 
     private void showAllergyDialog(final MaterialDialog.SingleButtonCallback onOk) {
@@ -435,6 +521,7 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
             finish();
         } catch (RuntimeException | SQLException e) {
             Snack.show(R.string.medicine_save_error_message, this);
+            Log.e(TAG, "updateMedicine: ", e);
         }
     }
 
@@ -446,7 +533,7 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
      */
     private void removeOldAlerts(final Medicine m) throws SQLException {
         Medicine old = DB.medicines().findById(m.getId());
-        if (!m.cn().equals(old.cn())) { // if prescription didn't change, don't check for alerts
+        if (m.isBoundToPrescription() && !m.cn().equals(old.cn())) { // if prescription didn't change, don't check for alerts
             AllergyAlertUtil.removeAllergyAlerts(m);
         }
     }
@@ -482,10 +569,45 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
         }
     }
 
-    private void createAllergyAlerts(final Medicine m, final List<AllergenVO> allergies) throws RuntimeException {
+    /**
+     * Creates or updates allergy alert for a medicine with te given allergens.
+     *
+     * @param m         the medicine
+     * @param allergies the allergens
+     * @return <code>true</code> if changes have been made, <code>false</code> otherwise (error or no allergy changes)
+     */
+    private boolean createAllergyAlerts(final Medicine m, final List<AllergenVO> allergies) {
 
-        AllergyPatientAlert alert = new AllergyPatientAlert(m, allergies);
-        AlertManager.createAlert(alert);
+        final List<PatientAlert> allergyAlerts = DB.alerts().findByMedicineAndType(m, new AllergyPatientAlert().getType());
+        switch (allergyAlerts.size()) {
+            case 0:
+                AllergyPatientAlert alert = new AllergyPatientAlert(m, allergies);
+                AlertManager.createAlert(alert);
+                Log.d(TAG, "createAllergyAlerts: New alert created");
+                return true;
+            case 1:
+                AllergyPatientAlert alert1 = (AllergyPatientAlert) allergyAlerts.get(0).map();
+                final AllergyPatientAlert.AllergyAlertInfo details = alert1.getDetails();
+                final Set<AllergenVO> previousAllergens = new HashSet<>(details.getAllergens());
+                final Set<AllergenVO> allergiesSet = new HashSet<>(allergies);
+                if (allergiesSet.equals(previousAllergens)) {
+                    //do nothing
+                    return false;
+                } else {
+                    details.setAllergens(allergies);
+                    alert1.setDetails(details);
+                    try {
+                        DB.alerts().update(alert1);
+                        return true;
+                    } catch (SQLException e) {
+                        Log.e(TAG, "createAllergyAlerts: ", e);
+                        return false;
+                    }
+                }
+            default:
+                Log.e(TAG, "createAllergyAlerts: more than 1 allergy alert for a medicine!");
+                return false;
+        }
 
     }
 
@@ -520,7 +642,6 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
 
     // Search adapter
     public class AutoCompleteAdapter extends ArrayAdapter<Prescription> implements Filterable {
-        int minCharsToSearch = 3;
         int hColor = Color.parseColor("#000000");
         int cnColor = Color.WHITE;//ScreenUtils.equivalentNoAlpha(color,0.8f);
         int cnHColor = hColor;
@@ -533,11 +654,11 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
                 FilterResults filterResults = new FilterResults();
-                if (constraint != null && constraint.length() >= minCharsToSearch && !TextUtils.isEmpty(constraint)) {
+                if (constraint != null && constraint.length() >= MIN_SEARCH_LEN && !TextUtils.isEmpty(constraint)) {
                     try {
                         exactMatch = false;
                         final String search = constraint.toString().toLowerCase().trim();
-                        final String preFilter = search.subSequence(0, minCharsToSearch).toString();
+                        final String preFilter = search.subSequence(0, MIN_SEARCH_LEN).toString();
 
                         // preliminary filter with the first characters of the search (exact)
                         final PreparedQuery<Prescription> prepare = DB.drugDB().prescriptions().queryBuilder()
@@ -555,6 +676,9 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
 
                             if (p.getCode().contains(search)) {
                                 prescriptions.add(p);
+                                if (p.getCode().equals(search)) {
+                                    exactMatch = true;
+                                }
                             } else {
                                 final String name = current.shortName(p).toLowerCase();
 
@@ -607,7 +731,7 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
 
                         if (!prescriptions.isEmpty()) {
                             final Prescription first = prescriptions.get(0);
-                            if (metaInfo.get(first.getId()).first == 0) {
+                            if (metaInfo.get(first.getId()) != null && metaInfo.get(first.getId()).first == 0) {
                                 // Check if any word in the first result with distance 0
                                 // is exactly the constraint.
                                 // We need to check this because even if distance is 0 the matching
@@ -627,17 +751,16 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
                             }
                         }
 
-                        mData = prescriptions;//Fetcher.fetchNames(constraint.toString());
-                        filterResults.values = mData;
-                        filterResults.count = mData.size();
+                        //Fetcher.fetchNames(constraint.toString());
+                        filterResults.values = prescriptions;
+                        filterResults.count = prescriptions.size();
                     } catch (Exception e) {
-                        Log.e("myException", e.getMessage());
-                        filterResults.values = null;
+                        Log.e(TAG, "Exception occurred while searching for prescriptions", e);
+                        filterResults.values = new ArrayList<>();
                         filterResults.count = 0;
                     }
                 } else {
-                    mData = new ArrayList<>();
-                    filterResults.values = mData;
+                    filterResults.values = new ArrayList<>();
                     filterResults.count = 0;
                 }
 
@@ -647,11 +770,14 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
             }
 
             @Override
+            @SuppressWarnings("unchecked")
             protected void publishResults(CharSequence constraint, FilterResults results) {
+                mData = (List<Prescription>) results.values;
                 notifyDataSetChanged();
+                lastSearch = constraint.toString();
                 progressBar.setVisibility(View.GONE);
                 if (results.count == 0) {
-                    if (constraint.length() >= minCharsToSearch && !TextUtils.isEmpty(constraint)) {
+                    if (constraint.length() >= MIN_SEARCH_LEN && !TextUtils.isEmpty(constraint)) {
                         addCustomMedBtn.setText(getString(R.string.add_custom_med_button_text, constraint));
                         addCustomMedBtn.setVisibility(View.VISIBLE);
                         emptyListText.setText(getString(R.string.medicine_search_not_found_msg));
@@ -701,8 +827,12 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
                 final Prescription p = mData.get(position);
 
                 String name = dbMgr.shortName(p);
-                String match = searchEditText.getText().toString().trim();
                 Presentation pres = dbMgr.expected(p);
+
+                final String search = lastSearch.toLowerCase();
+                final int searchLength = lastSearch.length();
+                final String lowerCode = p.getCode().toLowerCase();
+                final String lowerName = name.toLowerCase();
 
                 ImageButton prospectIcon = ((ImageButton) item.findViewById(R.id.prospect_icon));
                 TextView cnView = (TextView) item.findViewById(R.id.prescription_cn);
@@ -712,10 +842,26 @@ public class MedicinesActivity extends CalendulaActivity implements MedicineCrea
                 ImageView prView = ((ImageView) item.findViewById(R.id.presentation_image));
 
                 cnView.setTextColor(cnColor);
-                nameView.setText(Strings.getHighlighted(name, match, hColor));
+                if (lowerCode.contains(search)) {
+                    cnView.setText(Strings.getHighlighted(p.getCode(), search, cnHColor));
+                    nameView.setText(Strings.toProperCase(name));
+                } else {
+                    cnView.setText(p.getCode());
+                    if (lowerName.contains(search)) {
+                        nameView.setText(Strings.getHighlighted(name, search, hColor));
+                    } else {
+                        String minSearch = search.substring(0, MIN_SEARCH_LEN);
+                        int index = lowerName.indexOf(minSearch);
+                        if (index >= 0) {
+                            nameView.setText(Strings.getHighlighted(name, index, Math.min(index + searchLength, name.length()-1), hColor));
+                        } else {
+                            nameView.setText(Strings.toProperCase(name));
+                        }
+                    }
+                }
+
                 doseView.setText(p.getDose());
                 contentView.setText(p.getContent());
-                cnView.setText(Strings.getHighlighted(p.getCode(), match, cnHColor));
                 prospectIcon.setImageDrawable(icProspect);
 
                 prospectIcon.setOnClickListener(new View.OnClickListener() {

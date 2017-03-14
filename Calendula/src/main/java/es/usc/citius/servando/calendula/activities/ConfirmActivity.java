@@ -46,6 +46,8 @@ import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.view.ViewPropertyAnimator;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
@@ -195,7 +197,7 @@ public class ConfirmActivity extends CalendulaActivity {
                             AlarmScheduler.instance().onUserDelayHourlySchedule(schedule, time, date, ConfirmActivity.this, minutes);
                         }
 
-                        String msg = ConfirmActivity.this.getString(R.string.alarm_delayed_message, minutes);
+                        String msg = ConfirmActivity.this.getString(R.string.alarm_delayed_message, String.valueOf(minutes));
                         Toast.makeText(ConfirmActivity.this, msg, Toast.LENGTH_SHORT).show();
                         supportFinishAfterTransition();
                     }
@@ -203,8 +205,8 @@ public class ConfirmActivity extends CalendulaActivity {
         builder.create().show();
     }
 
-    public String getDisplayableDose(String dose, Medicine m) {
-        return dose + " " + m.presentation().units(getResources());
+    public String getDisplayableDose(double dose, String doseString, Medicine m) {
+        return doseString + " " + m.presentation().units(getResources(), dose);
 
     }
 
@@ -262,7 +264,7 @@ public class ConfirmActivity extends CalendulaActivity {
         for (DailyScheduleItem item : items) {
             if (!item.takenToday()) {
                 item.setTakenToday(true);
-                DB.dailyScheduleItems().saveAndUpdateStock(item, true, ConfirmActivity.this);
+                DB.dailyScheduleItems().saveAndUpdateStock(item, true);
                 somethingChecked = true;
             }
 
@@ -323,6 +325,8 @@ public class ConfirmActivity extends CalendulaActivity {
         processIntent();
         setContentView(R.layout.activity_confirm);
 
+        Window window = getWindow();
+        window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
 
         isToday = LocalDate.now().equals(date);
         isInWindow = AlarmScheduler.isWithinDefaultMargins(date.toDateTime(time), this);
@@ -668,7 +672,7 @@ public class ConfirmActivity extends CalendulaActivity {
             }
 
             h.med.setText(m.name());
-            h.dose.setText(getDisplayableDose(i.boundToSchedule() ? s.displayDose() : si.displayDose(), m));
+            h.dose.setText(getDisplayableDose(i.boundToSchedule() ? s.dose() : si.dose(), i.boundToSchedule() ? s.displayDose() : si.displayDose(), m));
             h.status.setText(status);
             h.dailyScheduleItem = i;
             updateCheckedStatus();
@@ -723,7 +727,7 @@ public class ConfirmActivity extends CalendulaActivity {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             dailyScheduleItem.setTakenToday(!taken);
-                            DB.dailyScheduleItems().saveAndUpdateStock(dailyScheduleItem, true, ConfirmActivity.this);
+                            DB.dailyScheduleItems().saveAndUpdateStock(dailyScheduleItem, true);
                             stateChanged = true;
                             onDailyAgendaItemCheck(check);
                             notifyItemChanged(getAdapterPosition());
@@ -732,7 +736,7 @@ public class ConfirmActivity extends CalendulaActivity {
                 } else {
 
                     dailyScheduleItem.setTakenToday(!taken);
-                    DB.dailyScheduleItems().saveAndUpdateStock(dailyScheduleItem, true, ConfirmActivity.this);
+                    DB.dailyScheduleItems().saveAndUpdateStock(dailyScheduleItem, true);
                     stateChanged = true;
                     onDailyAgendaItemCheck(check);
                     notifyItemChanged(getAdapterPosition());

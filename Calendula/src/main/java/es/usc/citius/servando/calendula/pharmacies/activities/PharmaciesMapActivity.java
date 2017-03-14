@@ -1239,6 +1239,16 @@ public class PharmaciesMapActivity extends CalendulaActivity implements OnMapRea
             return mPosition;
         }
 
+        @Override
+        public String getTitle() {
+            return "";
+        }
+
+        @Override
+        public String getSnippet() {
+            return "";
+        }
+
         public Pharmacy getPharmacy() {
             return pharmacy;
         }

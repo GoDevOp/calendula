@@ -53,6 +53,7 @@ import java.util.Map;
 
 import es.usc.citius.servando.calendula.CalendulaApp;
 import es.usc.citius.servando.calendula.DailyAgendaRecyclerAdapter;
+import es.usc.citius.servando.calendula.HomePagerActivity;
 import es.usc.citius.servando.calendula.R;
 import es.usc.citius.servando.calendula.activities.ConfirmActivity;
 import es.usc.citius.servando.calendula.database.DB;
@@ -64,21 +65,22 @@ import es.usc.citius.servando.calendula.persistence.ScheduleItem;
 import es.usc.citius.servando.calendula.util.DailyAgendaItemStub;
 import es.usc.citius.servando.calendula.util.DailyAgendaItemStub.DailyAgendaItemStubElement;
 import es.usc.citius.servando.calendula.util.IconUtils;
+import es.usc.citius.servando.calendula.util.PreferenceUtils;
 
 /**
  * Daily agenda fragment
  */
 public class DailyAgendaFragment extends Fragment {
 
+    public static final String PREF_EXPANDED = "DailyAgendaFragment.expanded";
     final String TAG = "DailyAgendaFragment";
-
     View emptyView;
 
     LinearLayoutManager llm;
 
     RecyclerView rv;
     DailyAgendaRecyclerAdapter rvAdapter;
-    DailyAgendaRecyclerAdapter.EventListener rvListener;
+    DailyAgendaRecyclerListener rvListener;
 
     List<DailyAgendaItemStub> items = new ArrayList<>();
 
@@ -99,6 +101,13 @@ public class DailyAgendaFragment extends Fragment {
         CalendulaApp.eventBus().register(this);
         setupRecyclerView();
         setupEmptyView();
+
+        boolean expanded = PreferenceUtils.instance().preferences().getBoolean(PREF_EXPANDED, false);
+        if (expanded != isExpanded()) {
+            toggleViewMode();
+            ((HomePagerActivity) getActivity()).appBarLayout.setExpanded(!expanded);
+        }
+
         return rootView;
     }
 
@@ -256,12 +265,13 @@ public class DailyAgendaFragment extends Fragment {
         for (DateTime start = min; start.isBefore(max); start = start.plusHours(1)) {
 
             boolean exact = false;
-            for (DailyAgendaItemStub item : items) {
+            for (DailyAgendaItemStub item : stubs) {
                 if (start.equals(item.dateTime())) {
                     exact = true;
                     break;
                 }
             }
+
 
             Interval hour = new Interval(start, start.plusHours(1));
             if (!exact || hour.contains(DateTime.now())) {
@@ -318,7 +328,7 @@ public class DailyAgendaFragment extends Fragment {
         }
 
         if (position > 0)
-            llm.scrollToPositionWithOffset(position - 1, 50);
+            llm.smoothScrollToPosition(rv, null, position - 1);
     }
 
     public boolean isExpanded() {
@@ -369,42 +379,7 @@ public class DailyAgendaFragment extends Fragment {
         rv.setAdapter(rvAdapter);
         rv.setItemAnimator(new DefaultItemAnimator());
 
-        rvListener = new DailyAgendaRecyclerAdapter.EventListener() {
-
-            DateTime firstTime = null;
-
-            @Override
-            public void onItemClick(View v, DailyAgendaItemStub item, int position) {
-                showConfirmActivity(v, item, position);
-            }
-
-            @Override
-            public void onBeforeToggleCollapse(boolean expanded, boolean somethingVisible) {
-
-                int firstPosition = llm.findFirstVisibleItemPosition();
-                firstTime = firstPosition >= 0 && firstPosition < items.size() ? items.get(firstPosition).dateTime() : null;
-
-                Log.d(TAG, "OnBeforeCollapse, somethingVisible is " + somethingVisible);
-
-                if (expanded) {
-                    showOrHideEmptyView(false);
-                } else if (!expanded && somethingVisible) {
-                    showOrHideEmptyView(false);
-                } else {
-                    showOrHideEmptyView(true);
-                }
-            }
-
-            @Override
-            public void onAfterToggleCollapse(boolean expanded, boolean somethingVisible) {
-
-                if (expanded && firstTime != null) {
-                    scrollTo(firstTime);
-                }
-                firstTime = null;
-            }
-
-        };
+        rvListener = new DailyAgendaRecyclerListener();
 
         rvAdapter.setListener(rvListener);
     }
@@ -484,6 +459,49 @@ public class DailyAgendaFragment extends Fragment {
                 return a.hasEvents ? -1 : 1;
             }
             return aT.compareTo(bT);
+        }
+    }
+
+    private class DailyAgendaRecyclerListener implements DailyAgendaRecyclerAdapter.EventListener {
+        DateTime firstTime = null;
+
+        @Override
+        public void onItemClick(View v, DailyAgendaItemStub item, int position) {
+            showConfirmActivity(v, item, position);
+        }
+
+        @Override
+        public void onBeforeToggleCollapse(boolean expanded, boolean somethingVisible) {
+
+            int firstPosition = llm.findFirstVisibleItemPosition();
+            firstTime = firstPosition >= 0 && firstPosition < items.size() ? items.get(firstPosition).dateTime() : null;
+
+            Log.d(TAG, "OnBeforeCollapse, somethingVisible is " + somethingVisible);
+
+            if (expanded) {
+                showOrHideEmptyView(false);
+            } else if (!expanded && somethingVisible) {
+                showOrHideEmptyView(false);
+            } else {
+                showOrHideEmptyView(true);
+            }
+        }
+
+        @Override
+        public void onAfterToggleCollapse(boolean expanded, boolean somethingVisible) {
+            PreferenceUtils.instance().edit().putBoolean(PREF_EXPANDED, expanded).apply();
+            /*if (expanded && firstTime != null) {
+                scrollTo(firstTime);
+                firstTime = null;
+            } else */
+            if (expanded) {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        scrollTo(DateTime.now());
+                    }
+                }, 600);
+            }
         }
     }
 }

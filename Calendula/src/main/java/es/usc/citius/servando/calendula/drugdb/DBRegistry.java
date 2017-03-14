@@ -27,7 +27,9 @@ import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import es.usc.citius.servando.calendula.R;
@@ -41,6 +43,7 @@ import es.usc.citius.servando.calendula.drugdb.model.persistence.Prescription;
 import es.usc.citius.servando.calendula.drugdb.model.persistence.PrescriptionActiveIngredient;
 import es.usc.citius.servando.calendula.drugdb.model.persistence.PrescriptionExcipient;
 import es.usc.citius.servando.calendula.drugdb.model.persistence.PresentationForm;
+import es.usc.citius.servando.calendula.util.PreferenceKeys;
 
 /**
  * Created by joseangel.pineiro on 9/4/15.
@@ -86,18 +89,22 @@ public class DBRegistry {
 //            uk.setDisplayName(ctx.getString(R.string.database_uk_display));
 //            uk.setDescription(ctx.getString(R.string.database_uk_display));
 
-            PrescriptionDBMgr us = new USPrescriptionDBMgr();
-            us.setId(ctx.getString(R.string.database_us_id));
-            us.setDisplayName(ctx.getString(R.string.database_us_display));
-            us.setDescription(ctx.getString(R.string.database_us_display));
+//            PrescriptionDBMgr us = new USPrescriptionDBMgr();
+//            us.setId(ctx.getString(R.string.database_us_id));
+//            us.setDisplayName(ctx.getString(R.string.database_us_display));
+//            us.setDescription(ctx.getString(R.string.database_us_display));
 
             instance.databases.put(aemps.id(), aemps);
 //            instance.databases.put(uk.id(),uk);
-            instance.databases.put(us.id(), us);
+//            instance.databases.put(us.id(), us);
 
             instance.defaultDBMgr = aemps;
         }
         return instance;
+    }
+
+    public List<String> getRegistered() {
+        return new ArrayList<>(databases.keySet());
     }
 
     public PrescriptionDBMgr db(String key) {
@@ -105,7 +112,7 @@ public class DBRegistry {
     }
 
     public PrescriptionDBMgr current() {
-        String key = settings.getString("prescriptions_database", none);
+        String key = settings.getString(PreferenceKeys.DRUGDB_CURRENT_DB, none);
         Log.d("DBRegistry", "Key: " + key);
         return (key != null && !key.equals(none) && !key.equals(settingUp)) ? databases.get(key) : defaultDBMgr;
     }

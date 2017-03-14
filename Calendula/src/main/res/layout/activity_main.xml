@@ -21,12 +21,10 @@
                 android:layout_height="match_parent">
 
     <android.support.design.widget.CoordinatorLayout xmlns:app="http://schemas.android.com/apk/res-auto"
-                                                     xmlns:tools="http://schemas.android.com/tools"
                                                      android:id="@+id/main_content"
                                                      android:layout_width="match_parent"
                                                      android:layout_height="match_parent"
-                                                     android:fitsSystemWindows="true"
-                                                     tools:context="com.castrelo.materialapp.MainActivity">
+                                                     android:fitsSystemWindows="true">
 
         <android.support.design.widget.AppBarLayout
             android:id="@+id/appbar"
@@ -43,9 +41,7 @@
                 android:background="#00000000"
                 android:clipToPadding="true"
                 android:fitsSystemWindows="true"
-                app:contentScrim="#1976D2"
                 app:layout_scrollFlags="scroll|exitUntilCollapsed"
-                app:statusBarScrim="#00000000"
                 app:titleEnabled="false">
 
                 <!--app:titleEnabled="true"-->
@@ -193,6 +189,6 @@
         android:layout_marginTop="@dimen/status_bar_height"
         android:height="@dimen/action_bar_height"
         android:gravity="center_vertical"
-        android:text="Calendula"/>
+        android:text="@string/app_name"/>
 
 </RelativeLayout>

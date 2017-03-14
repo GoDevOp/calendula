@@ -27,6 +27,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
 import android.util.Pair;
@@ -38,6 +39,8 @@ import java.net.URI;
 import es.usc.citius.servando.calendula.R;
 import es.usc.citius.servando.calendula.drugdb.DBRegistry;
 import es.usc.citius.servando.calendula.drugdb.PrescriptionDBMgr;
+import es.usc.citius.servando.calendula.util.NetworkUtils;
+import es.usc.citius.servando.calendula.util.PreferenceKeys;
 import es.usc.citius.servando.calendula.util.PreferenceUtils;
 import es.usc.citius.servando.calendula.util.Settings;
 import es.usc.citius.servando.calendula.util.SettingsKeys;
@@ -47,7 +50,7 @@ import es.usc.citius.servando.calendula.util.SettingsKeys;
  */
 public class DownloadDatabaseHelper {
 
-    public static final String TAG = "DDDialogHelper.class";
+    public static final String TAG = "DownloadDatabaseHelper";
     private static final String downloadSuffix = ".db";
 
     private static DownloadDatabaseHelper instance;
@@ -72,10 +75,19 @@ public class DownloadDatabaseHelper {
                 .setCancelable(false)
                 .setPositiveButton("Download and setup", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        if (callback != null) {
-                            callback.onDownloadAcceptedOrCancelled(true);
+                        if (NetworkUtils.isNetworkAvailable(appContext)) {
+                            if (callback != null) {
+                                callback.onDownloadAcceptedOrCancelled(true);
+                            }
+                            downloadDatabase(appContext, database, DBInstallType.SETUP);
+                            dialog.dismiss();
+                        } else {
+                            if (callback != null) {
+                                callback.onDownloadAcceptedOrCancelled(false);
+                            }
+                            Toast.makeText(appContext, R.string.message_no_internet_error, Toast.LENGTH_SHORT).show();
                         }
-                        downloadDatabase(appContext, database);
+
                     }
                 })
                 .setNegativeButton(dialogCtx.getString(R.string.cancel), new DialogInterface.OnClickListener() {
@@ -95,8 +107,8 @@ public class DownloadDatabaseHelper {
         Toast.makeText(context, R.string.download_db_unexpected_error, Toast.LENGTH_LONG).show();
         SharedPreferences settings = PreferenceUtils.instance().preferences();
         SharedPreferences.Editor edit = settings.edit();
-        edit.putString("last_valid_database", context.getString(R.string.database_none_id));
-        edit.putString("prescriptions_database", context.getString(R.string.database_none_id));
+        edit.putString(PreferenceKeys.DRUGDB_LAST_VALID, context.getString(R.string.database_none_id));
+        edit.putString(PreferenceKeys.DRUGDB_CURRENT_DB, context.getString(R.string.database_none_id));
         edit.commit();
         Intent bcIntent = new Intent();
         bcIntent.setAction(InstallDatabaseService.ACTION_ERROR);
@@ -141,51 +153,93 @@ public class DownloadDatabaseHelper {
 
     }
 
-    private void downloadDatabase(Context ctx, final String database) {
-        PrescriptionDBMgr mgr = DBRegistry.instance().db(database);
-        if (mgr != null) {
-            InstallDatabaseService.isRunning = true;
-            NotificationManager mNotifyManager = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
-            final DownloadManager manager = (DownloadManager) ctx.getSystemService(Context.DOWNLOAD_SERVICE);
-            final String downloadUrl = Settings.instance().get(SettingsKeys.DATABASE_LOCATION);
-            final String dbName = mgr.id();
-            final String url = downloadUrl + dbName + downloadSuffix;
-            // remove previous downloads and cancel notifications
-            removePreviousDownloads(dbName);
-            mNotifyManager.cancel(InstallDatabaseService.NOTIFICATION_ID);
-            // create the download request
-            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-            request.setDescription(mgr.description());
-            request.setTitle(mgr.displayName());
-            request.allowScanningByMediaScanner();
-            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
-            request.setVisibleInDownloadsUi(true);
-            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, dbName + downloadSuffix);
-            // get download service and enqueue file
-            long downloadId = manager.enqueue(request);
-            // save id in preferences for later use in DBDownloadReceiver
-            SharedPreferences preferences = PreferenceUtils.instance().preferences();
-            preferences.edit()
-                    .putLong("download_mgr_download_id", downloadId)
-                    .putString("download_mgr_download_db", dbName)
-                    .apply();
-        } else {
-            Toast.makeText(ctx, "Database not available :(", Toast.LENGTH_SHORT).show();
-            onDownloadFailed(ctx);
-        }
+    void downloadDatabase(Context ctx, final String database, final DBInstallType type) {
+        new DownloadDatabaseTask(ctx, type).execute(database);
     }
 
-    private void removePreviousDownloads(String dbName) {
-        File downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+    private void removePreviousDownloads(Context ctx, String dbName) {
+        File downloads = ctx.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
         final String path = downloads.getAbsolutePath() + "/" + dbName + downloadSuffix;
         File f = new File(path);
         if (f.exists()) {
             f.delete();
+            Log.d(TAG, "removePreviousDownloads: deleted file " + path);
         }
     }
 
     public interface DownloadDatabaseDialogCallback {
         void onDownloadAcceptedOrCancelled(boolean accepted);
+    }
+
+    private class DownloadDatabaseTask extends AsyncTask<String, Void, Boolean> {
+
+        private Context ctx;
+        private DBInstallType type;
+
+        private DownloadDatabaseTask(Context ctx, DBInstallType type) {
+            this.ctx = ctx;
+            this.type = type;
+        }
+
+
+        @Override
+        protected void onPostExecute(Boolean correct) {
+            if (!correct) {
+                onDownloadFailed(ctx);
+            }
+        }
+
+        @Override
+        protected Boolean doInBackground(String... params) {
+            final String database = params[0];
+
+            PrescriptionDBMgr mgr = DBRegistry.instance().db(database);
+            if (mgr != null) {
+                InstallDatabaseService.isRunning = true;
+                NotificationManager mNotifyManager = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
+                final DownloadManager manager = (DownloadManager) ctx.getSystemService(Context.DOWNLOAD_SERVICE);
+
+
+                final String downloadUrl = Settings.instance().get(SettingsKeys.DATABASE_LOCATION);
+                final String dbName = mgr.id();
+
+                try {//get version
+                    final String dbVersion = DBVersionManager.getLastDBVersion(dbName);
+                    final String url = ctx.getString(R.string.database_file_location, downloadUrl, dbName, dbVersion);
+                    Log.d(TAG, "doInBackground: Downloading database from " + url);
+
+
+                    // remove previous downloads and cancel notifications
+                    removePreviousDownloads(ctx, dbName);
+                    mNotifyManager.cancel(InstallDatabaseService.NOTIFICATION_ID);
+                    // create the download request
+                    DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+                    request.setDescription(mgr.description());
+                    request.setTitle(mgr.displayName());
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
+                    request.setVisibleInDownloadsUi(true);
+                    request.setDestinationInExternalFilesDir(ctx, Environment.DIRECTORY_DOWNLOADS, dbName + downloadSuffix);
+                    // get download service and enqueue file
+                    long downloadId = manager.enqueue(request);
+                    // save id in preferences for later use in DBDownloadReceiver
+                    SharedPreferences preferences = PreferenceUtils.instance().preferences();
+                    preferences.edit()
+                            .putLong(DBDownloadReceiver.DOWNLOAD_MGR_DOWNLOAD_ID, downloadId)
+                            .putString(DBDownloadReceiver.DOWNLOAD_MGR_DOWNLOAD_DB, dbName)
+                            .putString(DBDownloadReceiver.DOWNLOAD_MGR_DOWNLOAD_VERSION, dbVersion)
+                            .putString(DBDownloadReceiver.DOWNLOAD_MGR_DOWNLOAD_TYPE, type.toString())
+                            .apply();
+                } catch (Exception e) {
+                    Log.e(TAG, "doInBackground: ", e);
+                    return false;
+                }
+            } else {
+                Log.e(TAG, "PrescriptionDBMgr for " + database + " is null");
+                return false;
+            }
+
+            return true;
+        }
     }
 
 }

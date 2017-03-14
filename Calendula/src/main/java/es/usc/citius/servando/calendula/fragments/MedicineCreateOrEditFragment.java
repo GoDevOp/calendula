@@ -20,15 +20,15 @@ package es.usc.citius.servando.calendula.fragments;
 
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -39,7 +39,6 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.CompoundButton;
 import android.widget.HorizontalScrollView;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.NumberPicker;
 import android.widget.RelativeLayout;
@@ -47,11 +46,16 @@ import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.doomonafireball.betterpickers.numberpicker.NumberPickerBuilder;
 import com.doomonafireball.betterpickers.numberpicker.NumberPickerDialogFragment;
+import com.github.javiersantos.materialstyleddialogs.MaterialStyledDialog;
+import com.github.javiersantos.materialstyleddialogs.enums.Style;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.mikepenz.community_material_typeface_library.CommunityMaterial;
 import com.mikepenz.iconics.IconicsDrawable;
+import com.mikepenz.iconics.view.IconicsImageView;
 
 import org.joda.time.LocalDate;
 
@@ -61,6 +65,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import butterknife.Unbinder;
 import es.usc.citius.servando.calendula.CalendulaApp;
 import es.usc.citius.servando.calendula.R;
@@ -77,6 +82,7 @@ import es.usc.citius.servando.calendula.persistence.Medicine;
 import es.usc.citius.servando.calendula.persistence.Presentation;
 import es.usc.citius.servando.calendula.persistence.Schedule;
 import es.usc.citius.servando.calendula.util.IconUtils;
+import es.usc.citius.servando.calendula.util.PreferenceKeys;
 import es.usc.citius.servando.calendula.util.Snack;
 import es.usc.citius.servando.calendula.util.Strings;
 import es.usc.citius.servando.calendula.util.medicine.StockUtils;
@@ -119,9 +125,11 @@ public class MedicineCreateOrEditFragment extends Fragment implements SharedPref
     @BindView(R.id.stock_switch)
     Switch stockSwitch;
     @BindView(R.id.btn_stock_add)
-    ImageButton addBtn;
+    IconicsImageView addBtn;
     @BindView(R.id.btn_stock_remove)
-    ImageButton rmBtn;
+    IconicsImageView rmBtn;
+    @BindView(R.id.btn_stock_reset)
+    IconicsImageView resetBtn;
 
     boolean enableSearch = false;
     long mMedicineId;
@@ -176,8 +184,11 @@ public class MedicineCreateOrEditFragment extends Fragment implements SharedPref
         mNameTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                CharSequence text = mNameTextView.getText();
-                ((MedicinesActivity) getActivity()).showSearchView(text != null ? text.toString() : null);
+                final MedicinesActivity medicinesActivity = (MedicinesActivity) getActivity();
+                if (!medicinesActivity.isSearchViewShowing()) {
+                    CharSequence text = mNameTextView.getText();
+                    medicinesActivity.showSearchView(text != null ? text.toString() : null);
+                }
             }
         });
 
@@ -189,7 +200,7 @@ public class MedicineCreateOrEditFragment extends Fragment implements SharedPref
 
         String none = getString(R.string.database_none_id);
         String settingUp = getString(R.string.database_setting_up);
-        String value = prefs.getString("prescriptions_database", none);
+        String value = prefs.getString(PreferenceKeys.DRUGDB_CURRENT_DB, none);
         enableSearch = !value.equals(none) && !value.equals(settingUp);
 
         Log.d(getTag(), "Arguments:  " + (getArguments() != null) + ", savedState: " + (savedInstanceState != null));
@@ -244,28 +255,10 @@ public class MedicineCreateOrEditFragment extends Fragment implements SharedPref
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        unbinder.unbind();
+        if (unbinder != null)
+            unbinder.unbind();
     }
 
-    public void showDeleteConfirmationDialog(final Medicine m) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        // "Remove " + m.name() + "?"
-        builder.setMessage(String.format(getString(R.string.remove_medicine_message_short), m.name()))
-                .setCancelable(true)
-                .setPositiveButton(getString(R.string.dialog_yes_option), new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        if (mMedicineEditCallback != null)
-                            mMedicineEditCallback.onMedicineDeleted(m);
-                    }
-                })
-                .setNegativeButton(getString(R.string.dialog_no_option), new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                    }
-                });
-        AlertDialog alert = builder.create();
-        alert.show();
-    }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -441,28 +434,35 @@ public class MedicineCreateOrEditFragment extends Fragment implements SharedPref
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         boolean adviceShown = prefs.getBoolean("show_use_prescriptions_advice", false);
-        boolean dbEnabled = !prefs.getString("prescriptions_database", getString(R.string.database_none_id)).equals(getString(R.string.database_none_id));
+        boolean dbEnabled = !prefs.getString(PreferenceKeys.DRUGDB_CURRENT_DB, getString(R.string.database_none_id)).equals(getString(R.string.database_none_id));
 
         if (!adviceShown && !dbEnabled) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setTitle(getString(R.string.enable_prescriptions_dialog_title));
-            builder.setCancelable(false);
-            builder.setMessage(getString(R.string.enable_prescriptions_dialog_message))
+            new MaterialStyledDialog.Builder(getActivity())
+                    .setStyle(Style.HEADER_WITH_ICON)
+                    .setIcon(IconUtils.icon(getActivity(), CommunityMaterial.Icon.cmd_database, R.color.white, 100))
+                    .setHeaderColor(R.color.android_blue)
+                    .withDialogAnimation(true)
+                    .setTitle(R.string.enable_prescriptions_dialog_title)
+                    .setDescription(R.string.enable_prescriptions_dialog_message)
                     .setCancelable(false)
-                    .setPositiveButton(getString(R.string.enable_prescriptions_dialog_yes), new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
+                    .setPositiveText(getString(R.string.enable_prescriptions_dialog_yes))
+                    .onPositive(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
                             Intent i = new Intent(getActivity(), SettingsActivity.class);
                             i.putExtra("show_database_dialog", true);
                             startActivity(i);
                         }
                     })
-                    .setNegativeButton(getString(R.string.enable_prescriptions_dialog_no), new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
+                    .setNegativeText(R.string.enable_prescriptions_dialog_no)
+                    .onNegative(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
                             dialog.cancel();
                         }
-                    });
-            AlertDialog alert = builder.create();
-            alert.show();
+                    })
+                    .show();
+
         } else {
             if (mMedicine == null) {
                 showSoftInput();
@@ -474,10 +474,10 @@ public class MedicineCreateOrEditFragment extends Fragment implements SharedPref
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if ("prescriptions_database".equals(key)) {
+        if (PreferenceKeys.DRUGDB_CURRENT_DB.equals(key)) {
             String none = getString(R.string.database_none_id);
             String settingUp = getString(R.string.database_setting_up);
-            String value = sharedPreferences.getString("prescriptions_database", none);
+            String value = sharedPreferences.getString(PreferenceKeys.DRUGDB_CURRENT_DB, none);
             enableSearch = !value.equals(none) && !value.equals(settingUp);
             if (enableSearch) {
 //                enableSearchButton();
@@ -515,8 +515,8 @@ public class MedicineCreateOrEditFragment extends Fragment implements SharedPref
     }
 
     void updateStockText() {
-        String units = selectedPresentation != null ? selectedPresentation.units(getResources()) : Presentation.UNKNOWN.units(getResources());
-        String text = stock == -1 ? "No stock info" : (stock + " " + units + "(s)");
+        String units = selectedPresentation != null ? selectedPresentation.units(getResources(), stock) : Presentation.UNKNOWN.units(getResources(), stock);
+        String text = stock == -1 ? getString(R.string.no_stock_info_msg) : (stock + " " + units);
         mStockEstimation.setVisibility(estimatedStockText != null ? View.VISIBLE : View.INVISIBLE);
         mStockEstimation.setText(estimatedStockText != null ? estimatedStockText : "");
         mStockUnits.setText(text);
@@ -682,36 +682,70 @@ public class MedicineCreateOrEditFragment extends Fragment implements SharedPref
         imm.hideSoftInputFromWindow(mNameTextView.getWindowToken(), 0);
     }
 
+
+    @OnClick(R.id.btn_stock_add)
+    protected void addStock() {
+        final MedicinesActivity medicinesActivity = (MedicinesActivity) getActivity();
+        if (!medicinesActivity.isSearchViewShowing()) {
+            showStockDialog(DIALOG_STOCK_ADD);
+        }
+    }
+
+    @OnClick(R.id.btn_stock_remove)
+    protected void removeStock() {
+        final MedicinesActivity medicinesActivity = (MedicinesActivity) getActivity();
+        if (!medicinesActivity.isSearchViewShowing()) {
+            showStockDialog(DIALOG_STOCK_REMOVE);
+        }
+    }
+
+    @OnClick(R.id.btn_stock_reset)
+    protected void resetStock() {
+        final MedicinesActivity medicinesActivity = (MedicinesActivity) getActivity();
+        if (!medicinesActivity.isSearchViewShowing()) {
+            new MaterialStyledDialog.Builder(getContext())
+                    .setStyle(Style.HEADER_WITH_ICON)
+                    .setIcon(IconUtils.icon(getContext(), mMedicine.presentation().icon(), R.color.white, 100))
+                    .setHeaderColor(R.color.android_orange_dark)
+                    .withDialogAnimation(true)
+                    .setTitle(R.string.title_reset_stock)
+                    .setDescription(getString(R.string.message_reset_stock, mMedicine.name()))
+                    .setCancelable(true)
+                    .setNegativeText(R.string.cancel)
+                    .setPositiveText(R.string.reset)
+                    .onPositive(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                            Log.d(TAG, "onClick: resetting stock...");
+                            setDefaultStock();
+                            updateStockText();
+                        }
+                    })
+                    .show();
+        }
+    }
+
     private void setupStockViews() {
-        Context c = getActivity();
-        Drawable add = IconUtils.icon(c, CommunityMaterial.Icon.cmd_basket_fill, R.color.android_green, 24, 6);
-        Drawable remove = IconUtils.icon(c, CommunityMaterial.Icon.cmd_basket_unfill, R.color.android_red, 24, 6);
 
-        addBtn.setImageDrawable(add);
-        rmBtn.setImageDrawable(remove);
-        addBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showStockDialog(DIALOG_STOCK_ADD);
-            }
-        });
 
-        rmBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showStockDialog(DIALOG_STOCK_REMOVE);
-            }
-        });
+        IconicsDrawable resetDrawable = new IconicsDrawable(getContext(), CommunityMaterial.Icon.cmd_reload)
+                .iconOffsetXDp(2)
+                .backgroundColorRes(R.color.agenda_item_title)
+                .sizeDp(40)
+                .paddingDp(10)
+                .color(Color.WHITE)
+                .roundedCornersDp(23);
+
+        resetBtn.setImageDrawable(resetDrawable);
+
 
         stockSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 updateStockControlsVisibility();
                 if (isChecked) {
                     // user is enabling stock first time
-                    if (stock == -1 && mPrescription != null && mPrescription.getPackagingUnits() > 0) {
-                        stock = mPrescription.getPackagingUnits();
-                        new ComputeEstimatedStockEndTask().execute();
-                    }
+                    if (stock == -1)
+                        setDefaultStock();
 
                     verticalScrollView.post(new Runnable() {
                         @Override
@@ -723,7 +757,7 @@ public class MedicineCreateOrEditFragment extends Fragment implements SharedPref
             }
         });
 
-        stock = mMedicine != null ? mMedicine.stock() : -1;
+        stock = mMedicine != null && mMedicine.stock() != null ? mMedicine.stock() : -1;
 
         if (stock > -1) {
             stockSwitch.setChecked(true);
@@ -733,12 +767,21 @@ public class MedicineCreateOrEditFragment extends Fragment implements SharedPref
         updateStockText();
     }
 
+    private void setDefaultStock() {
+        if (mPrescription != null && mPrescription.getPackagingUnits() > 0) {
+            stock = mPrescription.getPackagingUnits();
+            new ComputeEstimatedStockEndTask().execute();
+        }
+    }
+
     private void updateStockControlsVisibility() {
         int visibility = stockSwitch.isChecked() ? View.VISIBLE : View.INVISIBLE;
         mStockUnits.setVisibility(visibility);
         mStockEstimation.setVisibility(stockSwitch.isChecked() & estimatedStockText != null ? View.VISIBLE : View.INVISIBLE);
         addBtn.setVisibility(visibility);
         rmBtn.setVisibility(visibility);
+        int resetVisibility = stockSwitch.isChecked() && mMedicine != null && mMedicine.isBoundToPrescription() ? View.VISIBLE : View.GONE;
+        resetBtn.setVisibility(resetVisibility);
     }
 
     private void selectPresentation(Presentation p) {

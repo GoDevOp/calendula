@@ -29,6 +29,7 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -50,6 +51,8 @@ import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
@@ -58,6 +61,7 @@ import com.mikepenz.iconics.IconicsDrawable;
 import com.nispok.snackbar.Snackbar;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import es.usc.citius.servando.calendula.CalendulaActivity;
@@ -66,6 +70,7 @@ import es.usc.citius.servando.calendula.R;
 import es.usc.citius.servando.calendula.database.DB;
 import es.usc.citius.servando.calendula.persistence.Patient;
 import es.usc.citius.servando.calendula.util.AvatarMgr;
+import es.usc.citius.servando.calendula.util.KeyboardUtils;
 import es.usc.citius.servando.calendula.util.ScreenUtils;
 import es.usc.citius.servando.calendula.util.Snack;
 
@@ -135,6 +140,8 @@ public class PatientDetailActivity extends CalendulaActivity implements GridView
     boolean linked = false;
     String token = null;
     long patientId;
+    ScrollView scroll;
+    TextView patientNameLabel;
     private Menu menu;
     private int avatarBackgroundColor;
 
@@ -142,7 +149,7 @@ public class PatientDetailActivity extends CalendulaActivity implements GridView
     public void onBackPressed() {
         //ScreenUtils.setStatusBarColor(this, color2);
         patientAvatarBg.setVisibility(View.INVISIBLE);
-        super.onBackPressed();
+        finish();
     }
 
     @Override
@@ -172,6 +179,9 @@ public class PatientDetailActivity extends CalendulaActivity implements GridView
 
             case R.id.action_done:
 
+                if (gridContainer.getVisibility() == View.VISIBLE)
+                    hideAvatarSelector();
+
                 String text = patientName.getText().toString().trim();
 
                 if (!TextUtils.isEmpty(text) && !text.equals(patient.name())) {
@@ -185,7 +195,7 @@ public class PatientDetailActivity extends CalendulaActivity implements GridView
                     }
                     supportFinishAfterTransition();
                 } else {
-                    Snack.show("Indique un nombre, por favor.", this);
+                    Snack.showIfUnobstructed(R.string.message_patients_name_required, this);
                 }
                 return true;
 
@@ -255,7 +265,13 @@ public class PatientDetailActivity extends CalendulaActivity implements GridView
         addRoutinesCheckBox = (CheckBox) findViewById(R.id.checkBox);
         colorScroll = (HorizontalScrollView) findViewById(R.id.colorScroll);
         linkButton = (Button) findViewById(R.id.linkButton);
+        scroll = (ScrollView) findViewById(R.id.scroll);
+        patientNameLabel = (TextView) findViewById(R.id.textView2);
 
+        Collections.sort(avatars);
+        for (String s : avatars) {
+            Log.d("AVATAR", "onCreate: " + s);
+        }
         avatarGrid.setVisibility(View.VISIBLE);
         gridContainer.setVisibility(View.GONE);
 
@@ -307,6 +323,16 @@ public class PatientDetailActivity extends CalendulaActivity implements GridView
         setupAvatarList();
         setupColorChooser();
         loadPatient();
+
+        scroll.setSmoothScrollingEnabled(true);
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                patientName.requestFocus();
+                KeyboardUtils.showKeyboard(PatientDetailActivity.this);
+                scroll.smoothScrollTo(0, patientNameLabel.getTop());
+            }
+        }, 200);
     }
 
     private void showUnlinkPatientDialog() {
@@ -472,6 +498,7 @@ public class PatientDetailActivity extends CalendulaActivity implements GridView
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                KeyboardUtils.hideKeyboard(PatientDetailActivity.this);
                 if (gridContainer.getVisibility() == View.VISIBLE)
                     hideAvatarSelector();
                 else
