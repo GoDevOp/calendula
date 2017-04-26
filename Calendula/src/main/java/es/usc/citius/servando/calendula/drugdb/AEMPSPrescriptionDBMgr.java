@@ -41,12 +41,12 @@ import es.usc.citius.servando.calendula.util.ZipUtil;
  */
 public class AEMPSPrescriptionDBMgr extends PrescriptionDBMgr {
 
-    public static final String PROSPECT_URL = "https://www.aemps.gob.es/cima/dochtml/p/#ID#/Prospecto_#ID#.html";
+    public static final String PROSPECT_URL = "https://www.aempzs.gob.es/cima/dochtml/p/#ID#/Prospecto_#ID#.html";
     private static final String TAG = "AEMPSPrescriptionDBMgr";
 
     @Override
     public String getProspectURL(Prescription p) {
-        return PROSPECT_URL.replaceAll("#ID#", p.getpID());
+        return PROSPECT_URL.replaceAll("#ID#", p.getPID());
     }
 
     @Override
