@@ -40,7 +40,7 @@ libraries/*.iml
 *~
 *.swp
 
-Calendula/google-services.json
+*google-services.json
 
 # captures
 captures/
