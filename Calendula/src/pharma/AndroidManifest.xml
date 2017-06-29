@@ -17,26 +17,11 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools">
+    >
 
     <!-- Pharmacies permissions -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <!-- Pharmacies permissions -->
-
-    <!-- Pharmacies activities -->
-    <activity
-        android:name=".pharmacies.activities.PharmaciesMapActivity"
-        android:parentActivityName=".HomeActivity"
-        android:theme="@style/AppTheme" />
-    <!-- Pharmacies activities -->
-
-    <!-- Pharmacies API key -->
-    <meta-data
-        android:name="com.google.android.geo.API_KEY"
-        android:value="AIzaSyAIy2TbU3TVPEopMa0T68dDr58FucNHE1Y" />
-    <!-- Pharmacies API key -->
-
-
 
 </manifest>

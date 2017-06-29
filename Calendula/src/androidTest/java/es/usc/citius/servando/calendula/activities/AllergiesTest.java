@@ -18,10 +18,12 @@
 
 package es.usc.citius.servando.calendula.activities;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.support.test.espresso.contrib.RecyclerViewActions;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
+import android.view.WindowManager;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -39,6 +41,7 @@ import es.usc.citius.servando.calendula.persistence.Patient;
 import es.usc.citius.servando.calendula.persistence.PatientAllergen;
 import es.usc.citius.servando.calendula.util.CustomViewActions;
 import es.usc.citius.servando.calendula.util.CustomViewMatchers;
+import es.usc.citius.servando.calendula.util.PreferenceKeys;
 import es.usc.citius.servando.calendula.util.PreferenceUtils;
 import es.usc.citius.servando.calendula.util.TestUtils;
 
@@ -76,9 +79,11 @@ public class AllergiesTest {
             DB.patientAllergens().create(pa);
         }
 
-        PreferenceUtils.instance().edit().remove(AllergiesActivity.PREFERENCE_WARNING_SHOWN).commit();
+        PreferenceUtils.edit().remove(PreferenceKeys.ALLERGIES_WARNING_SHOWN.key()).commit();
 
         rule.launchActivity(new Intent());
+
+        TestUtils.unlockScreen(rule.getActivity());
     }
 
     @Test

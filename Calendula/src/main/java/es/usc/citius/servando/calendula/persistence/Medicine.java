@@ -47,7 +47,7 @@ public class Medicine implements Comparable<Medicine> {
     public static final String COLUMN_NAME = "Name";
     public static final String COLUMN_PRESENTATION = "Presentation";
     public static final String COLUMN_CN = "cn";
-    public static final String COLUMN_HG = "hg";
+    public static final String COLUMN_HG = "homogeneousGroup";
     public static final String COLUMN_STOCK = "Stock";
     public static final String COLUMN_PATIENT = "Patient";
     public static final String COLUMN_DATABASE = "Database";
@@ -68,7 +68,7 @@ public class Medicine implements Comparable<Medicine> {
     private Float stock;
 
     @DatabaseField(columnName = COLUMN_HG)
-    private Long homogeneousGroup;
+    private String homogeneousGroup;
 
     @DatabaseField(columnName = COLUMN_PATIENT, foreign = true, foreignAutoRefresh = true)
     private Patient patient;
@@ -104,7 +104,7 @@ public class Medicine implements Comparable<Medicine> {
         Medicine m = new Medicine();
         m.setCn(String.valueOf(p.getCode()));
         m.setName(p.shortName());
-        Presentation pre = DBRegistry.instance().current().expected(p);
+        Presentation pre = DBRegistry.instance().current().expectedPresentation(p);
         m.setPresentation(pre != null ? pre : Presentation.PILLS);
         m.setDatabase(DBRegistry.instance().current().id());
         return m;
@@ -118,11 +118,11 @@ public class Medicine implements Comparable<Medicine> {
         this.cn = cn;
     }
 
-    public Long homogeneousGroup() {
+    public String homogeneousGroup() {
         return homogeneousGroup;
     }
 
-    public void setHomogeneousGroup(Long homogeneousGroup) {
+    public void setHomogeneousGroup(String homogeneousGroup) {
         this.homogeneousGroup = homogeneousGroup;
     }
 
@@ -209,7 +209,7 @@ public class Medicine implements Comparable<Medicine> {
     }
 
     public boolean isBoundToPrescription() {
-        return cn != null && database != null && database.equals(PreferenceUtils.instance().preferences().getString(PreferenceKeys.DRUGDB_CURRENT_DB, null));
+        return cn != null && database != null && database.equals(PreferenceUtils.getString(PreferenceKeys.DRUGDB_CURRENT_DB, null));
     }
 
     public Float stock() {

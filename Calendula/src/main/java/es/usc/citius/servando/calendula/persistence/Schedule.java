@@ -20,7 +20,6 @@ package es.usc.citius.servando.calendula.persistence;
 
 import android.content.Context;
 import android.text.format.Time;
-import android.util.Log;
 
 import com.doomonafireball.betterpickers.recurrencepicker.EventRecurrence;
 import com.doomonafireball.betterpickers.recurrencepicker.EventRecurrenceFormatter;
@@ -43,6 +42,7 @@ import es.usc.citius.servando.calendula.persistence.typeSerializers.LocalDatePer
 import es.usc.citius.servando.calendula.persistence.typeSerializers.LocalTimePersister;
 import es.usc.citius.servando.calendula.persistence.typeSerializers.RRulePersister;
 import es.usc.citius.servando.calendula.scheduling.ScheduleUtils;
+import es.usc.citius.servando.calendula.util.LogUtil;
 import es.usc.citius.servando.calendula.util.ScheduleHelper;
 
 
@@ -57,6 +57,7 @@ public class Schedule {
     public static final int SCHEDULE_TYPE_INTERVAL = 2;
     public static final int SCHEDULE_TYPE_HOURLY = 4;
     public static final int SCHEDULE_TYPE_CYCLE = 5;
+
     public static final String COLUMN_ID = "_id";
     public static final String COLUMN_MEDICINE = "Medicine";
     public static final String COLUMN_DAYS = "Days";
@@ -69,6 +70,8 @@ public class Schedule {
     public static final String COLUMN_SCANNED = "Scanned";
     public static final String COLUMN_PATIENT = "Patient";
     public static final String COLUMN_STATE = "State";
+    private static final String TAG = "Schedule";
+
     @DatabaseField(columnName = COLUMN_ID, generatedId = true)
     private Long id;
     @DatabaseField(columnName = COLUMN_MEDICINE, foreign = true, foreignAutoRefresh = true)
@@ -291,7 +294,7 @@ public class Schedule {
         boolean[] d = days();
         d[i] = !d[i];
         rrule.setDays(d);
-        Log.d("Schedule", "Days: " + Arrays.toString(days()));
+        LogUtil.d(TAG, "Days: " + Arrays.toString(days()));
     }
     //    final int[] byHour = rule().iCalRule().getByHour();
     //    if (byHour != null && byHour.length == 1)

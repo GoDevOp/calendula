@@ -33,6 +33,8 @@ import java.util.Collection;
  */
 public class Strings {
 
+    private static final String TAG = "Strings";
+
     public static String toCamelCase(String s, String spacer) {
         String[] parts = s.split(spacer);
         String camelCaseString = "";
@@ -77,20 +79,32 @@ public class Strings {
         int start = t.indexOf(m);
         if (start >= 0) {
             int end = start + match.length();
-            final ForegroundColorSpan fcs = new ForegroundColorSpan(color);
-            final StyleSpan bss = new StyleSpan(android.graphics.Typeface.BOLD);
-            sb.setSpan(fcs, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            sb.setSpan(bss, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+            return getHighlighted(text, start, end, color);
         }
         return sb;
     }
 
     public static SpannableStringBuilder getHighlighted(final String text, final int start, final int end, final int color) {
         final SpannableStringBuilder sb = new SpannableStringBuilder(Strings.toProperCase(text));
+
+        // check sanity of params
+        if (end <= start) {
+            throw new IllegalArgumentException("Illegal indexes: end<start!");
+        }
+        if (end < 0 || start < 0) {
+            throw new IllegalArgumentException("Illegal indexes: less than 0");
+        }
+        // fix end index if needed
+        int realEnd = end;
+        if (end > sb.length()) {
+            LogUtil.d(TAG, "getHighlighted: end index bigger than string, defaulting to last valid index");
+            realEnd = sb.length();
+        }
+
         final ForegroundColorSpan fcs = new ForegroundColorSpan(color);
         final StyleSpan bss = new StyleSpan(android.graphics.Typeface.BOLD);
-        sb.setSpan(fcs, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-        sb.setSpan(bss, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+        sb.setSpan(fcs, start, realEnd, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+        sb.setSpan(bss, start, realEnd, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
         return sb;
     }
 

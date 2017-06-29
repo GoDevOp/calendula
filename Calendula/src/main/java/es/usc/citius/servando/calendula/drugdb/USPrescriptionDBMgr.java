@@ -20,7 +20,6 @@ package es.usc.citius.servando.calendula.drugdb;
 
 import android.content.Context;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.j256.ormlite.misc.TransactionManager;
 import com.j256.ormlite.support.ConnectionSource;
@@ -34,6 +33,7 @@ import java.util.concurrent.Callable;
 import es.usc.citius.servando.calendula.database.DB;
 import es.usc.citius.servando.calendula.drugdb.model.persistence.Prescription;
 import es.usc.citius.servando.calendula.persistence.Presentation;
+import es.usc.citius.servando.calendula.util.LogUtil;
 
 /**
  * Created by joseangel.pineiro on 9/8/15.
@@ -45,7 +45,7 @@ public class USPrescriptionDBMgr extends PrescriptionDBMgr {
 
     @Override
     public String getProspectURL(Prescription p) {
-        return "http://www.accessdata.fda.gov/spl/data/#ID#/#ID#.xml".replaceAll("#ID#", p.getpID());
+        return "http://www.accessdata.fda.gov/spl/data/#ID#/#ID#.xml".replaceAll("#ID#", p.getPID());
     }
 
 
@@ -63,7 +63,7 @@ public class USPrescriptionDBMgr extends PrescriptionDBMgr {
 
         Prescription p = new Prescription();
         p.setCode(values[0]);
-        p.setpID(values[0]);
+        p.setPID(values[0]);
         p.setName(values[1]);
         p.setDose("0");
         p.setContent(values[2]);
@@ -75,14 +75,14 @@ public class USPrescriptionDBMgr extends PrescriptionDBMgr {
     }
 
     @Override
-    public Presentation expected(Prescription p) {
+    public Presentation expectedPresentation(Prescription p) {
         String name = p.getName();
         String content = p.getContent();
-        return expected(name, content);
+        return expectedPresentation(name, content);
     }
 
     @Override
-    public Presentation expected(String name, String content) {
+    public Presentation expectedPresentation(String name, String content) {
 
         String n = name.toLowerCase() + " " + content.toLowerCase();
         if (n.contains("tablet")) {
@@ -159,14 +159,14 @@ public class USPrescriptionDBMgr extends PrescriptionDBMgr {
             }
         });
 
-        Log.d(TAG, "setup: cleaning up...");
+        LogUtil.d(TAG, "setup: cleaning up...");
         try {
             boolean delete = new File(downloadPath).delete();
             if (!delete) {
-                Log.i(TAG, "setup: couldn't delete file " + downloadPath);
+                LogUtil.i(TAG, "setup: couldn't delete file " + downloadPath);
             }
         } catch (Exception e) {
-            Log.e(TAG, "setup: couldn't finish cleanup: ", e);
+            LogUtil.e(TAG, "setup: couldn't finish cleanup: ", e);
         }
     }
 

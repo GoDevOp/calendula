@@ -24,7 +24,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -49,6 +48,7 @@ import java.util.List;
 import es.usc.citius.servando.calendula.CalendulaApp;
 import es.usc.citius.servando.calendula.HomePagerActivity;
 import es.usc.citius.servando.calendula.R;
+import es.usc.citius.servando.calendula.adapters.HomePages;
 import es.usc.citius.servando.calendula.database.DB;
 import es.usc.citius.servando.calendula.modules.ModuleManager;
 import es.usc.citius.servando.calendula.modules.modules.AllergiesModule;
@@ -57,6 +57,7 @@ import es.usc.citius.servando.calendula.persistence.Patient;
 import es.usc.citius.servando.calendula.pharmacies.activities.PharmaciesMapActivity;
 import es.usc.citius.servando.calendula.util.AvatarMgr;
 import es.usc.citius.servando.calendula.util.IconUtils;
+import es.usc.citius.servando.calendula.util.LogUtil;
 import es.usc.citius.servando.calendula.util.ScreenUtils;
 
 /**
@@ -80,6 +81,8 @@ public class LeftDrawerMgr implements Drawer.OnDrawerItemClickListener, AccountH
     public static final int CALENDAR = 12;
 
     public static final int ALLERGIES = 11;
+
+    private static final String TAG = "LeftDrawerMgr";
 
 
     private AccountHeader headerResult = null;
@@ -110,7 +113,7 @@ public class LeftDrawerMgr implements Drawer.OnDrawerItemClickListener, AccountH
                 .withIdentifier(PATIENT_ADD));
 
         for (Patient p : DB.patients().findAll()) {
-            Log.d("LeftDrawer", "Adding patient to drawer: " + p.name());
+            LogUtil.d(TAG, "Adding patient to drawer: " + p.name());
             profiles.add(genProfile(p));
         }
 
@@ -150,13 +153,13 @@ public class LeftDrawerMgr implements Drawer.OnDrawerItemClickListener, AccountH
                         .withIdentifier(PATIENTS),
                 new DividerDrawerItem(),
                 new PrimaryDrawerItem()
-                        .withName(R.string.title_activity_routines)
-                        .withIcon(IconUtils.icon(home, GoogleMaterial.Icon.gmd_alarm, R.color.black).alpha(110))
-                        .withIdentifier(ROUTINES),
-                new PrimaryDrawerItem()
                         .withName(R.string.title_activity_medicines)
                         .withIcon(IconUtils.icon(home, CommunityMaterial.Icon.cmd_pill, R.color.black).alpha(110))
                         .withIdentifier(MEDICINES),
+                new PrimaryDrawerItem()
+                        .withName(R.string.title_activity_routines)
+                        .withIcon(IconUtils.icon(home, GoogleMaterial.Icon.gmd_alarm, R.color.black).alpha(110))
+                        .withIdentifier(ROUTINES),
                 new PrimaryDrawerItem()
                         .withName(R.string.title_activity_schedules)
                         .withIcon(IconUtils.icon(home, GoogleMaterial.Icon.gmd_calendar, R.color.black).alpha(110))
@@ -211,16 +214,16 @@ public class LeftDrawerMgr implements Drawer.OnDrawerItemClickListener, AccountH
 
         switch (identifier) {
             case HOME:
-                home.showPagerItem(0, false);
+                home.showPagerItem(HomePages.HOME.ordinal(), false);
                 break;
             case ROUTINES:
-                home.showPagerItem(1, false);
+                home.showPagerItem(HomePages.ROUTINES.ordinal(), false);
                 break;
             case MEDICINES:
-                home.showPagerItem(2, false);
+                home.showPagerItem(HomePages.MEDICINES.ordinal(), false);
                 break;
             case SCHEDULES:
-                home.showPagerItem(3, false);
+                home.showPagerItem(HomePages.SCHEDULES.ordinal(), false);
                 break;
             case CALENDAR:
                 launchActivity(new Intent(home, CalendarActivity.class));
@@ -275,7 +278,7 @@ public class LeftDrawerMgr implements Drawer.OnDrawerItemClickListener, AccountH
     }
 
     public void onPagerPositionChange(int pagerPosition) {
-        Log.d("LeftDrawer", "onPagerPositionChange: " + pagerPosition);
+        LogUtil.d(TAG, "onPagerPositionChange: " + pagerPosition);
         switch (pagerPosition) {
             case 0:
                 drawer.setSelection(HOME, false);
@@ -308,7 +311,7 @@ public class LeftDrawerMgr implements Drawer.OnDrawerItemClickListener, AccountH
                 intent.putExtra("patient_id", id);
                 launchActivity(intent);
             } else {
-                DB.patients().setActive(p, home);
+                DB.patients().setActive(p);
                 updateHeaderBackground(p);
             }
         }

@@ -44,3 +44,7 @@ libraries/*.iml
 
 # captures
 captures/
+
+*google-services.json
+
+hs_err_*.log

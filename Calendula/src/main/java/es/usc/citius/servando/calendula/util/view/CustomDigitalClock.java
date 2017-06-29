@@ -24,10 +24,11 @@ import android.database.ContentObserver;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.provider.Settings;
+import android.support.v7.widget.AppCompatTextView;
 import android.text.format.DateFormat;
 import android.util.AttributeSet;
-import android.widget.TextView;
 
+import java.lang.ref.WeakReference;
 import java.util.Calendar;
 
 /**
@@ -35,7 +36,7 @@ import java.util.Calendar;
  * private final static String m12 = "h:mm aa"; private final static String m24 = "k:mm";
  */
 
-public class CustomDigitalClock extends TextView {
+public class CustomDigitalClock extends AppCompatTextView {
 
     private final static String m12 = "kk:mm";
     private final static String m24 = "kk:mm";
@@ -44,7 +45,7 @@ public class CustomDigitalClock extends TextView {
     Calendar mCalendar;
     String mFormat;
     boolean showSeconds = false;
-    private FormatChangeObserver mFormatChangeObserver = new FormatChangeObserver();
+    private WeakReference<FormatChangeObserver> mFormatChangeObserver = new WeakReference<>(new FormatChangeObserver());
     private Runnable mTicker;
     private Handler mHandler;
     private boolean mTickerStopped = false;
@@ -113,7 +114,8 @@ public class CustomDigitalClock extends TextView {
             mCalendar = Calendar.getInstance();
         }
 
-        getContext().getContentResolver().registerContentObserver(Settings.System.CONTENT_URI, true, mFormatChangeObserver);
+
+        getContext().getContentResolver().registerContentObserver(Settings.System.CONTENT_URI, true, mFormatChangeObserver.get());
 
         setFormat();
     }

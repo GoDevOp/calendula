@@ -19,7 +19,6 @@
 package es.usc.citius.servando.calendula.database;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
@@ -33,6 +32,7 @@ import java.util.concurrent.Callable;
 
 import es.usc.citius.servando.calendula.CalendulaApp;
 import es.usc.citius.servando.calendula.allergies.AllergyAlertUtil;
+import es.usc.citius.servando.calendula.drugdb.model.persistence.Prescription;
 import es.usc.citius.servando.calendula.events.PersistenceEvents;
 import es.usc.citius.servando.calendula.events.StockRunningOutEvent;
 import es.usc.citius.servando.calendula.persistence.Medicine;
@@ -41,6 +41,7 @@ import es.usc.citius.servando.calendula.persistence.PatientAlert;
 import es.usc.citius.servando.calendula.persistence.PickupInfo;
 import es.usc.citius.servando.calendula.persistence.Schedule;
 import es.usc.citius.servando.calendula.persistence.alerts.StockRunningOutAlert;
+import es.usc.citius.servando.calendula.util.PreferenceKeys;
 import es.usc.citius.servando.calendula.util.PreferenceUtils;
 import es.usc.citius.servando.calendula.util.alerts.AlertManager;
 import es.usc.citius.servando.calendula.util.medicine.StockUtils;
@@ -83,6 +84,16 @@ public class MedicineDao extends GenericDao<Medicine, Long> {
         }
     }
 
+    public List<Medicine> findAllByGroup(Long patientId, String[] groups) {
+        try {
+            return dao.queryBuilder()
+                    .where().eq(Medicine.COLUMN_PATIENT, patientId).and().in(Medicine.COLUMN_HG, (Object[]) groups)
+                    .query();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding models", e);
+        }
+    }
+
     @Override
     public void fireEvent() {
         CalendulaApp.eventBus().post(PersistenceEvents.MEDICINE_EVENT);
@@ -100,8 +111,7 @@ public class MedicineDao extends GenericDao<Medicine, Long> {
 
             if (addedOrRemoved) {
                 Long days = StockUtils.getEstimatedStockDays(m);
-                SharedPreferences preferences = PreferenceUtils.instance().preferences();
-                int stock_alert_days = Integer.parseInt(preferences.getString("stock_alert_days", "-1"));
+                int stock_alert_days = Integer.parseInt(PreferenceUtils.getString(PreferenceKeys.SETTINGS_STOCK_ALERT_DAYS, "-1"));
                 List<PatientAlert> alerts = DB.alerts().findByMedicineAndType(m, StockRunningOutAlert.class.getCanonicalName());
                 if (days != null && days < stock_alert_days) {
                     if (alerts.isEmpty()) {
@@ -115,9 +125,15 @@ public class MedicineDao extends GenericDao<Medicine, Long> {
                 }
             }
         } else {
+            // assign homogeneous group if possible
+            if (m.isBoundToPrescription()) {
+                Prescription p = DB.drugDB().prescriptions().findByCn(m.cn());
+                if (p != null && p.getHomogeneousGroup() != null) {
+                    m.setHomogeneousGroup(p.getHomogeneousGroup());
+                }
+            }
             super.save(m);
         }
-
     }
 
     @Override
